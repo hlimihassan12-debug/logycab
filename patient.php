@@ -105,7 +105,9 @@ tbody td { padding: 8px 12px; font-size: 13px; }
 
 <div class="header">
     <a href="agenda.php">◀ Agenda</a>
-    <h1>🧑‍⚕️ Fiche patient — <?= htmlspecialchars($patient['NOMPRENOM']) ?></h1>
+<a href="dossier.php?id=<?= $id ?>" style="background:#27ae60;">🏠 Home</a>
+<a href="recherche.php" style="background:#8e44ad;">🔍 Recherche</a>
+<h1>🧑‍⚕️ Fiche patient — <?= htmlspecialchars($patient['NOMPRENOM']) ?></h1>
 </div>
 
 <div class="container">
@@ -168,7 +170,8 @@ tbody td { padding: 8px 12px; font-size: 13px; }
             <tbody>
             <?php foreach ($ordonnances as $o): ?>
                 <tr>
-                    <td><?= $o['n_ordon'] ?></td>
+                    <td><a href="dossier.php?id=<?= $id ?>&ord=<?= $o['n_ordon'] ?>" style="color:#2e6da4;font-weight:bold;"><?= $o['n_ordon'] ?></a></td>
+<td><?= $o['date_ordon'] ? date('d/m/Y', strtotime($o['date_ordon'])) : '—' ?></td>
                     <td><?= $o['date_ordon'] ? date('d/m/Y', strtotime($o['date_ordon'])) : '—' ?></td>
                     <td><?= $o['DATE REDEZ VOUS'] ? date('d/m/Y', strtotime($o['DATE REDEZ VOUS'])) : '—' ?></td>
                     <td><?= htmlspecialchars($o['HeureRDV'] ?? '') ?></td>

@@ -229,7 +229,7 @@ tbody td { padding: 9px 12px; font-size: 13px; vertical-align: middle; }
         <tr class="<?= $classe ?>">
             <td class="heure"><?= $p['Urgence'] ? '🚨 URGENT' : htmlspecialchars($p['HeureRDV'] ?? '--:--') ?></td>
             <td><?= $p['N°PAT'] ?></td>
-            <td><a href="consultation.php?id=<?= $p['N°PAT'] ?>" style="color:#1a4a7a;text-decoration:none;font-weight:bold;"><?= htmlspecialchars($p['NOMPRENOM']) ?></a></td>
+            <td><a href="dossier.php?id=<?= $p['N°PAT'] ?>" style="color:#1a4a7a;text-decoration:none;font-weight:bold;"><?= htmlspecialchars($p['NOMPRENOM']) ?></a></td>
             <td><?= htmlspecialchars($p['TEL D'] ?? '') ?></td>
             <td><?php if ($p['acte1']): ?><span class="acte-badge"><?= htmlspecialchars($p['acte1']) ?></span><?php endif; ?></td>
             <td><?= htmlspecialchars($p['Observation'] ?? '') ?></td>

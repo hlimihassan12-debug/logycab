@@ -4,7 +4,7 @@
  * Logycab — Cabinet Dr Hassan Hlimi — Tétouan
  */
 
-define('DB_SERVER', 'localhost\SQLEXPRESS01');
+define('DB_SERVER', 'localhost\SQLEXPRESS');
 define('DB_NAME',   'Logycab');
 
 function getDB(): PDO {

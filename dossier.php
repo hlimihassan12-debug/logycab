@@ -40,6 +40,54 @@ $stmtOrd = $db->prepare("SELECT * FROM ORD WHERE id=? ORDER BY date_ordon DESC")
 $stmtOrd->execute([$id]);
 $ordonnances = $stmtOrd->fetchAll();
 $nOrd = (int)($_GET['ord'] ?? ($ordonnances ? $ordonnances[0]['n_ordon'] : 0));
+// RDV précédent (donné à la consultation précédente)
+$ordPrecedente = $ordonnances[0] ?? null; // 2ème ordonnance = consultation précédente
+$rdvPrecedent = null;
+if ($ordPrecedente) {
+    $stmtRdvPrec = $db->prepare("SELECT [DATE REDEZ VOUS], HeureRDV, acte1 FROM ORD WHERE n_ordon = ?");
+    $stmtRdvPrec->execute([$ordPrecedente['n_ordon']]);
+    $rdvPrecedent = $stmtRdvPrec->fetch();
+}
+
+// Actes automatiques basés sur les ordonnances
+$actesSuggeres = [];
+
+// Dernier ECG prescrit
+$stmtLastECG = $db->prepare("
+    SELECT TOP 1 date_ordon FROM ORD 
+    WHERE id=? AND acte1 LIKE '%ECG%' 
+    ORDER BY date_ordon DESC
+");
+$stmtLastECG->execute([$id]);
+$lastECG = $stmtLastECG->fetchColumn();
+if (!$lastECG || (new DateTime())->diff(new DateTime($lastECG))->days > 30) {
+    $actesSuggeres[] = ['acte' => 'ECG', 'derniere' => $lastECG];
+}
+
+// Dernier EDC prescrit
+$stmtLastEDC = $db->prepare("
+    SELECT TOP 1 date_ordon FROM ORD 
+    WHERE id=? AND acte1 LIKE '%EDC%' 
+    ORDER BY date_ordon DESC
+");
+$stmtLastEDC->execute([$id]);
+$lastEDC = $stmtLastEDC->fetchColumn();
+if (!$lastEDC || (new DateTime())->diff(new DateTime($lastEDC))->days > 335) {
+    $actesSuggeres[] = ['acte' => 'EDC', 'derniere' => $lastEDC];
+}
+
+// Dernier DTSA prescrit
+$stmtLastDTSA = $db->prepare("
+    SELECT TOP 1 date_ordon FROM ORD 
+    WHERE id=? AND acte1 LIKE '%DTSA%' 
+    ORDER BY date_ordon DESC
+");
+$stmtLastDTSA->execute([$id]);
+$lastDTSA = $stmtLastDTSA->fetchColumn();
+if (!$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335) {
+    $actesSuggeres[] = ['acte' => 'DTSA', 'derniere' => $lastDTSA];
+}
+
 $ordCourante = null;
 foreach ($ordonnances as $o) {
     if ($o['n_ordon'] == $nOrd) { $ordCourante = $o; break; }
@@ -237,6 +285,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 <!-- HEADER -->
 <div class="header">
     <a href="agenda.php">◀ Agenda</a>
+<a href="recherche.php" style="background:#27ae60;">🏠 Home</a>
     <div style="position:relative;display:inline-block;">
     <input type="text" id="rech-patient" placeholder="🔍 Rechercher patient..." 
            style="padding:5px 10px;border-radius:4px;border:none;font-size:12px;width:200px;">
@@ -374,26 +423,64 @@ if ($examen) {
             </div>
 
             <?php if ($ordCourante): ?>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-                <div class="champ">
-                    <label>Date ordonnance</label>
-                    <input type="text" value="<?= $ordCourante['date_ordon'] ? date('d/m/Y', strtotime($ordCourante['date_ordon'])) : '—' ?>" readonly>
-                </div>
-                <div class="champ">
-                    <label>Prochain RDV</label>
-                    <input type="text" value="<?= $ordCourante['DATE REDEZ VOUS'] ? date('d/m/Y', strtotime($ordCourante['DATE REDEZ VOUS'])) : '—' ?>" readonly>
-                </div>
-                <div class="champ">
-                    <label>Heure RDV</label>
-                    <input type="text" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '—') ?>" readonly>
-                </div>
-                <div class="champ">
-                    <label>Actes prévus</label>
-                    <?php if ($ordCourante['acte1']): ?>
-                        <span class="acte-badge"><?= htmlspecialchars($ordCourante['acte1']) ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+    <div class="champ">
+        <label>Date ordonnance</label>
+        <input type="text" value="<?= $ordCourante['date_ordon'] ? date('d/m/Y', strtotime($ordCourante['date_ordon'])) : '—' ?>" readonly>
+    </div>
+    <div class="champ">
+        <label>Date RDV prévue pour aujourd'hui</label>
+        <input type="date" id="rdv_futur" value="<?= $ordCourante['DATE REDEZ VOUS'] ? date('Y-m-d', strtotime($ordCourante['DATE REDEZ VOUS'])) : '' ?>">
+    </div>
+    <div class="champ">
+        <label>Heure RDV futur</label>
+        <input type="time" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
+    </div>
+    <div class="champ">
+        <label>Acte prévu</label>
+        <input type="text" id="acte_rdv_futur" value="<?= htmlspecialchars($ordCourante['acte1'] ?? '') ?>">
+    </div>
+</div>
+
+<!-- RDV PRECEDENT -->
+<?php if ($rdvPrecedent && $rdvPrecedent['DATE REDEZ VOUS']): ?>
+<div style="background:#e8f4fd;border-left:4px solid #2e6da4;padding:8px;border-radius:4px;margin-bottom:8px;">
+    <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">📅 RDV donné à la consultation précédente</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <div class="champ">
+            <label>Date RDV</label>
+            <input type="text" value="<?= date('d/m/Y', strtotime($rdvPrecedent['DATE REDEZ VOUS'])) ?>" readonly style="background:#f0f8ff;font-weight:bold;">
+        </div>
+        <div class="champ">
+            <label>Heure</label>
+            <input type="text" value="<?= htmlspecialchars($rdvPrecedent['HeureRDV'] ?? '—') ?>" readonly style="background:#f0f8ff;">
+        </div>
+        <div class="champ">
+            <label>Acte prévu</label>
+            <input type="text" value="<?= htmlspecialchars($rdvPrecedent['acte1'] ?? '—') ?>" readonly style="background:#f0f8ff;">
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- ACTES SUGGERES -->
+<?php if (!empty($actesSuggeres)): ?>
+<div style="background:#fff3cd;border-left:4px solid #f39c12;padding:8px;border-radius:4px;margin-bottom:8px;">
+    <div style="font-size:11px;font-weight:bold;color:#856404;margin-bottom:6px;">⚠️ Actes suggérés automatiquement</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <?php foreach ($actesSuggeres as $a): ?>
+    <span style="background:#f39c12;color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:bold;">
+        <?= $a['acte'] ?>
+        <?php if ($a['derniere']): ?>
+            <span style="font-size:10px;opacity:0.85;">(dernier : <?= date('d/m/Y', strtotime($a['derniere'])) ?>)</span>
+        <?php else: ?>
+            <span style="font-size:10px;opacity:0.85;">(jamais prescrit)</span>
+        <?php endif; ?>
+    </span>
+<?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
 
             <!-- BOUTONS DELAI RDV -->
             <div class="champ">
@@ -485,12 +572,15 @@ if ($examen) {
                 </div>
                 <div class="champ">
                     <label>Date facture</label>
-                    <input type="text" value="<?= $factCourante['date_facture'] ? date('d/m/Y', strtotime($factCourante['date_facture'])) : '—' ?>" readonly>
+                    <input type="date" value="<?= $factCourante['date_facture'] ? date('Y-m-d', strtotime($factCourante['date_facture'])) : '' ?>"
+onchange="majDateFacture(<?= $nFact ?>, this.value)"
+style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:12px;">
                 </div>
             </div>
             <table style="width:100%;border-collapse:collapse;font-size:11px;">
                 <thead style="background:#1a4a7a;color:white;">
                     <tr>
+                        <th style="padding:4px 6px;text-align:left;">Date acte</th>
                         <th style="padding:4px 6px;text-align:left;">Acte</th>
                         <th style="padding:4px 6px;text-align:right;">Prix</th>
                         <th style="padding:4px 6px;text-align:right;">Versé</th>
@@ -500,6 +590,11 @@ if ($examen) {
                 <tbody>
                 <?php foreach ($detailActes as $da): ?>
                 <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:4px 6px;">
+    <input type="date" value="<?= $da['date-H'] ? date('Y-m-d', strtotime($da['date-H'])) : '' ?>"
+    onchange="majDateActe(<?= $da['N_aacte'] ?>, this.value)"
+    style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:110px;">
+</td>
                     <td style="padding:4px 6px;"><?= htmlspecialchars($da['nom_acte'] ?? 'Acte '.$da['ACTE']) ?></td>
                     <td style="padding:4px 6px;text-align:right;"><?= number_format($da['prixU'], 0, ',', ' ') ?></td>
                     <td style="padding:4px 6px;text-align:right;"><?= number_format($da['Versé'], 0, ',', ' ') ?></td>
@@ -701,5 +796,23 @@ function calcJours() {
     }
 }
 </script>
+function majDateActe(id, val) {
+    fetch('backend/api/maj_date_acte.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: id, date: val})
+    }).then(r => r.json()).then(d => {
+        if (d.ok) console.log('Date acte mise à jour');
+    });
+}
+function majDateFacture(id, val) {
+    fetch('backend/api/maj_date_facture.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: id, date: val})
+    }).then(r => r.json()).then(d => {
+        if (d.ok) console.log('Date facture mise à jour');
+    });
+}
 </body>
 </html>
