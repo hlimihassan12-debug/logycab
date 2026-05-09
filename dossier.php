@@ -616,12 +616,10 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <?php endif; ?>
             </div>
             <?php endif; ?>
-        </div>
-
-            </div><!-- FIN COL GAUCHE -->
-            <div><!-- COL DROITE : FACTURATION + CERTIFICAT -->
-        <!-- FACTURATION -->
-        <div class="card" style="margin:0 0 8px 0;">
+        </div><!-- FIN COL GAUCHE -->
+            <div style="display:flex;flex-direction:column;gap:8px;"><!-- COL DROITE -->
+        <!-- CARD FACTURATION -->
+        <div class="card">
             <div class="card-title">
                 💰 Facturation
                 <div class="nav-btns">
@@ -701,7 +699,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <label style="font-size:11px;color:#856404;font-weight:bold;">Nombre de jours : <strong id="cert_jours">—</strong></label>
                 </div>
             </div>
-            </div><!-- FIN COL DROITE -->
+            </div><!-- FIN CARD FACTURATION -->
             </div><!-- FIN GRID RDV+FACT -->
     </div>
 
