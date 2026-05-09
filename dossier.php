@@ -28,6 +28,19 @@ $stmtFDR->execute([$id]);
 $fdrPatient = $stmtFDR->fetchAll(PDO::FETCH_COLUMN);
 if (!$patient) { die("❌ Patient introuvable !"); }
 
+// Navigation entre patients qui ont des ordonnances
+$first_id = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] ASC")->fetchColumn();
+$last_id  = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] DESC")->fetchColumn();
+
+$prev_id  = $db->prepare("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] < ? AND [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] DESC");
+$prev_id->execute([$id]); $prev_id = $prev_id->fetchColumn() ?: $id;
+
+$next_id  = $db->prepare("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] > ? AND [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] ASC");
+$next_id->execute([$id]); $next_id = $next_id->fetchColumn() ?: $id;
+
+$total_patients = $db->query("SELECT COUNT(DISTINCT id) FROM ORD")->fetchColumn();
+$pos_patient    = $db->prepare("SELECT COUNT(DISTINCT id) FROM ORD WHERE id <= ?");
+$pos_patient->execute([$id]); $pos_patient = $pos_patient->fetchColumn();
 // Calcul âge
 $age = '';
 if ($patient['DDN']) {
@@ -323,7 +336,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                style="padding:5px 10px;border-radius:4px;border:none;font-size:12px;width:200px;">
         <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:white;border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
-    <h1>🩺 Dossier médical</h1>
+  <h1>🩺 Dossier médical</h1>
+<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;">
+    <a href="dossier.php?id=<?= $first_id ?>" title="Premier patient" 
+       style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏮</a>
+    <a href="dossier.php?id=<?= $prev_id ?>" title="Précédent"
+       style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">◀</a>
+    <span style="color:white;font-size:12px;min-width:70px;text-align:center;">
+        <?= $pos_patient ?> / <?= $total_patients ?>
+    </span>
+    <a href="dossier.php?id=<?= $next_id ?>&ord=0" title="Suivant"
+       style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">▶</a>
+    <a href="dossier.php?id=<?= $last_id ?>&ord=0" title="Dernier patient"
+       style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏭</a>
+</div>
     <a href="bilan.php?id=<?= $id ?>">🧪 Bilans</a>
     <a href="logout.php" style="background:#e74c3c;">🚪 Déco</a>
 </div>
@@ -620,10 +646,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             <div style="display:flex;flex-direction:column;gap:8px;"><!-- COL DROITE -->
         <!-- CARD FACTURATION -->
         <div class="card">
-            <div class="card-title">
-                💰 Facturation
-                
-            </div>
+            <<div class="card-title">
+  
+    💰 Facturation
+    <div class="nav-btns">
+        <a href="nouvelle_facture.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;" title="Nouvelle facture">✚</a>
+    </div>
+</div>
             <?php if ($factCourante): ?>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
                 <div class="champ">
@@ -674,12 +703,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </table>
             <!-- NAVIGATION FACTURATION -->
             <div style="display:flex;justify-content:center;gap:4px;margin-top:8px;">
-                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn">|◀</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn">◀</a>
-                <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:3px 6px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn">▶</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn">▶|</a>
-            </div>
+    <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn">|◀</a>
+    <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn">◀</a>
+    <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:3px 6px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
+    <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn">▶</a>
+    <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn">▶|</a>
+    <a href="nouvelle_facture.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;" title="Nouvelle facture">✚</a>
+</div>
             <?php else: ?>
                 <p style="color:#999;font-size:12px;">Aucune facture</p>
             <?php endif; ?>
@@ -769,15 +799,15 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <!-- ECG -->
     <div class="card">
         <div class="card-title">
-            ⚡ ECG
-            <div class="nav-btns">
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn">|◀</a>
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn">◀</a>
-                <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn">▶</a>
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn">▶|</a>
-            </div>
-        </div>
+          ⚡ ECG
+<div class="nav-btns">
+    <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn">|◀</a>
+    <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn">◀</a>
+    <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
+    <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn">▶</a>
+    <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn">▶|</a>
+    <a href="nouveau_ecg.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;" title="Nouvel ECG">✚</a>
+</div>
         <?php if ($ecgCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
             <div class="champ"><label>Date ECG</label><input type="text" value="<?= $ecgCourant['Date ECG'] ? date('d/m/Y', strtotime($ecgCourant['Date ECG'])) : '—' ?>" readonly></div>
@@ -804,7 +834,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
                 <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn">▶</a>
                 <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn">▶|</a>
-            </div>
+                <a href="nouveau_echo.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;" title="Nouvel Echo">✚</a>
+            </div>>
         </div>
         <?php if ($echoCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
