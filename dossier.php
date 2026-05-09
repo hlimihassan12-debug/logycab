@@ -445,13 +445,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             <div class="card-title">
                 📋 Ordonnance
                 <div class="nav-btns">
-                    <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première">|◀</a>
-                    <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>" class="nav-btn" title="Précédente">◀</a>
-                    <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= ($idxOrd+1) ?> / <?= count($ordonnances) ?></span>
-                    <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>" class="nav-btn" title="Suivante">▶</a>
-                    <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-                    <a href="nouvelle_ordonnance.php?id=<?= $id ?>" class="nav-btn" title="Nouvelle">✚</a>
-                </div>
+    <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
+    <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>" class="nav-btn" title="Suivante">▶</a>
+    <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= ($idxOrd+1) ?> / <?= count($ordonnances) ?></span>
+    <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>" class="nav-btn" title="Précédente">◀</a>
+    <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première">|◀</a>
+    <a href="nouvelle_ordonnance.php?id=<?= $id ?>" class="nav-btn" title="Nouvelle">✚</a>
+</div>>
             </div>
 
             <?php if ($ordCourante): ?>
@@ -622,13 +622,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         <div class="card">
             <div class="card-title">
                 💰 Facturation
-                <div class="nav-btns">
-                    <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn">|◀</a>
-                    <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn">◀</a>
-                    <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                    <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn">▶</a>
-                    <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn">▶|</a>
-                </div>
+                
             </div>
             <?php if ($factCourante): ?>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
@@ -678,27 +672,29 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     </tr>
                 </tfoot>
             </table>
+            <!-- NAVIGATION FACTURATION -->
+            <div style="display:flex;justify-content:center;gap:4px;margin-top:8px;">
+                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn">|◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn">◀</a>
+                <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:3px 6px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
+                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn">▶</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn">▶|</a>
+            </div>
             <?php else: ?>
                 <p style="color:#999;font-size:12px;">Aucune facture</p>
             <?php endif; ?>
         </div>
             <!-- CERTIFICAT MEDICAL -->
-            <div class="card" style="margin:0;background:#fff8e1;">
-                <div class="card-title" style="color:#856404;">📄 Certificat médical</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                    <div class="champ">
-                        <label>Du</label>
-                        <input type="date" id="cert_debut" onchange="calcJours()">
-                    </div>
-                    <div class="champ">
-                        <label>Au</label>
-                        <input type="date" id="cert_fin" onchange="calcJours()">
-                    </div>
-                </div>
-                <div style="margin-top:4px;">
-                    <label style="font-size:11px;color:#856404;font-weight:bold;">Nombre de jours : <strong id="cert_jours">—</strong></label>
-                </div>
-            </div>
+<div class="card" style="margin:0;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:#888;font-weight:bold;">📄 Certificat</span>
+        <span style="font-size:11px;color:#888;">Du</span>
+        <input type="date" id="cert_debut" onchange="calcJours()" style="border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">
+        <span style="font-size:11px;color:#888;">Au</span>
+        <input type="date" id="cert_fin" onchange="calcJours()" style="border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">
+        <span id="cert_jours" style="font-size:11px;color:#1a4a7a;font-weight:bold;">—</span>
+    </div>
+</div>
             </div><!-- FIN CARD FACTURATION -->
             </div><!-- FIN GRID RDV+FACT -->
     </div>
