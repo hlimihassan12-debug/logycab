@@ -91,12 +91,17 @@ if (!$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335) {
 }
 
 // Navigation ordonnances
+// Les ordonnances sont triées DESC (plus récente = index 0)
+// |◀ = première (plus ancienne) = dernier index
+// ▶| = dernière (plus récente)  = index 0
+// ◀  = précédente (plus ancienne) = index + 1
+// ▶  = suivante (plus récente)    = index - 1
 $idxOrd = 0;
 foreach ($ordonnances as $i => $o) { if ($o['n_ordon'] == $nOrd) { $idxOrd = $i; break; } }
-$ordPremiere = $ordonnances ? $ordonnances[count($ordonnances)-1]['n_ordon'] : 0;
-$ordDerniere = $ordonnances ? $ordonnances[0]['n_ordon'] : 0;
-$ordPrev = ($idxOrd < count($ordonnances)-1) ? $ordonnances[$idxOrd+1]['n_ordon'] : $nOrd;
-$ordNext = ($idxOrd > 0) ? $ordonnances[$idxOrd-1]['n_ordon'] : $nOrd;
+$ordPremiere = $ordonnances ? $ordonnances[count($ordonnances)-1]['n_ordon'] : 0; // plus ancienne
+$ordDerniere = $ordonnances ? $ordonnances[0]['n_ordon'] : 0;                     // plus récente
+$ordPrev = ($idxOrd < count($ordonnances)-1) ? $ordonnances[$idxOrd+1]['n_ordon'] : $nOrd; // plus ancienne
+$ordNext = ($idxOrd > 0) ? $ordonnances[$idxOrd-1]['n_ordon'] : $nOrd;                     // plus récente
 
 // Médicaments de l'ordonnance courante
 $medicaments = [];
@@ -163,6 +168,11 @@ $listeActes = $db->query("SELECT n_acte, ACTE, cout FROM t_acte_simplifiée ORDE
 // Catalogue médicaments
 $listeMeds = $db->query("SELECT NuméroPRODUIT, PRODUIT FROM PRODUITS ORDER BY PRODUIT")->fetchAll();
 
+// Listes de référence diagnostics (valeurs distinctes existantes)
+$listeDiag1 = $db->query("SELECT DISTINCT diagnostic FROM t_diagnostic WHERE diagnostic IS NOT NULL AND diagnostic != '' ORDER BY diagnostic")->fetchAll(PDO::FETCH_COLUMN);
+$listeDiag2 = $db->query("SELECT DISTINCT DicII FROM T_dianstcII WHERE DicII IS NOT NULL AND DicII != '' ORDER BY DicII")->fetchAll(PDO::FETCH_COLUMN);
+$listeDiag3 = $db->query("SELECT DISTINCT dic_non_cardio FROM T_id_dic_non_cardio WHERE dic_non_cardio IS NOT NULL AND dic_non_cardio != '' ORDER BY dic_non_cardio")->fetchAll(PDO::FETCH_COLUMN);
+
 // Posologies prédéfinies
 $posologies = [
     '1 cp 1 fois par jour','1 cp 1 jour sur deux','1 cp 2 fois par jour',
@@ -188,6 +198,73 @@ $durees = ['1 semaine','2 semaines','1 mois','2 mois','3 mois','6 mois'];
 $stmtActes = $db->prepare("SELECT n_acte, ACTE FROM t_acte_simplifiée ORDER BY n_acte");
 $stmtActes->execute();
 $actesCat = $stmtActes->fetchAll();
+
+// ── DONNÉES COLONNE "DERNIÈRE VISITE" ─────────────────────────────────────
+// = ordonnance précédente (idxOrdCourante + 1)
+$dernVisite = null;
+$dernActesFact = [];
+if ($ordPrecedente) {
+    $dernVisite = $ordPrecedente;
+    // Acte(s) réalisé(s) = dernière facture proche de cette date
+    $stmtDF = $db->prepare("
+        SELECT TOP 1 f.n_facture, f.date_facture
+        FROM facture f
+        WHERE f.id = ?
+        AND f.date_facture >= ?
+        AND f.date_facture <= DATEADD(day, 7, ?)
+        ORDER BY f.date_facture ASC
+    ");
+    $dateOrdPrec = $ordPrecedente['date_ordon'] ?? null;
+    if ($dateOrdPrec) {
+        $stmtDF->execute([$id, $dateOrdPrec, $dateOrdPrec]);
+        $factPrec = $stmtDF->fetch();
+        if ($factPrec) {
+            $stmtActesPrec = $db->prepare("
+                SELECT a.ACTE FROM detail_acte d
+                LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte
+                WHERE d.N_fact = ?
+            ");
+            $stmtActesPrec->execute([$factPrec['n_facture']]);
+            $dernActesFact = $stmtActesPrec->fetchAll(PDO::FETCH_COLUMN);
+        }
+    }
+}
+
+// ── CALCUL DÉLAI DEPUIS DERNIÈRE VISITE ──────────────────────────────────
+$delaiVisite = null;
+$delaiCouleur = '#27ae60';
+if ($ordPrecedente && !empty($ordPrecedente['date_ordon'])) {
+    $tsPrec = strtotime($ordPrecedente['date_ordon']);
+    if ($tsPrec && $tsPrec > 86400) {
+        $dtPrec = new DateTime(date('Y-m-d', $tsPrec));
+        $dtAuj  = new DateTime();
+        $diff   = $dtPrec->diff($dtAuj);
+        $totalJours = $diff->days;
+        $mois = $diff->m + ($diff->y * 12);
+        $jours = $diff->d;
+
+        if ($mois > 0) {
+            $delaiVisite = $mois . ' mois' . ($jours > 0 ? ' ' . $jours . 'j' : '');
+        } else {
+            $delaiVisite = $totalJours . ' jours';
+        }
+
+        // Couleur selon écart avec RDV prévu
+        $rdvPrevu = !empty($ordPrecedente['DATE REDEZ VOUS']) ? strtotime($ordPrecedente['DATE REDEZ VOUS']) : null;
+        if ($rdvPrevu) {
+            $ecartJours = (int)(($tsPrec + $totalJours * 86400 - $rdvPrevu) / 86400);
+            if ($ecartJours <= 14) $delaiCouleur = '#27ae60';       // vert
+            elseif ($ecartJours <= 30) $delaiCouleur = '#f39c12';   // orange
+            else $delaiCouleur = '#e74c3c';                          // rouge
+        }
+    }
+}
+
+// ── ACTE SUGGÉRÉ POUR COLONNE "ACTUEL VISITE" ────────────────────────────
+$acteSugActuel = [];
+foreach ($actesSuggeres as $a) {
+    $acteSugActuel[] = $a['acte'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -257,7 +334,9 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .delai-btn { padding: 4px 10px; border: 1px solid #2e6da4; border-radius: 3px; cursor: pointer; font-size: 11px; background: white; color: #2e6da4; text-decoration: none; display: inline-block; }
 .delai-btn.actif { background: #1a4a7a; color: white; border-color: #1a4a7a; }
 
-/* CRÉNEAUX HORAIRES */
+/* DIAGNOSTICS EDITABLES */
+.diag-bloc { display:flex; flex-direction:column; gap:3px; margin-bottom:4px; }
+.diag-ligne { display:flex; gap:4px; align-items:center; }
 .creneaux-wrap { margin-top: 6px; }
 .creneaux-titre { font-size: 10px; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 4px; }
 .creneaux-grille { display: flex; flex-wrap: wrap; gap: 3px; }
@@ -358,39 +437,73 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
      ══════════════════════════════════════════════════════ -->
 <div class="col-left">
     <div class="card">
-        <div class="card-title">👤 Dossier patient</div>
+        <div class="card-title">👤 Dossier patient
+            <span id="dossier_status" style="font-size:10px;color:#27ae60;font-weight:normal;"></span>
+        </div>
+
+        <!-- MOTIF DE CONSULTATION — éditable -->
         <div class="champ">
             <label>Motif de consultation</label>
-            <textarea><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
+            <textarea id="champ_motif"
+                onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
+                style="border:1px solid #ddd;border-radius:3px;padding:4px 6px;width:100%;font-size:12px;resize:vertical;min-height:50px;field-sizing:content;"
+            ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
         </div>
+
+        <!-- ANTÉCÉDENTS — éditable -->
         <div class="champ">
             <label>Antécédents</label>
-            <textarea><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
+            <textarea id="champ_atcd"
+                onblur="sauvegarderChamp('ATCD', this.value)"
+                style="border:1px solid #ddd;border-radius:3px;padding:4px 6px;width:100%;font-size:12px;resize:vertical;min-height:50px;field-sizing:content;"
+            ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
         </div>
+
+        <!-- DIAGNOSTICS — éditables inline avec autocomplétion -->
+        <?php
+        $diagConfigs = [
+            1 => ['label' => 'Diagnostic principal',        'items' => $diagnostics,   'pk' => 'N_dic',            'champ' => 'diagnostic',      'liste' => $listeDiag1],
+            2 => ['label' => 'Diagnostic II',               'items' => $diagnosticsII, 'pk' => 'N_DIC_II',         'champ' => 'DicII',           'liste' => $listeDiag2],
+            3 => ['label' => 'Diagnostic non cardiologique','items' => $diagnosticsNC, 'pk' => 'N_dic_non_cardio', 'champ' => 'dic_non_cardio',  'liste' => $listeDiag3],
+        ];
+        foreach ($diagConfigs as $type => $cfg):
+        ?>
         <div class="champ">
-            <label>Diagnostic principal</label>
-            <?php foreach ($diagnostics as $d): ?>
-                <div style="padding:2px 0;font-size:12px;">• <?= htmlspecialchars($d['diagnostic']) ?></div>
-            <?php endforeach; ?>
-            <?php if (empty($diagnostics)): ?><span style="color:#999;font-size:11px;">—</span><?php endif; ?>
-            <a href="diag_edit.php?id=<?= $id ?>&type=1" style="font-size:11px;color:#2e6da4;">✏️ Modifier</a>
+            <label><?= $cfg['label'] ?></label>
+            <div id="diag_<?= $type ?>" class="diag-bloc">
+                <?php foreach ($cfg['items'] as $d): ?>
+                <div class="diag-ligne" data-pk="<?= $d[$cfg['pk']] ?>">
+                    <input type="text" value="<?= htmlspecialchars($d[$cfg['champ']]) ?>"
+                        list="datalist_diag_<?= $type ?>"
+                        onblur="diagUpdate(<?= $type ?>, <?= $d[$cfg['pk']] ?>, this.value)"
+                        style="flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 5px;font-size:12px;">
+                    <button type="button" onclick="diagDelete(<?= $type ?>, <?= $d[$cfg['pk']] ?>, <?= $id ?>, this)"
+                        style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
+                </div>
+                <?php endforeach; ?>
+                <?php if (empty($cfg['items'])): ?>
+                <div class="diag-vide" style="color:#999;font-size:11px;padding:2px 0;">—</div>
+                <?php endif; ?>
+            </div>
+            <!-- Datalist autocomplétion -->
+            <datalist id="datalist_diag_<?= $type ?>">
+                <?php foreach ($cfg['liste'] as $opt): ?>
+                <option value="<?= htmlspecialchars($opt) ?>">
+                <?php endforeach; ?>
+            </datalist>
+            <!-- Champ ajout nouveau -->
+            <div style="display:flex;gap:4px;margin-top:4px;">
+                <input type="text" id="new_diag_<?= $type ?>"
+                    list="datalist_diag_<?= $type ?>"
+                    placeholder="Choisir ou saisir..."
+                    style="flex:1;border:1px solid #27ae60;border-radius:3px;padding:3px 6px;font-size:12px;">
+                <button type="button" onclick="diagAjouter(<?= $type ?>, <?= $id ?>, <?= htmlspecialchars(json_encode($cfg['liste']), ENT_QUOTES) ?>)"
+                    style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 10px;cursor:pointer;font-size:11px;">➕</button>
+            </div>
         </div>
-        <div class="champ">
-            <label>Diagnostic II</label>
-            <?php foreach ($diagnosticsII as $d): ?>
-                <div style="padding:2px 0;font-size:12px;">• <?= htmlspecialchars($d['DicII']) ?></div>
-            <?php endforeach; ?>
-            <?php if (empty($diagnosticsII)): ?><span style="color:#999;font-size:11px;">—</span><?php endif; ?>
-            <a href="diag_edit.php?id=<?= $id ?>&type=2" style="font-size:11px;color:#2e6da4;">✏️ Modifier</a>
-        </div>
-        <div class="champ">
-            <label>Diagnostic non cardiologique</label>
-            <?php foreach ($diagnosticsNC as $d): ?>
-                <div style="padding:2px 0;font-size:12px;">• <?= htmlspecialchars($d['dic_non_cardio']) ?></div>
-            <?php endforeach; ?>
-            <?php if (empty($diagnosticsNC)): ?><span style="color:#999;font-size:11px;">—</span><?php endif; ?>
-            <a href="diag_edit.php?id=<?= $id ?>&type=3" style="font-size:11px;color:#2e6da4;">✏️ Modifier</a>
-        </div>
+        <?php endforeach; ?>
+
+        <!-- FACTEURS DE RISQUE -->
         <?php
         $fdrs = [];
         $nomsfdrs = [
@@ -405,19 +518,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             'FDR_Sommeil' => 'Troubles du sommeil', 'FDR_Drogues' => 'Drogues',
         ];
         if ($examen) {
-            foreach ($nomsfdrs as $champ => $nom) {
-                if (!empty($examen[$champ])) $fdrs[] = $nom;
+            foreach ($nomsfdrs as $champFDR => $nomFDR) {  // ← renommé pour éviter conflit
+                if (!empty($examen[$champFDR])) $fdrs[] = $nomFDR;
             }
         }
         ?>
         <?php if (!empty($fdrs)): ?>
         <div class="champ">
-            <label>Facteurs de risque</label>
+            <label>Facteurs de risque (examen)</label>
             <?php foreach ($fdrs as $f): ?>
                 <span class="fdr-badge"><?= $f ?></span>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
+
         <div class="champ">
             <label>Facteurs de risque</label>
             <?php if (empty($fdrPatient)): ?>
@@ -433,10 +547,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <a href="fdr_edit.php?id=<?= $id ?>" style="font-size:11px;color:#2e6da4;">✏️ Modifier</a>
             </div>
         </div>
+
+        <!-- REMARQUE — éditable -->
         <div class="champ">
             <label>Remarque</label>
-            <textarea><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
+            <textarea id="champ_remarque"
+                onblur="sauvegarderChamp('REMARQUE', this.value)"
+                style="border:1px solid #ddd;border-radius:3px;padding:4px 6px;width:100%;font-size:12px;resize:vertical;min-height:40px;field-sizing:content;"
+            ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
         </div>
+
     </div>
 </div><!-- FIN col-left -->
 
@@ -462,48 +582,68 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 
         <?php if ($ordCourante): ?>
 
-        <!-- ═══ VUE ORDONNANCE EXISTANTE ═══ -->
+        <!-- ═══ VUE ORDONNANCE — TABLEAU 4 COLONNES ═══ -->
         <div id="vue-ordonnance">
-
-        <!-- GRID RDV + FACTURATION -->
         <div id="ord-affichage" style="display:grid;grid-template-columns:1fr 380px;gap:8px;align-items:start;margin-bottom:8px;">
 
-        <!-- COL GAUCHE : TABLEAU RDV -->
+        <!-- ══ COL GAUCHE : TABLEAU 4 COLONNES ══ -->
         <div>
         <?php
-        $rdvFixeDate  = $ordPrecedente && !empty($ordPrecedente['DATE REDEZ VOUS'])
-                        ? date('d/m/Y', strtotime($ordPrecedente['DATE REDEZ VOUS'])) : '—';
-        $rdvFixeHeure = $ordPrecedente ? htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—') : '—';
-        $rdvFixeActe  = $ordPrecedente ? htmlspecialchars($ordPrecedente['acte1'] ?? '—') : '—';
-        $rdvFuturVal  = '';
+        // COL 1 — Dernière visite (ordonnance précédente)
+        $dv_dateOrd = '—'; $dv_heure = '—'; $dv_actes = '—';
+        if ($ordPrecedente) {
+            $ts = strtotime($ordPrecedente['date_ordon'] ?? '');
+            $dv_dateOrd = ($ts && $ts > 86400) ? date('d/m/Y', $ts) : '—';
+            $dv_heure   = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
+            $dv_actes   = !empty($dernActesFact) ? implode(', ', $dernActesFact) : htmlspecialchars($ordPrecedente['acte1'] ?? '—');
+        }
+        // COL 2 — RDV prévu (données de l'ordonnance précédente)
+        $rdvp_date = '—'; $rdvp_heure = '—'; $rdvp_acte = '—';
+        if ($ordPrecedente) {
+            $ts = !empty($ordPrecedente['DATE REDEZ VOUS']) ? strtotime($ordPrecedente['DATE REDEZ VOUS']) : false;
+            $rdvp_date  = ($ts && $ts > 86400) ? date('d/m/Y', $ts) : '—';
+            $rdvp_heure = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
+            $rdvp_acte  = htmlspecialchars($ordPrecedente['acte1'] ?? '—');
+        }
+        // COL 4 — RDV prochain
+        $rdvFuturVal = '';
         if (!empty($ordCourante['DATE REDEZ VOUS'])) {
             $ts = strtotime($ordCourante['DATE REDEZ VOUS']);
-            if ($ts !== false && $ts > 0) {
-                $rdvFuturVal = date('Y-m-d', $ts);
-            }
+            if ($ts && $ts > 86400) $rdvFuturVal = date('Y-m-d', $ts);
         }
+        $acteNouveauRDV = $ordCourante['acte1'] ?? '';
         ?>
         <table class="tableau-rdv">
             <thead>
                 <tr>
-                    <th style="background:#1a4a7a;color:white;width:90px;"></th>
-                    <th style="background:#2e6da4;color:white;">📅 RDV déjà fixé<br><span style="font-size:10px;font-weight:normal;opacity:0.9;">il y a 1/3/6 mois</span></th>
-                    <th style="background:#27ae60;color:white;">🩺 Visite aujourd'hui<br><span style="font-size:10px;font-weight:normal;opacity:0.9;"><?= date('d/m/Y') ?></span></th>
-                    <th style="background:#8e44ad;color:white;">📆 Nouveau RDV<br><span style="font-size:10px;font-weight:normal;opacity:0.9;">à donner aujourd'hui</span></th>
+                    <th style="background:#1a4a7a;color:white;width:70px;"></th>
+                    <th style="background:#2e6da4;color:white;font-size:11px;">🏥 Dernière visite</th>
+                    <th style="background:#5b7fa6;color:white;font-size:11px;">📅 RDV prévu</th>
+                    <th style="background:#27ae60;color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
+                    <th style="background:#8e44ad;color:white;font-size:11px;">📆 RDV prochain</th>
                 </tr>
             </thead>
             <tbody>
+                <!-- LIGNE DATE -->
                 <tr>
                     <td>📅 Date</td>
-                    <td class="col-rdv-fixe" style="text-align:center;"><strong style="color:#2e6da4;font-size:13px;"><?= $rdvFixeDate ?></strong></td>
-                    <td class="col-visite" style="text-align:center;"><strong style="color:#27ae60;font-size:13px;"><?= date('d/m/Y') ?></strong></td>
+                    <td class="col-rdv-fixe" style="text-align:center;">
+                        <strong style="color:#2e6da4;font-size:13px;"><?= $dv_dateOrd ?></strong>
+                    </td>
+                    <td style="background:#dce8f7;text-align:center;">
+                        <strong style="color:#5b7fa6;font-size:13px;"><?= $rdvp_date ?></strong>
+                    </td>
+                    <td class="col-visite" style="text-align:center;">
+                        <strong style="color:#27ae60;font-size:13px;"><?= date('d/m/Y') ?></strong>
+                        <?php if ($delaiVisite): ?>
+                        <br><span style="font-size:11px;font-weight:bold;color:<?= $delaiCouleur ?>;background:<?= $delaiCouleur ?>22;padding:1px 6px;border-radius:8px;">⏱ <?= $delaiVisite ?></span>
+                        <?php endif; ?>
+                    </td>
                     <td class="col-rdv-futur" style="padding:4px;">
-                        <!-- Champs cachés synchronisés avec le formulaire nouvelle ordonnance -->
-                        <input type="hidden" id="rdv_futur"      value="<?= $rdvFuturVal ?>">
+                        <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
-
                         <!-- Délai rapide -->
-                        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:5px;">
+                        <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:3px;">
                             <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
                             <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
                             <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
@@ -511,20 +651,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                             <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
                             <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                         </div>
-
-                        <!-- Saisie manuelle date -->
-                        <input type="date" id="rdv_futur_visible"
-                               value="<?= $rdvFuturVal ?>"
+                        <!-- Boutons Report -->
+                        <div style="display:flex;gap:2px;margin-bottom:3px;">
+                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)"
+                                style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">📋 Report 3M</button>
+                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)"
+                                style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">📋 Report 6M</button>
+                        </div>
+                        <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
                                onchange="rdvDateChange(this.value,'rdv')"
-                               style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;margin-bottom:5px;">
-
-                        <!-- Jauge jour -->
+                               style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;margin-bottom:4px;">
                         <div class="jauge-jour" id="rdv_jauge" style="display:none;">
-                            <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;"></span>
+                            <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;font-size:10px;"></span>
                             <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill" style="width:0%"></div></div>
                         </div>
-
-                        <!-- Grille créneaux -->
                         <div class="creneaux-wrap">
                             <div class="creneaux-loading" id="rdv_loading" style="display:none;">⏳ Chargement…</div>
                             <div class="creneaux-msg"     id="rdv_msg"     style="display:none;"></div>
@@ -532,17 +672,41 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         </div>
                     </td>
                 </tr>
+                <!-- LIGNE HEURE -->
+                <tr>
+                    <td>⏰ Heure</td>
+                    <td class="col-rdv-fixe" style="text-align:center;"><strong style="color:#2e6da4;"><?= $dv_heure ?></strong></td>
+                    <td style="background:#dce8f7;text-align:center;"><strong style="color:#5b7fa6;"><?= $rdvp_heure ?></strong></td>
+                    <td class="col-visite" style="text-align:center;color:#888;font-size:11px;">—</td>
+                    <td class="col-rdv-futur" style="text-align:center;padding:4px;">
+                        <?php if (!empty($ordCourante['HeureRDV'])): ?>
+                        <span style="background:#e8d5f5;color:#8e44ad;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:bold;"><?= htmlspecialchars($ordCourante['HeureRDV']) ?></span>
+                        <?php else: ?><span style="color:#aaa;font-size:11px;">à choisir ↑</span><?php endif; ?>
+                    </td>
+                </tr>
+                <!-- LIGNE ACTE -->
                 <tr>
                     <td>🏥 Acte</td>
-                    <td class="col-rdv-fixe" style="text-align:center;"><span style="background:#dce8f7;color:#1a4a7a;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:bold;"><?= $rdvFixeActe ?></span></td>
-                    <td class="col-visite" style="text-align:center;"><span class="acte-badge" style="font-size:12px;font-weight:bold;"><?= $rdvFixeActe ?></span></td>
+                    <td class="col-rdv-fixe" style="text-align:center;">
+                        <span style="background:#dce8f7;color:#1a4a7a;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;"><?= $dv_actes ?></span>
+                    </td>
+                    <td style="background:#dce8f7;text-align:center;">
+                        <span style="background:#b8d0ec;color:#1a4a7a;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;"><?= $rdvp_acte ?></span>
+                    </td>
+                    <td class="col-visite" style="text-align:center;">
+                        <?php foreach ($actesSuggeres as $as): ?>
+                        <span style="background:#f39c12;color:white;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;display:inline-block;margin:1px;"><?= $as['acte'] ?></span>
+                        <?php endforeach; ?>
+                        <?php if (empty($actesSuggeres)): ?><span style="color:#aaa;font-size:11px;">—</span><?php endif; ?>
+                    </td>
                     <td class="col-rdv-futur" style="padding:4px;">
                         <input type="text" id="acte_rdv_futur" value="<?= htmlspecialchars($acteNouveauRDV) ?>"
                                oninput="syncActe(this.value,'rdv')"
-                               style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;text-align:center;margin-bottom:4px;">
-                        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;">
-                            <?php foreach (['ECG','ECG-EDC','ECG-EDC-DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
-                            <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');" style="background:#8e44ad;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;margin-bottom:2px;"><?= $ba ?></button>
+                               style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;text-align:center;margin-bottom:3px;">
+                        <div style="display:flex;gap:2px;flex-wrap:wrap;">
+                            <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
+                            <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
+                                style="background:#8e44ad;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;margin-bottom:2px;"><?= $ba ?></button>
                             <?php endforeach; ?>
                         </div>
                     </td>
@@ -550,18 +714,18 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </tbody>
         </table>
 
-        <!-- DATE ORDONNANCE — bien visible à la place des actes suggérés -->
+        <!-- DATE ORDONNANCE -->
         <?php
-        $tsOrdGauche = $ordCourante && !empty($ordCourante['date_ordon']) ? strtotime($ordCourante['date_ordon']) : false;
+        $tsOrdGauche   = !empty($ordCourante['date_ordon']) ? strtotime($ordCourante['date_ordon']) : false;
         $dateOrdGauche = ($tsOrdGauche && $tsOrdGauche > 0) ? date('d/m/Y', $tsOrdGauche) : '—';
         ?>
-        <div style="background:#e8f8ee;border:2px solid #27ae60;border-radius:6px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+        <div style="background:#e8f8ee;border:2px solid #27ae60;border-radius:6px;padding:8px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
             <span style="font-size:11px;color:#555;text-transform:uppercase;font-weight:bold;">Date ordonnance</span>
             <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:18px;color:#1a4a7a;letter-spacing:1px;"><?= $dateOrdGauche ?></span>
         </div>
 
-        <!-- MEDICAMENTS (lecture seule) -->
-        <div class="champ" style="margin-top:8px;">
+        <!-- MÉDICAMENTS -->
+        <div class="champ" style="margin-top:4px;">
             <label>💊 Médicaments (<?= count($medicaments) ?>)</label>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
                 <span style="font-size:10px;color:#888;text-transform:uppercase;">Médicament</span>
@@ -575,12 +739,9 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
             </div>
             <?php endforeach; ?>
-            <?php if (empty($medicaments)): ?>
-                <p style="color:#999;font-size:12px;">Aucun médicament</p>
-            <?php endif; ?>
+            <?php if (empty($medicaments)): ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
         </div>
-
-        </div><!-- FIN COL GAUCHE TABLEAU RDV -->
+        </div><!-- FIN COL GAUCHE -->
 
         <!-- COL DROITE : FACTURATION -->
         <div>
@@ -740,21 +901,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </div>
             <?php endif; ?>
 
-            <!-- ACTES À PROGRAMMER (déplacés ici) -->
-            <div style="margin-top:8px;">
-                <div style="font-size:11px;font-weight:bold;color:#555;text-transform:uppercase;margin-bottom:5px;">Actes à programmer</div>
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                    <button type="button" class="acte-btn">ECG</button>
-                    <button type="button" class="acte-btn">EDC</button>
-                    <button type="button" class="acte-btn">DTSA</button>
-                    <button type="button" class="acte-btn">ECG+DTSA</button>
-                    <button type="button" class="acte-btn">CONTROLE</button>
-                    <button type="button" class="acte-btn">DVMI</button>
-                    <button type="button" class="acte-btn">EDCP</button>
-                </div>
-            </div>
-
-        </div><!-- FIN COL DROITE FACTURATION -->
+        </div><!-- FIN COL DROITE -->
 
         </div><!-- FIN GRID RDV + FACTURATION -->
 
@@ -763,11 +910,11 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
              Ordre : |◀  ◀  X/N  ▶  ▶|  ✚
              ═══════════════════════════════════════════════ -->
         <div class="nav-ord-barre">
-            <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance (plus ancienne)">|◀</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>" class="nav-btn" title="Ordonnance précédente">◀</a>
-            <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;"><?= ($idxOrd+1) ?> / <?= count($ordonnances) ?></span>
+            <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>" class="nav-btn" title="Ordonnance suivante">▶</a>
-            <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière ordonnance">▶|</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière ordonnance (plus récente)">▶|</a>
             <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;" title="Nouvelle ordonnance">✚</button>
         </div>
 
@@ -1010,7 +1157,119 @@ document.addEventListener('click', e => {
     }
 });
 
-// ── Mise à jour date facture ──
+// ── Diagnostics éditables inline ─────────────────────────────────────────
+function diagUpdate(type, nDic, valeur) {
+    fetch('ajax_maj_diagnostic.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ action: 'update', type, n_dic: nDic, valeur })
+    });
+}
+
+function diagDelete(type, nDic, patId, btn) {
+    if (!confirm('Supprimer ce diagnostic ?')) return;
+    fetch('ajax_maj_diagnostic.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ action: 'delete', type, n_dic: nDic, id: patId })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) btn.closest('.diag-ligne').remove();
+        else alert('❌ ' + data.error);
+    });
+}
+
+function diagAjouter(type, patId, liste) {
+    const input = document.getElementById('new_diag_' + type);
+    const valeur = input.value.trim();
+    if (!valeur) return;
+
+    // Vérifier si déjà assigné à ce patient
+    const bloc = document.getElementById('diag_' + type);
+    const dejaDans = Array.from(bloc.querySelectorAll('input[type=text]'))
+        .some(inp => inp.value.trim().toLowerCase() === valeur.toLowerCase());
+    if (dejaDans) {
+        alert('⚠️ Ce diagnostic est déjà dans la liste de ce patient.');
+        input.value = '';
+        return;
+    }
+
+    // Vérifier si le diagnostic existe dans le référentiel
+    const existe = liste.some(d => d.toLowerCase() === valeur.toLowerCase());
+    if (!existe) {
+        if (!confirm(`"${valeur}" n'existe pas dans la liste.\nVoulez-vous l'ajouter comme nouveau diagnostic ?`)) {
+            return;
+        }
+    }
+
+    fetch('ajax_maj_diagnostic.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ action: 'add', type, id: patId, valeur })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const bloc = document.getElementById('diag_' + type);
+            // Supprimer le "—" s'il existe
+            const vide = bloc.querySelector('.diag-vide');
+            if (vide) vide.remove();
+            // Ajouter la nouvelle ligne
+            const div = document.createElement('div');
+            div.className = 'diag-ligne';
+            div.dataset.pk = data.n_dic;
+            div.innerHTML = `
+                <input type="text" value="${valeur.replace(/"/g, '&quot;')}"
+                    list="datalist_diag_${type}"
+                    onblur="diagUpdate(${type}, ${data.n_dic}, this.value)"
+                    style="flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 5px;font-size:12px;">
+                <button type="button" onclick="diagDelete(${type}, ${data.n_dic}, ${patId}, this)"
+                    style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>`;
+            bloc.appendChild(div);
+            input.value = '';
+            // Si nouveau diagnostic, l'ajouter au datalist
+            if (!existe) {
+                const dl = document.getElementById('datalist_diag_' + type);
+                if (dl) {
+                    const opt = document.createElement('option');
+                    opt.value = valeur;
+                    dl.appendChild(opt);
+                }
+            }
+        } else {
+            alert('❌ ' + data.error);
+        }
+    });
+}
+
+// ── Sauvegarde automatique dossier patient ────────────────────────────────
+function sauvegarderChamp(champ, valeur) {
+    const statusEl = document.getElementById('dossier_status');
+    if (statusEl) { statusEl.textContent = '⏳ Enregistrement…'; statusEl.style.color = '#888'; }
+
+    fetch('ajax_maj_dossier.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id: <?= $id ?>, champ: champ, valeur: valeur })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (statusEl) {
+            if (data.success) {
+                statusEl.textContent = '✅ Enregistré';
+                statusEl.style.color = '#27ae60';
+                setTimeout(() => { statusEl.textContent = ''; }, 2000);
+            } else {
+                statusEl.textContent = '❌ Erreur';
+                statusEl.style.color = '#e74c3c';
+            }
+        }
+    })
+    .catch(() => {
+        if (statusEl) { statusEl.textContent = '❌ Erreur réseau'; statusEl.style.color = '#e74c3c'; }
+    });
+}
 function majDateFacture(nFact, val) {
     fetch('ajax_maj_facture.php', {
         method: 'POST',
@@ -1039,6 +1298,29 @@ function calcNbrJ() {
 }
 function imprimerCertificat() {
     alert('Impression certificat — à implémenter');
+}
+
+// ── Report de traitement (même ordonnance + nouvelle facture ECG) ──────────
+function reportTraitement(mois, patientId) {
+    if (!confirm(`Confirmer le report du traitement dans ${mois} mois ?\nCela créera une nouvelle ordonnance identique + une facture ECG (300 DH) à la date du jour.`)) return;
+
+    const msgEl = document.getElementById('no_msg') || document.createElement('span');
+    msgEl.textContent = '⏳ Report en cours…';
+
+    fetch('ajax_report_traitement.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id: patientId, mois: mois })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = `dossier.php?id=${patientId}&ord=${data.n_ordon}`;
+        } else {
+            alert('❌ ' + data.error);
+        }
+    })
+    .catch(() => alert('❌ Erreur réseau'));
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1371,7 +1653,34 @@ function noEnregistrer(patientId) {
     const acte       = document.getElementById('no_acte').value;
     const date_rdv   = document.getElementById('no_rdv').value;
     const heure_rdv  = document.getElementById('no_heure').value;
+    const msgEl      = document.getElementById('no_msg');
     const lignes     = [];
+
+    // ── Validations obligatoires ──────────────────────────────────────
+    if (!date_ordon) {
+        msgEl.textContent = '⛔ La date d\'ordonnance est obligatoire.';
+        msgEl.style.color = '#e74c3c';
+        document.getElementById('no_date').style.border = '2px solid #e74c3c';
+        document.getElementById('no_date').focus();
+        return;
+    }
+    document.getElementById('no_date').style.border = '';
+
+    if (!date_rdv) {
+        msgEl.textContent = '⛔ La date de RDV est obligatoire — choisissez un créneau.';
+        msgEl.style.color = '#e74c3c';
+        document.getElementById('no_rdv_visible').style.border = '2px solid #e74c3c';
+        document.getElementById('no_rdv_visible').focus();
+        return;
+    }
+    document.getElementById('no_rdv_visible').style.border = '';
+
+    if (!heure_rdv) {
+        msgEl.textContent = '⛔ L\'heure de RDV est obligatoire — cliquez sur un créneau vert ou jaune.';
+        msgEl.style.color = '#e74c3c';
+        return;
+    }
+    // ─────────────────────────────────────────────────────────────────
 
     document.querySelectorAll('#no_lignes tr').forEach(tr => {
         const idx = tr.querySelector('select')?.id?.replace('no_med_', '');
@@ -1382,8 +1691,8 @@ function noEnregistrer(patientId) {
         if (med) lignes.push({ med, poso, duree });
     });
 
-    document.getElementById('no_msg').textContent = 'Enregistrement…';
-    document.getElementById('no_msg').style.color = '#999';
+    msgEl.textContent = 'Enregistrement…';
+    msgEl.style.color = '#999';
 
     fetch('ajax_nouvelle_ordonnance.php', {
         method: 'POST',
