@@ -446,8 +446,19 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 <div class="col-mid">
     <div class="card">
 
-        <!-- TITRE CARTE ORDONNANCE — sans boutons de navigation -->
-        <div class="card-title">📋 Ordonnance</div>
+        <!-- TITRE CARTE ORDONNANCE avec date ordonnance -->
+        <div class="card-title">
+            📋 Ordonnance
+            <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
+            <?php
+                $tsOrd = strtotime($ordCourante['date_ordon']);
+                $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
+            ?>
+            <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:14px;color:#27ae60;background:#e8f8ee;padding:3px 12px;border-radius:5px;border:1px solid #27ae60;">
+                📅 <?= $dateOrdAff ?>
+            </span>
+            <?php endif; ?>
+        </div>
 
         <?php if ($ordCourante): ?>
 
@@ -539,37 +550,14 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </tbody>
         </table>
 
-        <!-- ACTES SUGGERES -->
-        <?php if (!empty($actesSuggeres)): ?>
-        <div style="background:#fff3cd;border-left:4px solid #f39c12;padding:8px;border-radius:4px;margin-bottom:8px;">
-            <div style="font-size:11px;font-weight:bold;color:#856404;margin-bottom:6px;">⚠️ Actes suggérés automatiquement</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <?php foreach ($actesSuggeres as $a): ?>
-                <span style="background:#f39c12;color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:bold;">
-                    <?= $a['acte'] ?>
-                    <?php if ($a['derniere']): ?>
-                        <span style="font-size:10px;opacity:0.85;">(dernier : <?= date('d/m/Y', strtotime($a['derniere'])) ?>)</span>
-                    <?php else: ?>
-                        <span style="font-size:10px;opacity:0.85;">(jamais prescrit)</span>
-                    <?php endif; ?>
-                </span>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
-
-        <!-- BOUTONS ACTES -->
-        <div class="champ">
-            <label>Actes à programmer</label>
-            <div class="actes-btns">
-                <button type="button" class="acte-btn">ECG</button>
-                <button type="button" class="acte-btn">EDC</button>
-                <button type="button" class="acte-btn">DTSA</button>
-                <button type="button" class="acte-btn">ECG+DTSA</button>
-                <button type="button" class="acte-btn">CONTROLE</button>
-                <button type="button" class="acte-btn">DVMI</button>
-                <button type="button" class="acte-btn">EDCP</button>
-            </div>
+        <!-- DATE ORDONNANCE — bien visible à la place des actes suggérés -->
+        <?php
+        $tsOrdGauche = $ordCourante && !empty($ordCourante['date_ordon']) ? strtotime($ordCourante['date_ordon']) : false;
+        $dateOrdGauche = ($tsOrdGauche && $tsOrdGauche > 0) ? date('d/m/Y', $tsOrdGauche) : '—';
+        ?>
+        <div style="background:#e8f8ee;border:2px solid #27ae60;border-radius:6px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:11px;color:#555;text-transform:uppercase;font-weight:bold;">Date ordonnance</span>
+            <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:18px;color:#1a4a7a;letter-spacing:1px;"><?= $dateOrdGauche ?></span>
         </div>
 
         <!-- MEDICAMENTS (lecture seule) -->
@@ -606,7 +594,11 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </div>
                 <div class="champ">
                     <label>Date facture</label>
-                    <input type="date" value="<?= $factCourante['date_facture'] ? date('Y-m-d', strtotime($factCourante['date_facture'])) : '' ?>"
+                    <?php
+                    $tsF = strtotime($factCourante['date_facture'] ?? '');
+                    $dateFactVal = ($tsF && $tsF > 86400) ? date('Y-m-d', $tsF) : '';
+                    ?>
+                    <input type="date" value="<?= $dateFactVal ?>"
                         onchange="majDateFacture(<?= $nFact ?>, this.value)"
                         style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:12px;">
                 </div>
@@ -714,6 +706,51 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <span>Nbr J</span>
                     <input type="number" id="cert_nbrj" style="width:55px;border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;text-align:center;" readonly>
                     <button type="button" onclick="imprimerCertificat()" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">🖨️ Imprimer</button>
+                </div>
+            </div>
+
+            <!-- DATE FACTURE VISIBLE EN GRAS -->
+            <?php if ($factCourante): ?>
+            <?php
+                $tsFactAff = strtotime($factCourante['date_facture'] ?? '');
+                $dateFactAff = ($tsFactAff && $tsFactAff > 86400) ? date('d/m/Y', $tsFactAff) : '—';
+            ?>
+            <div style="margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:11px;color:#555;text-transform:uppercase;font-weight:bold;">Date facture</span>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:18px;color:#1a4a7a;letter-spacing:1px;"><?= $dateFactAff ?></span>
+            </div>
+            <?php endif; ?>
+
+            <!-- ACTES SUGGERES (déplacés ici) -->
+            <?php if (!empty($actesSuggeres)): ?>
+            <div style="background:#fff3cd;border-left:4px solid #f39c12;padding:8px;border-radius:4px;margin-top:10px;">
+                <div style="font-size:11px;font-weight:bold;color:#856404;margin-bottom:6px;">⚠️ Actes suggérés</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <?php foreach ($actesSuggeres as $a): ?>
+                    <span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;">
+                        <?= $a['acte'] ?>
+                        <?php if ($a['derniere']): ?>
+                            <span style="font-size:10px;opacity:0.85;">(<?= date('d/m/Y', strtotime($a['derniere'])) ?>)</span>
+                        <?php else: ?>
+                            <span style="font-size:10px;opacity:0.85;">(jamais)</span>
+                        <?php endif; ?>
+                    </span>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- ACTES À PROGRAMMER (déplacés ici) -->
+            <div style="margin-top:8px;">
+                <div style="font-size:11px;font-weight:bold;color:#555;text-transform:uppercase;margin-bottom:5px;">Actes à programmer</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button type="button" class="acte-btn">ECG</button>
+                    <button type="button" class="acte-btn">EDC</button>
+                    <button type="button" class="acte-btn">DTSA</button>
+                    <button type="button" class="acte-btn">ECG+DTSA</button>
+                    <button type="button" class="acte-btn">CONTROLE</button>
+                    <button type="button" class="acte-btn">DVMI</button>
+                    <button type="button" class="acte-btn">EDCP</button>
                 </div>
             </div>
 
