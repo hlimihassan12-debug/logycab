@@ -65,8 +65,11 @@ $maxJour = (int)($maxVal ?: 21);
 // ── 4. Total patients inscrits ce jour ───────────────────────────────────
 $stmtT = $db->prepare("
     SELECT COUNT(*) FROM ORD
-    WHERE CAST([DATE REDEZ VOUS] AS DATE) = ?
-       OR CAST(Date_Rdv AS DATE) = ?
+    WHERE (
+        ([DATE REDEZ VOUS] IS NOT NULL AND CAST([DATE REDEZ VOUS] AS DATE) = ?)
+        OR
+        (Date_Rdv IS NOT NULL AND CAST(Date_Rdv AS DATE) = ?)
+    )
 ");
 $stmtT->execute([$date, $date]);
 $totalJour = (int)$stmtT->fetchColumn();
@@ -75,7 +78,11 @@ $totalJour = (int)$stmtT->fetchColumn();
 $stmtC = $db->prepare("
     SELECT HeureRDV, COUNT(*) AS nb
     FROM ORD
-    WHERE (CAST([DATE REDEZ VOUS] AS DATE) = ? OR CAST(Date_Rdv AS DATE) = ?)
+    WHERE (
+        ([DATE REDEZ VOUS] IS NOT NULL AND CAST([DATE REDEZ VOUS] AS DATE) = ?)
+        OR
+        (Date_Rdv IS NOT NULL AND CAST(Date_Rdv AS DATE) = ?)
+    )
       AND HeureRDV IS NOT NULL AND HeureRDV != ''
     GROUP BY HeureRDV
 ");

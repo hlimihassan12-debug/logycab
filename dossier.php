@@ -464,7 +464,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         ? date('d/m/Y', strtotime($ordPrecedente['DATE REDEZ VOUS'])) : '—';
         $rdvFixeHeure = $ordPrecedente ? htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—') : '—';
         $rdvFixeActe  = $ordPrecedente ? htmlspecialchars($ordPrecedente['acte1'] ?? '—') : '—';
-        $rdvFuturVal  = $ordCourante['DATE REDEZ VOUS'] ? date('Y-m-d', strtotime($ordCourante['DATE REDEZ VOUS'])) : '';
+        $rdvFuturVal  = '';
+        if (!empty($ordCourante['DATE REDEZ VOUS'])) {
+            $ts = strtotime($ordCourante['DATE REDEZ VOUS']);
+            if ($ts !== false && $ts > 0) {
+                $rdvFuturVal = date('Y-m-d', $ts);
+            }
+        }
         ?>
         <table class="tableau-rdv">
             <thead>
@@ -1161,7 +1167,7 @@ function rdvSelectionnerCreneau(heure, prefixe) {
 
 // Appel quand l'utilisateur change la date manuellement
 function rdvDateChange(date, prefixe) {
-    if (!date) return;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || date === '1970-01-01') return;
     const ids = rdvIds(prefixe);
 
     // Synchroniser la date dans le champ caché
@@ -1473,11 +1479,18 @@ function nfEnregistrer(patientId) {
 // ── Initialisation au chargement ──────────────────────────────────────────
 // Si l'ordonnance courante a déjà une date RDV → afficher ses créneaux
 document.addEventListener('DOMContentLoaded', () => {
+    // Valider que la date est bien au format yyyy-mm-dd avant de charger
     const dateInit = document.getElementById('rdv_futur')?.value;
-    if (dateInit) {
+    const reDate = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateInit && reDate.test(dateInit) && dateInit !== '1970-01-01') {
         rdvChargerCreneaux(dateInit, 'rdv', false);
     }
 });
+
+// Validation format date utilisée dans rdvDateChange et rdvSetDelai
+function dateValide(d) {
+    return d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d !== '1970-01-01';
+}
 </script>
 </body>
 </html>
