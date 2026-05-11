@@ -567,15 +567,15 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <div class="card">
 
         <!-- TITRE CARTE ORDONNANCE avec date ordonnance -->
-        <div class="card-title">
-            📋 Ordonnance
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>📋 Ordonnance</span>
             <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
             <?php
                 $tsOrd = strtotime($ordCourante['date_ordon']);
                 $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
             ?>
-            <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:14px;color:#27ae60;background:#e8f8ee;padding:3px 12px;border-radius:5px;border:1px solid #27ae60;">
-                📅 <?= $dateOrdAff ?>
+            <span style="font-family:Arial Black,sans-serif;font-weight:900;font-size:16px;color:#1a4a7a;background:#e8f0fb;padding:3px 14px;border-radius:5px;border:2px solid #2e6da4;letter-spacing:1px;">
+                <?= $dateOrdAff ?>
             </span>
             <?php endif; ?>
         </div>
@@ -624,14 +624,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </tr>
             </thead>
             <tbody>
-                <!-- LIGNE DATE -->
+                <!-- LIGNE DATE + HEURE RDV côte à côte (points 5+6) -->
                 <tr>
-                    <td>📅 Date</td>
+                    <td>📅 Date<br>⏰ Heure</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
-                        <strong style="color:#2e6da4;font-size:13px;"><?= $dv_dateOrd ?></strong>
+                        <strong style="color:#2e6da4;font-size:13px;"><?= $dv_dateOrd ?></strong><br>
+                        <strong style="color:#2e6da4;font-size:12px;"><?= $dv_heure ?></strong>
                     </td>
                     <td style="background:#dce8f7;text-align:center;">
-                        <strong style="color:#5b7fa6;font-size:13px;"><?= $rdvp_date ?></strong>
+                        <strong style="color:#5b7fa6;font-size:13px;"><?= $rdvp_date ?></strong><br>
+                        <strong style="color:#5b7fa6;font-size:12px;"><?= $rdvp_heure ?></strong>
                     </td>
                     <td class="col-visite" style="text-align:center;">
                         <strong style="color:#27ae60;font-size:13px;"><?= date('d/m/Y') ?></strong>
@@ -642,29 +644,38 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <td class="col-rdv-futur" style="padding:4px;">
                         <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
-                        <!-- Délai rapide -->
-                        <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:3px;">
+
+                        <!-- Délai rapide + Report sur même ligne (point 11) -->
+                        <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;align-items:center;">
                             <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
                             <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
                             <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
                             <button type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
                             <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
                             <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
-                        </div>
-                        <!-- Boutons Report -->
-                        <div style="display:flex;gap:2px;margin-bottom:3px;">
+                            <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
                             <button type="button" onclick="reportTraitement(3,<?= $id ?>)"
-                                style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">📋 Report 3M</button>
+                                style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
                             <button type="button" onclick="reportTraitement(6,<?= $id ?>)"
-                                style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">📋 Report 6M</button>
+                                style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
                         </div>
-                        <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
-                               onchange="rdvDateChange(this.value,'rdv')"
-                               style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;margin-bottom:4px;">
+
+                        <!-- Date + Heure côte à côte (points 5+6) -->
+                        <div style="display:flex;gap:4px;margin-bottom:4px;">
+                            <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
+                                   onchange="rdvDateChange(this.value,'rdv')"
+                                   style="flex:1;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;">
+                            <div id="rdv_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;white-space:nowrap;">
+                                <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
+                            </div>
+                        </div>
+
+                        <!-- Jauge jour -->
                         <div class="jauge-jour" id="rdv_jauge" style="display:none;">
                             <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;font-size:10px;"></span>
                             <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill" style="width:0%"></div></div>
                         </div>
+                        <!-- Grille créneaux -->
                         <div class="creneaux-wrap">
                             <div class="creneaux-loading" id="rdv_loading" style="display:none;">⏳ Chargement…</div>
                             <div class="creneaux-msg"     id="rdv_msg"     style="display:none;"></div>
@@ -672,19 +683,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         </div>
                     </td>
                 </tr>
-                <!-- LIGNE HEURE -->
-                <tr>
-                    <td>⏰ Heure</td>
-                    <td class="col-rdv-fixe" style="text-align:center;"><strong style="color:#2e6da4;"><?= $dv_heure ?></strong></td>
-                    <td style="background:#dce8f7;text-align:center;"><strong style="color:#5b7fa6;"><?= $rdvp_heure ?></strong></td>
-                    <td class="col-visite" style="text-align:center;color:#888;font-size:11px;">—</td>
-                    <td class="col-rdv-futur" style="text-align:center;padding:4px;">
-                        <?php if (!empty($ordCourante['HeureRDV'])): ?>
-                        <span style="background:#e8d5f5;color:#8e44ad;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:bold;"><?= htmlspecialchars($ordCourante['HeureRDV']) ?></span>
-                        <?php else: ?><span style="color:#aaa;font-size:11px;">à choisir ↑</span><?php endif; ?>
-                    </td>
-                </tr>
-                <!-- LIGNE ACTE -->
+                <!-- LIGNE ACTE (point 8 - actes suggérés plus visibles dans col Actuel visite) -->
                 <tr>
                     <td>🏥 Acte</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
@@ -693,11 +692,14 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <td style="background:#dce8f7;text-align:center;">
                         <span style="background:#b8d0ec;color:#1a4a7a;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;"><?= $rdvp_acte ?></span>
                     </td>
-                    <td class="col-visite" style="text-align:center;">
+                    <td class="col-visite" style="text-align:center;padding:4px;">
                         <?php foreach ($actesSuggeres as $as): ?>
-                        <span style="background:#f39c12;color:white;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;display:inline-block;margin:1px;"><?= $as['acte'] ?></span>
+                        <div style="background:#e67e22;color:white;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:bold;margin-bottom:2px;display:inline-block;">
+                            ⚡ <?= $as['acte'] ?>
+                            <span style="font-size:9px;opacity:0.85;"><?= $as['derniere'] ? date('d/m/y', strtotime($as['derniere'])) : 'jamais' ?></span>
+                        </div>
                         <?php endforeach; ?>
-                        <?php if (empty($actesSuggeres)): ?><span style="color:#aaa;font-size:11px;">—</span><?php endif; ?>
+                        <?php if (empty($actesSuggeres)): ?><span style="color:#27ae60;font-size:11px;">✅ À jour</span><?php endif; ?>
                     </td>
                     <td class="col-rdv-futur" style="padding:4px;">
                         <input type="text" id="acte_rdv_futur" value="<?= htmlspecialchars($acteNouveauRDV) ?>"
@@ -714,20 +716,11 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </tbody>
         </table>
 
-        <!-- DATE ORDONNANCE -->
-        <?php
-        $tsOrdGauche   = !empty($ordCourante['date_ordon']) ? strtotime($ordCourante['date_ordon']) : false;
-        $dateOrdGauche = ($tsOrdGauche && $tsOrdGauche > 0) ? date('d/m/Y', $tsOrdGauche) : '—';
-        ?>
-        <div style="background:#e8f8ee;border:2px solid #27ae60;border-radius:6px;padding:8px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:11px;color:#555;text-transform:uppercase;font-weight:bold;">Date ordonnance</span>
-            <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:18px;color:#1a4a7a;letter-spacing:1px;"><?= $dateOrdGauche ?></span>
-        </div>
-
-        <!-- MÉDICAMENTS -->
+        <!-- MÉDICAMENTS (point 9 - garder compteur) -->
         <div class="champ" style="margin-top:4px;">
-            <label>💊 Médicaments (<?= count($medicaments) ?>)</label>
-            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
+            <label style="font-size:11px;font-weight:bold;color:#1a4a7a;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+            <?php if (!empty($medicaments)): ?>
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;margin-top:4px;">
                 <span style="font-size:10px;color:#888;text-transform:uppercase;">Médicament</span>
                 <span style="font-size:10px;color:#888;text-transform:uppercase;">Posologie</span>
                 <span style="font-size:10px;color:#888;text-transform:uppercase;">Durée</span>
@@ -739,30 +732,30 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
             </div>
             <?php endforeach; ?>
-            <?php if (empty($medicaments)): ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
+            <?php else: ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
         </div>
         </div><!-- FIN COL GAUCHE -->
 
-        <!-- COL DROITE : FACTURATION -->
+        <!-- COL DROITE : FACTURATION (points 2,4,7) -->
         <div>
-            <div class="card-title">💰 Facturation</div>
+            <!-- TITRE avec date facture (point 2) -->
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>💰 Facturation</span>
+                <?php if ($factCourante): ?>
+                <?php $tsFactTitre = strtotime($factCourante['date_facture'] ?? ''); $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—'; ?>
+                <span style="font-family:Arial Black,sans-serif;font-weight:900;font-size:16px;color:#1a4a7a;background:#e8f0fb;padding:3px 14px;border-radius:5px;border:2px solid #2e6da4;letter-spacing:1px;"><?= $dateFactTitre ?></span>
+                <?php endif; ?>
+            </div>
             <div id="fact-affichage">
             <?php if ($factCourante): ?>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-                <div class="champ">
-                    <label>N° Facture</label>
-                    <input type="text" value="<?= $factCourante['n_facture'] ?>" readonly>
-                </div>
-                <div class="champ">
-                    <label>Date facture</label>
-                    <?php
-                    $tsF = strtotime($factCourante['date_facture'] ?? '');
-                    $dateFactVal = ($tsF && $tsF > 86400) ? date('Y-m-d', $tsF) : '';
-                    ?>
-                    <input type="date" value="<?= $dateFactVal ?>"
-                        onchange="majDateFacture(<?= $nFact ?>, this.value)"
-                        style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:12px;">
-                </div>
+            <!-- N° Facture compact (point 4) -->
+            <?php $tsF = strtotime($factCourante['date_facture'] ?? ''); $dateFactVal = ($tsF && $tsF > 86400) ? date('Y-m-d', $tsF) : ''; ?>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="color:#888;font-size:11px;text-transform:uppercase;white-space:nowrap;">N° Facture</span>
+                <strong style="font-size:14px;color:#1a4a7a;"><?= $factCourante['n_facture'] ?></strong>
+                <input type="date" value="<?= $dateFactVal ?>"
+                    onchange="majDateFacture(<?= $nFact ?>, this.value)"
+                    style="margin-left:auto;padding:3px 6px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
             </div>
             <table style="width:100%;border-collapse:collapse;font-size:11px;">
                 <thead style="background:#1a4a7a;color:white;">
@@ -799,15 +792,14 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     </tr>
                 </tfoot>
             </table>
-
-            <!-- ═══ NAVIGATION FACTURE — ordre : |◀ ◀ X/N ▶ ▶| ✚ ═══ -->
-            <div style="display:flex;justify-content:center;gap:4px;margin-top:8px;">
-                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" title="Première">|◀</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn" title="Précédente">◀</a>
-                <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:3px 6px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn" title="Suivante">▶</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;" title="Nouvelle facture">✚</button>
+            <!-- Navigation facture petite (point 7) -->
+            <div style="display:flex;justify-content:center;gap:2px;margin-top:6px;">
+                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
+                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
+                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
             </div>
             <?php else: ?>
                 <p style="color:#999;font-size:12px;">Aucune facture</p>
@@ -870,32 +862,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </div>
             </div>
 
-            <!-- DATE FACTURE VISIBLE EN GRAS -->
-            <?php if ($factCourante): ?>
-            <?php
-                $tsFactAff = strtotime($factCourante['date_facture'] ?? '');
-                $dateFactAff = ($tsFactAff && $tsFactAff > 86400) ? date('d/m/Y', $tsFactAff) : '—';
-            ?>
-            <div style="margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;display:flex;align-items:center;gap:10px;">
-                <span style="font-size:11px;color:#555;text-transform:uppercase;font-weight:bold;">Date facture</span>
-                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:18px;color:#1a4a7a;letter-spacing:1px;"><?= $dateFactAff ?></span>
-            </div>
-            <?php endif; ?>
-
-            <!-- ACTES SUGGERES (déplacés ici) -->
+            <!-- ACTES SUGGÉRÉS — nouvel aspect (point 10) -->
             <?php if (!empty($actesSuggeres)): ?>
-            <div style="background:#fff3cd;border-left:4px solid #f39c12;padding:8px;border-radius:4px;margin-top:10px;">
-                <div style="font-size:11px;font-weight:bold;color:#856404;margin-bottom:6px;">⚠️ Actes suggérés</div>
+            <div style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">
+                <div style="font-size:11px;font-weight:bold;color:#555;text-transform:uppercase;margin-bottom:5px;">⚡ Actes suggérés</div>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
                     <?php foreach ($actesSuggeres as $a): ?>
-                    <span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;">
-                        <?= $a['acte'] ?>
-                        <?php if ($a['derniere']): ?>
-                            <span style="font-size:10px;opacity:0.85;">(<?= date('d/m/Y', strtotime($a['derniere'])) ?>)</span>
-                        <?php else: ?>
-                            <span style="font-size:10px;opacity:0.85;">(jamais)</span>
-                        <?php endif; ?>
-                    </span>
+                    <div style="background:#e67e22;color:white;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:bold;text-align:center;">
+                        <?= $a['acte'] ?><br>
+                        <span style="font-size:9px;opacity:0.85;"><?= $a['derniere'] ? date('d/m/y', strtotime($a['derniere'])) : 'jamais' ?></span>
+                    </div>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -1460,6 +1436,10 @@ function rdvSelectionnerCreneau(heure, prefixe) {
 
     // Mettre à jour le champ heure caché
     document.getElementById(ids.heureH).value = heure;
+
+    // Mettre à jour l'affichage heure visible
+    const heureAff = document.getElementById('rdv_heure_affichage');
+    if (heureAff) heureAff.textContent = heure;
 
     // Synchroniser les deux formulaires
     const autreHId = (prefixe === 'rdv') ? 'no_heure' : 'heure_rdv_futur';
