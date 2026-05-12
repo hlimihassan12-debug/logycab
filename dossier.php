@@ -90,6 +90,63 @@ if (!$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335) {
     $actesSuggeres[] = ['acte' => 'DTSA', 'derniere' => $lastDTSA];
 }
 
+// ── HISTORIQUE ACTES (point 1) ────────────────────────────────────────────
+// Date recrutement depuis la table ID - convertir depuis format texte Access
+$datePremVisite = null;
+if (!empty($patient['DateRecrt'])) {
+    $ts = strtotime($patient['DateRecrt']);
+    if ($ts && $ts > 86400) {
+        $datePremVisite = date('Y-m-d', $ts);
+    }
+}
+
+// Dates ECG réalisés (date-H = date réelle de l'acte)
+$stmtHistECG = $db->prepare("
+    SELECT da.[date-H] AS dt
+    FROM detail_acte da
+    JOIN facture f ON da.N_fact = f.n_facture
+    JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
+    WHERE f.id = ? AND a.ACTE LIKE '%ECG%'
+    AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC
+");
+$stmtHistECG->execute([$id]);
+$histECG = $stmtHistECG->fetchAll();
+
+// Dates EDC réalisés
+$stmtHistEDC = $db->prepare("
+    SELECT da.[date-H] AS dt
+    FROM detail_acte da
+    JOIN facture f ON da.N_fact = f.n_facture
+    JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
+    WHERE f.id = ? AND a.ACTE LIKE '%EDC%'
+    AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC
+");
+$stmtHistEDC->execute([$id]);
+$histEDC = $stmtHistEDC->fetchAll();
+
+// Dates DTSA réalisés
+$stmtHistDTSA = $db->prepare("
+    SELECT da.[date-H] AS dt
+    FROM detail_acte da
+    JOIN facture f ON da.N_fact = f.n_facture
+    JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
+    WHERE f.id = ? AND a.ACTE LIKE '%DTSA%'
+    AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC
+");
+$stmtHistDTSA->execute([$id]);
+$histDTSA = $stmtHistDTSA->fetchAll();
+
+// Fonction helper pour formater une date d'acte
+function dateActe($row) {
+    $d = $row['dt'] ?? null;
+    if (!$d) return '—';
+    $ts = strtotime($d);
+    return ($ts && $ts > 86400) ? date('d/m/y', $ts) : '—';
+}
+
 // Navigation ordonnances
 // Les ordonnances sont triées DESC (plus récente = index 0)
 // |◀ = première (plus ancienne) = dernier index
@@ -287,7 +344,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .patient-bar .info span { font-weight: bold; color: #FFD700; }
 
 /* LAYOUT PRINCIPAL */
-.main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; }
+.main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
 .col-left { display: flex; flex-direction: column; gap: 8px; }
 .col-mid { display: flex; flex-direction: column; gap: 8px; }
 .col-right { display: flex; flex-direction: column; gap: 8px; }
@@ -566,18 +623,19 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 <div class="col-mid">
     <div class="card">
 
-        <!-- TITRE CARTE ORDONNANCE avec date ordonnance -->
-        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-            <span>📋 Ordonnance</span>
-            <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
-            <?php
-                $tsOrd = strtotime($ordCourante['date_ordon']);
-                $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
-            ?>
-            <span style="font-family:Arial Black,sans-serif;font-weight:900;font-size:16px;color:#1a4a7a;background:#e8f0fb;padding:3px 14px;border-radius:5px;border:2px solid #2e6da4;letter-spacing:1px;">
-                <?= $dateOrdAff ?>
+        <!-- TITRE CARTE ORDONNANCE avec date ordonnance (police 12, côté titre) -->
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
+            <span style="font-size:13px;">📋 Ordonnance
+                <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
+                <?php
+                    $tsOrd = strtotime($ordCourante['date_ordon']);
+                    $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
+                ?>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;margin-left:8px;">
+                    <?= $dateOrdAff ?>
+                </span>
+                <?php endif; ?>
             </span>
-            <?php endif; ?>
         </div>
 
         <?php if ($ordCourante): ?>
@@ -683,7 +741,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         </div>
                     </td>
                 </tr>
-                <!-- LIGNE ACTE (point 8 - actes suggérés plus visibles dans col Actuel visite) -->
+                <!-- LIGNE ACTE (point 8 - actes suggérés sans couleur) -->
                 <tr>
                     <td>🏥 Acte</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
@@ -694,9 +752,9 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     </td>
                     <td class="col-visite" style="text-align:center;padding:4px;">
                         <?php foreach ($actesSuggeres as $as): ?>
-                        <div style="background:#e67e22;color:white;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:bold;margin-bottom:2px;display:inline-block;">
-                            ⚡ <?= $as['acte'] ?>
-                            <span style="font-size:9px;opacity:0.85;"><?= $as['derniere'] ? date('d/m/y', strtotime($as['derniere'])) : 'jamais' ?></span>
+                        <div style="border:2px solid #555;color:#333;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:2px;display:inline-block;background:#f9f9f9;">
+                            <?= $as['acte'] ?>
+                            <span style="font-size:9px;color:#888;"><?= $as['derniere'] ? date('d/m/y', strtotime($as['derniere'])) : 'jamais' ?></span>
                         </div>
                         <?php endforeach; ?>
                         <?php if (empty($actesSuggeres)): ?><span style="color:#27ae60;font-size:11px;">✅ À jour</span><?php endif; ?>
@@ -716,9 +774,15 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </tbody>
         </table>
 
-        <!-- MÉDICAMENTS (point 9 - garder compteur) -->
+        <!-- MÉDICAMENTS (point 9 - avec boutons Report) -->
         <div class="champ" style="margin-top:4px;">
-            <label style="font-size:11px;font-weight:bold;color:#1a4a7a;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)"
+                    style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)"
+                    style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+            </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;margin-top:4px;">
                 <span style="font-size:10px;color:#888;text-transform:uppercase;">Médicament</span>
@@ -736,23 +800,23 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         </div>
         </div><!-- FIN COL GAUCHE -->
 
-        <!-- COL DROITE : FACTURATION (points 2,4,7) -->
+        <!-- COL DROITE : FACTURATION -->
         <div>
             <!-- TITRE avec date facture (point 2) -->
-            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>💰 Facturation</span>
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
+                <span style="font-size:13px;">💰 Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php $tsFactTitre = strtotime($factCourante['date_facture'] ?? ''); $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—'; ?>
-                <span style="font-family:Arial Black,sans-serif;font-weight:900;font-size:16px;color:#1a4a7a;background:#e8f0fb;padding:3px 14px;border-radius:5px;border:2px solid #2e6da4;letter-spacing:1px;"><?= $dateFactTitre ?></span>
+                <span style="font-family:Arial Black,sans-serif;font-weight:900;font-size:20px;color:#1a4a7a;background:#e8f0fb;padding:4px 18px;border-radius:6px;border:2px solid #2e6da4;letter-spacing:2px;"><?= $dateFactTitre ?></span>
                 <?php endif; ?>
             </div>
             <div id="fact-affichage">
             <?php if ($factCourante): ?>
-            <!-- N° Facture compact (point 4) -->
+            <!-- N° Facture et date sur même ligne (point 4) -->
             <?php $tsF = strtotime($factCourante['date_facture'] ?? ''); $dateFactVal = ($tsF && $tsF > 86400) ? date('Y-m-d', $tsF) : ''; ?>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span style="color:#888;font-size:11px;text-transform:uppercase;white-space:nowrap;">N° Facture</span>
-                <strong style="font-size:14px;color:#1a4a7a;"><?= $factCourante['n_facture'] ?></strong>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:4px 6px;background:#f0f4f8;border-radius:4px;">
+                <span style="color:#888;font-size:11px;text-transform:uppercase;white-space:nowrap;">N°</span>
+                <strong style="font-size:15px;color:#1a4a7a;"><?= $factCourante['n_facture'] ?></strong>
                 <input type="date" value="<?= $dateFactVal ?>"
                     onchange="majDateFacture(<?= $nFact ?>, this.value)"
                     style="margin-left:auto;padding:3px 6px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
@@ -862,20 +926,73 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </div>
             </div>
 
-            <!-- ACTES SUGGÉRÉS — nouvel aspect (point 10) -->
+            <!-- ACTES SUGGÉRÉS — sans couleur, style cases (point 10) -->
             <?php if (!empty($actesSuggeres)): ?>
             <div style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">
                 <div style="font-size:11px;font-weight:bold;color:#555;text-transform:uppercase;margin-bottom:5px;">⚡ Actes suggérés</div>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
                     <?php foreach ($actesSuggeres as $a): ?>
-                    <div style="background:#e67e22;color:white;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:bold;text-align:center;">
+                    <div style="border:2px solid #555;color:#333;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:bold;text-align:center;background:#f9f9f9;">
                         <?= $a['acte'] ?><br>
-                        <span style="font-size:9px;opacity:0.85;"><?= $a['derniere'] ? date('d/m/y', strtotime($a['derniere'])) : 'jamais' ?></span>
+                        <span style="font-size:9px;color:#888;"><?= $a['derniere'] ? date('d/m/y', strtotime($a['derniere'])) : 'jamais' ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
             </div>
             <?php endif; ?>
+
+            <!-- HISTORIQUE ACTES (point 1) -->
+            <div style="margin-top:10px;border-top:2px solid #e0e0e0;padding-top:8px;">
+                <div style="font-size:11px;font-weight:bold;color:#1a4a7a;text-transform:uppercase;margin-bottom:6px;">📊 Historique actes</div>
+
+                <?php
+                $tsPV = $datePremVisite ? strtotime($datePremVisite) : false;
+                $datePVAff = ($tsPV && $tsPV > 86400) ? date('d/m/Y', $tsPV) : '—';
+                ?>
+                <div style="font-size:11px;color:#555;margin-bottom:8px;">
+                    🏥 <strong>Recrutement :</strong> <?= $datePVAff ?>
+                </div>
+
+                <?php
+                $groupesActes = [
+                    'ECG'  => $histECG,
+                    'EDC'  => $histEDC,
+                    'DTSA' => $histDTSA,
+                ];
+                foreach ($groupesActes as $nomActe => $liste):
+                    $nb = count($liste);
+                    $datesJS = [];
+                    foreach ($liste as $row) {
+                        $d = dateActe($row);
+                        if ($d !== '—') $datesJS[] = $d;
+                    }
+                    $datesAttr = htmlspecialchars(json_encode($datesJS), ENT_QUOTES);
+                ?>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;min-width:35px;"><?= $nomActe ?></span>
+                    <?php if ($nb > 0): ?>
+                    <span class="hist-acte-btn"
+                          data-acte="<?= $nomActe ?>"
+                          data-dates="<?= $datesAttr ?>"
+                          style="background:#e8f0fb;color:#1a4a7a;padding:1px 10px;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;border:1px solid #2e6da4;"
+                          title="Cliquer pour voir les dates">
+                        <?= $nb ?>
+                    </span>
+                    <?php else: ?>
+                    <span style="color:#aaa;font-size:11px;">—</span>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- POPUP DATES ACTES -->
+            <div id="popup-dates-acte" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:8px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:9998;min-width:200px;max-width:300px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <strong id="popup-dates-titre" style="color:#1a4a7a;font-size:14px;"></strong>
+                    <button onclick="document.getElementById('popup-dates-acte').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888;">✕</button>
+                </div>
+                <div id="popup-dates-liste" style="font-size:12px;line-height:1.8;color:#333;"></div>
+            </div>
 
         </div><!-- FIN COL DROITE -->
 
@@ -909,100 +1026,99 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </div>
         <?php endif; ?>
 
-        <!-- ═══════════════════════════════════════════════════════
-             FORMULAIRE NOUVELLE ORDONNANCE
-             Caché par défaut — affiché quand on clique ✚
-             ═══════════════════════════════════════════════════════ -->
-        <div id="form-nouvelle-ordonnance" style="display:none;">
-
-            <div style="background:#e8f8ee;border:2px solid #27ae60;border-radius:6px;padding:10px;margin-bottom:8px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <strong style="color:#27ae60;font-size:13px;">✚ Nouvelle ordonnance</strong>
-                    <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:12px;">✕ Annuler</button>
-                </div>
-
-                <!-- LIGNE 1 : DATE ORDONNANCE + ACTE -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                    <div>
-                        <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:2px;">DATE ORDONNANCE</label>
-                        <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:100%;border:1px solid #cdd5de;border-radius:3px;padding:4px 6px;font-size:12px;">
-                    </div>
-                    <div>
-                        <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:2px;">ACTE</label>
-                        <input type="text" id="no_acte" placeholder="ECG, EDC..."
-                               oninput="syncActe(this.value,'no')"
-                               style="width:100%;border:1px solid #cdd5de;border-radius:3px;padding:4px 6px;font-size:12px;">
-                        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;">
-                            <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
-                            <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;"><?= $ba ?></button>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- LIGNE 2 : DATE RDV + CRÉNEAUX (pleine largeur) -->
-                <div style="margin-bottom:8px;">
-                    <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">📅 DATE &amp; HEURE RDV</label>
-
-                    <!-- Champs cachés pour la soumission -->
-                    <input type="hidden" id="no_rdv"   value="">
-                    <input type="hidden" id="no_heure" value="">
-
-                    <!-- Délai rapide -->
-                    <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:5px;">
-                        <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:2px 7px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
-                        <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:2px 7px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
-                        <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:2px 7px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
-                        <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:#27ae60;color:white;border:none;padding:2px 7px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
-                        <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:#27ae60;color:white;border:none;padding:2px 7px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
-                        <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:#27ae60;color:white;border:none;padding:2px 7px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
-                    </div>
-
-                    <!-- Saisie manuelle date -->
-                    <input type="date" id="no_rdv_visible"
-                           onchange="rdvDateChange(this.value,'no')"
-                           style="width:100%;border:1px solid #cdd5de;border-radius:3px;padding:4px 6px;font-size:12px;margin-bottom:5px;">
-
-                    <!-- Jauge jour -->
-                    <div class="jauge-jour" id="no_jauge" style="display:none;">
-                        <span id="no_jauge_txt" style="white-space:nowrap;color:#555;"></span>
-                        <div class="jauge-bar"><div class="jauge-fill ok" id="no_jauge_fill" style="width:0%"></div></div>
-                    </div>
-
-                    <!-- Grille créneaux -->
-                    <div class="creneaux-wrap">
-                        <div class="creneaux-loading" id="no_loading" style="display:none;">⏳ Chargement…</div>
-                        <div class="creneaux-msg"     id="no_msg_rdv" style="display:none;"></div>
-                        <div class="creneaux-grille"  id="no_grille"></div>
-                    </div>
-                </div>
-
-                <!-- TABLEAU MEDICAMENTS -->
-                <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">💊 Médicaments :</div>
-                <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                    <thead style="background:#1a4a7a;color:white;">
-                        <tr>
-                            <th style="padding:5px 6px;text-align:left;">Médicament</th>
-                            <th style="padding:5px 6px;text-align:left;">Posologie</th>
-                            <th style="padding:5px 6px;text-align:left;">Durée</th>
-                            <th style="padding:5px 6px;width:30px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="no_lignes"></tbody>
-                </table>
-
-                <!-- BOUTONS -->
-                <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-                    <button type="button" onclick="noAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:5px 12px;cursor:pointer;font-size:12px;">✚ Médicament</button>
-                    <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:5px 14px;cursor:pointer;font-size:12px;font-weight:600;">💾 Enregistrer</button>
-                    <span id="no_msg" style="font-size:11px;color:#27ae60;"></span>
-                </div>
-            </div>
-
-        </div><!-- FIN form-nouvelle-ordonnance -->
+        </div><!-- FIN form-nouvelle-ordonnance inline supprimé -->
 
     </div><!-- FIN card ordonnance -->
 </div><!-- FIN col-mid -->
+
+<!-- ══════════════════════════════════════════════════════
+     POPUP MODAL NOUVELLE ORDONNANCE
+     ══════════════════════════════════════════════════════ -->
+<div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
+    <div style="background:white;border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
+
+        <!-- ENTÊTE POPUP -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #27ae60;">
+            <strong style="color:#27ae60;font-size:15px;">✚ Nouvelle ordonnance</strong>
+            <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
+        </div>
+
+        <!-- LIGNE 1 : DATE ORDONNANCE + ACTE -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
+                <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;">
+            </div>
+            <div>
+                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
+                <input type="text" id="no_acte" placeholder="ECG, EDC..."
+                       oninput="syncActe(this.value,'no')"
+                       style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
+                <div style="display:flex;gap:3px;flex-wrap:wrap;">
+                    <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
+                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIGNE 2 : DATE & HEURE RDV -->
+        <div style="margin-bottom:12px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
+            <label style="font-size:10px;color:#8e44ad;font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
+
+            <input type="hidden" id="no_rdv"   value="">
+            <input type="hidden" id="no_heure" value="">
+
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
+                <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
+                <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
+                <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
+                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
+                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
+                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                <input type="date" id="no_rdv_visible"
+                       onchange="rdvDateChange(this.value,'no')"
+                       style="flex:1;border:1px solid #8e44ad;border-radius:4px;padding:5px 8px;font-size:12px;">
+                <div id="no_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
+            </div>
+
+            <div class="jauge-jour" id="no_jauge" style="display:none;">
+                <span id="no_jauge_txt" style="white-space:nowrap;color:#555;font-size:11px;"></span>
+                <div class="jauge-bar"><div class="jauge-fill ok" id="no_jauge_fill" style="width:0%"></div></div>
+            </div>
+
+            <div class="creneaux-wrap">
+                <div class="creneaux-loading" id="no_loading" style="display:none;">⏳ Chargement…</div>
+                <div class="creneaux-msg"     id="no_msg_rdv" style="display:none;"></div>
+                <div class="creneaux-grille"  id="no_grille"></div>
+            </div>
+        </div>
+
+        <!-- TABLEAU MÉDICAMENTS -->
+        <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin-bottom:8px;">💊 Médicaments :</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead style="background:#1a4a7a;color:white;">
+                <tr>
+                    <th style="padding:6px 8px;text-align:left;">Médicament</th>
+                    <th style="padding:6px 8px;text-align:left;">Posologie</th>
+                    <th style="padding:6px 8px;text-align:left;">Durée</th>
+                    <th style="padding:6px 8px;width:30px;"></th>
+                </tr>
+            </thead>
+            <tbody id="no_lignes"></tbody>
+        </table>
+
+        <!-- BOUTONS ENREGISTREMENT -->
+        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
+            <button type="button" onclick="noAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
+            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600;">💾 Enregistrer</button>
+            <span id="no_msg" style="font-size:12px;color:#27ae60;"></span>
+        </div>
+    </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════
      COLONNE DROITE : EXAMEN CLINIQUE
@@ -1127,6 +1243,18 @@ document.getElementById('rech-patient').addEventListener('input', function() {
             sugg.style.display = 'block';
         });
 });
+
+// Recherche directe par numéro patient avec Entrée
+document.getElementById('rech-patient').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const val = this.value.trim();
+        if (/^\d+$/.test(val)) {
+            // C'est un numéro → ouvrir directement ce patient
+            window.location.href = 'dossier.php?id=' + val;
+        }
+    }
+});
+
 document.addEventListener('click', e => {
     if (!e.target.closest('#rech-patient') && !e.target.closest('#rech-suggestions')) {
         document.getElementById('rech-suggestions').style.display = 'none';
@@ -1246,6 +1374,31 @@ function sauvegarderChamp(champ, valeur) {
         if (statusEl) { statusEl.textContent = '❌ Erreur réseau'; statusEl.style.color = '#e74c3c'; }
     });
 }
+// ── Popup dates actes ─────────────────────────────────────────────────────
+function afficherDatesActe(nomActe, dates) {
+    document.getElementById('popup-dates-titre').textContent = nomActe + ' — ' + dates.length + ' réalisation(s)';
+    const liste = document.getElementById('popup-dates-liste');
+    liste.innerHTML = dates.length
+        ? dates.map(d => `<div>• ${d}</div>`).join('')
+        : '<div style="color:#aaa;">Aucune date enregistrée</div>';
+    document.getElementById('popup-dates-acte').style.display = 'block';
+}
+
+// Listener pour les boutons d'historique (data-attributes)
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.hist-acte-btn');
+    if (btn) {
+        const acte  = btn.dataset.acte;
+        const dates = JSON.parse(btn.dataset.dates || '[]');
+        afficherDatesActe(acte, dates);
+    }
+    // Fermer popup si clic en dehors
+    const popup = document.getElementById('popup-dates-acte');
+    if (popup && popup.style.display !== 'none' && !popup.contains(e.target) && !e.target.closest('.hist-acte-btn')) {
+        popup.style.display = 'none';
+    }
+});
+
 function majDateFacture(nFact, val) {
     fetch('ajax_maj_facture.php', {
         method: 'POST',
@@ -1437,9 +1590,11 @@ function rdvSelectionnerCreneau(heure, prefixe) {
     // Mettre à jour le champ heure caché
     document.getElementById(ids.heureH).value = heure;
 
-    // Mettre à jour l'affichage heure visible
+    // Mettre à jour l'affichage heure visible (tableau ET popup)
     const heureAff = document.getElementById('rdv_heure_affichage');
     if (heureAff) heureAff.textContent = heure;
+    const heureAffNo = document.getElementById('no_heure_affichage');
+    if (heureAffNo) heureAffNo.textContent = heure;
 
     // Synchroniser les deux formulaires
     const autreHId = (prefixe === 'rdv') ? 'no_heure' : 'heure_rdv_futur';
@@ -1586,11 +1741,12 @@ function rdvSetDelai(mois, jours, prefixe) {
 // NOUVELLE ORDONNANCE
 // ══════════════════════════════════════════════════════
 function afficherNouvelleOrdonnance() {
-    document.getElementById('form-nouvelle-ordonnance').style.display = 'block';
+    document.getElementById('modal-nouvelle-ordonnance').style.display = 'block';
+    document.body.style.overflow = 'hidden'; // empêcher scroll fond
     if (document.getElementById('no_lignes').children.length === 0) {
         noAjouterLigne();
     }
-    // Si une date RDV est déjà définie (depuis le formulaire violet), charger ses créneaux
+    // Si une date RDV est déjà définie, charger ses créneaux
     const dateExistante = document.getElementById('no_rdv').value;
     if (dateExistante && document.getElementById('no_grille').children.length === 0) {
         rdvChargerCreneaux(dateExistante, 'no', false);
@@ -1598,8 +1754,19 @@ function afficherNouvelleOrdonnance() {
 }
 
 function masquerNouvelleOrdonnance() {
-    document.getElementById('form-nouvelle-ordonnance').style.display = 'none';
+    document.getElementById('modal-nouvelle-ordonnance').style.display = 'none';
+    document.body.style.overflow = ''; // rétablir scroll
 }
+
+// Fermer popup en cliquant sur le fond
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal-nouvelle-ordonnance');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) masquerNouvelleOrdonnance();
+        });
+    }
+});
 
 const noMeds = <?= json_encode(array_map(fn($m) => [
     'id'  => $m['NuméroPRODUIT'],
