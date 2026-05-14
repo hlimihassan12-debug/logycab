@@ -6,13 +6,11 @@ $db = getDB();
 $id = (int)($_GET['id'] ?? 0);
 if ($id == 0) { header('Location: recherche.php'); exit; }
 
-// Patient
 $stmt = $db->prepare("SELECT * FROM ID WHERE [N°PAT] = ?");
 $stmt->execute([$id]);
 $patient = $stmt->fetch();
 if (!$patient) { die("❌ Patient introuvable !"); }
 
-// Diagnostics
 $stmtDiag = $db->prepare("SELECT N_dic, diagnostic FROM t_diagnostic WHERE id = ? ORDER BY N_dic");
 $stmtDiag->execute([$id]);
 $diagnostics = $stmtDiag->fetchAll();
@@ -25,12 +23,10 @@ $stmtDiagNC = $db->prepare("SELECT N_dic_non_cardio, dic_non_cardio FROM T_id_di
 $stmtDiagNC->execute([$id]);
 $diagnosticsNC = $stmtDiagNC->fetchAll();
 
-// FDR permanents du patient
 $stmtFDR = $db->prepare("SELECT FDR FROM patient_fdr WHERE id = ? ORDER BY N");
 $stmtFDR->execute([$id]);
 $fdrPatient = $stmtFDR->fetchAll(PDO::FETCH_COLUMN);
 
-// Navigation entre patients qui ont des ordonnances
 $first_id = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] ASC")->fetchColumn();
 $last_id  = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] DESC")->fetchColumn();
 
@@ -44,14 +40,12 @@ $total_patients = $db->query("SELECT COUNT(DISTINCT id) FROM ORD")->fetchColumn(
 $pos_patient    = $db->prepare("SELECT COUNT(DISTINCT id) FROM ORD WHERE id <= ?");
 $pos_patient->execute([$id]); $pos_patient = $pos_patient->fetchColumn();
 
-// Calcul âge
 $age = '';
 if ($patient['DDN']) {
     $naissance = new DateTime($patient['DDN']);
     $age = $naissance->diff(new DateTime())->y;
 }
 
-// Ordonnances
 $stmtOrd = $db->prepare("SELECT * FROM ORD WHERE id=? ORDER BY date_ordon DESC");
 $stmtOrd->execute([$id]);
 $ordonnances = $stmtOrd->fetchAll();
@@ -63,16 +57,13 @@ foreach ($ordonnances as $i => $o) {
     if ($o['n_ordon'] == $nOrd) { $ordCourante = $o; $idxOrdCourante = $i; break; }
 }
 
-// Ordonnance précédente
 $ordPrecedente = isset($ordonnances[$idxOrdCourante + 1]) ? $ordonnances[$idxOrdCourante + 1] : null;
 
-// Acte suggéré pour le nouveau RDV
 $acteNouveauRDV = '';
 if ($ordPrecedente) {
     $acteNouveauRDV = $ordPrecedente['acte1'] ?? '';
 }
 
-// Actes automatiques basés sur les ordonnances
 $actesSuggeres = [];
 $stmtLastECG = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%ECG%' ORDER BY date_ordon DESC");
 $stmtLastECG->execute([$id]); $lastECG = $stmtLastECG->fetchColumn();
@@ -90,56 +81,31 @@ if (!$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335) {
     $actesSuggeres[] = ['acte' => 'DTSA', 'derniere' => $lastDTSA];
 }
 
-// ── HISTORIQUE ACTES (point 1) ────────────────────────────────────────────
-// Date recrutement depuis la table ID - convertir depuis format texte Access
-$datePremVisite = null;
-if (!empty($patient['DateRecrt'])) {
-    $ts = strtotime($patient['DateRecrt']);
-    if ($ts && $ts > 86400) {
-        $datePremVisite = date('Y-m-d', $ts);
-    }
-}
-
-// Dates ECG réalisés (date-H = date réelle de l'acte)
+// ── HISTORIQUE ACTES ──
 $stmtHistECG = $db->prepare("
-    SELECT da.[date-H] AS dt
-    FROM detail_acte da
+    SELECT da.[date-H] AS dt FROM detail_acte da
     JOIN facture f ON da.N_fact = f.n_facture
     JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
-    WHERE f.id = ? AND a.ACTE LIKE '%ECG%'
-    AND da.[date-H] IS NOT NULL
-    ORDER BY da.[date-H] DESC
-");
-$stmtHistECG->execute([$id]);
-$histECG = $stmtHistECG->fetchAll();
+    WHERE f.id = ? AND a.ACTE LIKE '%ECG%' AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC");
+$stmtHistECG->execute([$id]); $histECG = $stmtHistECG->fetchAll();
 
-// Dates EDC réalisés
 $stmtHistEDC = $db->prepare("
-    SELECT da.[date-H] AS dt
-    FROM detail_acte da
+    SELECT da.[date-H] AS dt FROM detail_acte da
     JOIN facture f ON da.N_fact = f.n_facture
     JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
-    WHERE f.id = ? AND a.ACTE LIKE '%EDC%'
-    AND da.[date-H] IS NOT NULL
-    ORDER BY da.[date-H] DESC
-");
-$stmtHistEDC->execute([$id]);
-$histEDC = $stmtHistEDC->fetchAll();
+    WHERE f.id = ? AND a.ACTE LIKE '%EDC%' AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC");
+$stmtHistEDC->execute([$id]); $histEDC = $stmtHistEDC->fetchAll();
 
-// Dates DTSA réalisés
 $stmtHistDTSA = $db->prepare("
-    SELECT da.[date-H] AS dt
-    FROM detail_acte da
+    SELECT da.[date-H] AS dt FROM detail_acte da
     JOIN facture f ON da.N_fact = f.n_facture
     JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
-    WHERE f.id = ? AND a.ACTE LIKE '%DTSA%'
-    AND da.[date-H] IS NOT NULL
-    ORDER BY da.[date-H] DESC
-");
-$stmtHistDTSA->execute([$id]);
-$histDTSA = $stmtHistDTSA->fetchAll();
+    WHERE f.id = ? AND a.ACTE LIKE '%DTSA%' AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC");
+$stmtHistDTSA->execute([$id]); $histDTSA = $stmtHistDTSA->fetchAll();
 
-// Fonction helper pour formater une date d'acte
 function dateActe($row) {
     $d = $row['dt'] ?? null;
     if (!$d) return '—';
@@ -147,20 +113,25 @@ function dateActe($row) {
     return ($ts && $ts > 86400) ? date('d/m/y', $ts) : '—';
 }
 
+// ── DATE RECRUTEMENT — calculée ICI, avant tout usage ──
+$datePremVisite = null;
+if (!empty($patient['DateRecrt'])) {
+    $ts = strtotime($patient['DateRecrt']);
+    if ($ts && $ts > 86400) {
+        $datePremVisite = date('Y-m-d', $ts);
+    }
+}
+$tsPV = $datePremVisite ? strtotime($datePremVisite) : false;
+$datePVAff = ($tsPV && $tsPV > 86400) ? date('d/m/Y', $tsPV) : '—';
+
 // Navigation ordonnances
-// Les ordonnances sont triées DESC (plus récente = index 0)
-// |◀ = première (plus ancienne) = dernier index
-// ▶| = dernière (plus récente)  = index 0
-// ◀  = précédente (plus ancienne) = index + 1
-// ▶  = suivante (plus récente)    = index - 1
 $idxOrd = 0;
 foreach ($ordonnances as $i => $o) { if ($o['n_ordon'] == $nOrd) { $idxOrd = $i; break; } }
-$ordPremiere = $ordonnances ? $ordonnances[count($ordonnances)-1]['n_ordon'] : 0; // plus ancienne
-$ordDerniere = $ordonnances ? $ordonnances[0]['n_ordon'] : 0;                     // plus récente
-$ordPrev = ($idxOrd < count($ordonnances)-1) ? $ordonnances[$idxOrd+1]['n_ordon'] : $nOrd; // plus ancienne
-$ordNext = ($idxOrd > 0) ? $ordonnances[$idxOrd-1]['n_ordon'] : $nOrd;                     // plus récente
+$ordPremiere = $ordonnances ? $ordonnances[count($ordonnances)-1]['n_ordon'] : 0;
+$ordDerniere = $ordonnances ? $ordonnances[0]['n_ordon'] : 0;
+$ordPrev = ($idxOrd < count($ordonnances)-1) ? $ordonnances[$idxOrd+1]['n_ordon'] : $nOrd;
+$ordNext = ($idxOrd > 0) ? $ordonnances[$idxOrd-1]['n_ordon'] : $nOrd;
 
-// Médicaments de l'ordonnance courante
 $medicaments = [];
 if ($nOrd) {
     $stmtMed = $db->prepare("SELECT p.*, pr.PRODUIT FROM PROD p LEFT JOIN PRODUITS pr ON p.produit = pr.NuméroPRODUIT WHERE p.N_ord = ? ORDER BY p.Ordre");
@@ -168,12 +139,10 @@ if ($nOrd) {
     $medicaments = $stmtMed->fetchAll();
 }
 
-// Dernier examen
 $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC");
 $stmtEx->execute([$id]);
 $examen = $stmtEx->fetch();
 
-// Examens ECG
 $stmtECGs = $db->prepare("SELECT * FROM ecg WHERE [N-PAT]=? ORDER BY [Date ECG] DESC");
 $stmtECGs->execute([$id]);
 $ecgs = $stmtECGs->fetchAll();
@@ -181,7 +150,6 @@ $nECG = (int)($_GET['ecg'] ?? ($ecgs ? $ecgs[0]['N°'] : 0));
 $ecgCourant = null; $idxECG = 0;
 foreach ($ecgs as $i => $e) { if ($e['N°'] == $nECG) { $ecgCourant = $e; $idxECG = $i; break; } }
 
-// Examens Echo
 $stmtEchos = $db->prepare("SELECT * FROM echo WHERE [N-PAT]=? ORDER BY DATEchog DESC");
 $stmtEchos->execute([$id]);
 $echos = $stmtEchos->fetchAll();
@@ -189,7 +157,6 @@ $nEcho = (int)($_GET['echo'] ?? ($echos ? $echos[0]['N°'] : 0));
 $echoCourant = null; $idxEcho = 0;
 foreach ($echos as $i => $e) { if ($e['N°'] == $nEcho) { $echoCourant = $e; $idxEcho = $i; break; } }
 
-// Factures
 $stmtFact = $db->prepare("
     SELECT f.n_facture, f.id, f.date_facture, f.montant,
            ISNULL(SUM(d.prixU),0) AS total,
@@ -199,8 +166,7 @@ $stmtFact = $db->prepare("
     LEFT JOIN detail_acte d ON f.n_facture = d.N_fact
     WHERE f.id = ?
     GROUP BY f.n_facture, f.id, f.date_facture, f.montant
-    ORDER BY f.date_facture DESC
-");
+    ORDER BY f.date_facture DESC");
 $stmtFact->execute([$id]);
 $factures = $stmtFact->fetchAll();
 $nFact = (int)($_GET['fact'] ?? ($factures ? $factures[0]['n_facture'] : 0));
@@ -211,7 +177,6 @@ $factDerniere = $factures ? $factures[0]['n_facture'] : 0;
 $factPrev = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
 $factNext = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
 
-// Détail actes facture courante
 $detailActes = [];
 if ($nFact) {
     $stmtDA = $db->prepare("SELECT d.*, a.ACTE AS nom_acte FROM detail_acte d LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte WHERE d.N_fact = ?");
@@ -219,56 +184,42 @@ if ($nFact) {
     $detailActes = $stmtDA->fetchAll();
 }
 
-// Liste actes pour formulaire inline
 $listeActes = $db->query("SELECT n_acte, ACTE, cout FROM t_acte_simplifiée ORDER BY ACTE")->fetchAll();
+$listeMeds  = $db->query("SELECT NuméroPRODUIT, PRODUIT FROM PRODUITS ORDER BY PRODUIT")->fetchAll();
 
-// Catalogue médicaments
-$listeMeds = $db->query("SELECT NuméroPRODUIT, PRODUIT FROM PRODUITS ORDER BY PRODUIT")->fetchAll();
-
-// Listes de référence diagnostics (valeurs distinctes existantes)
 $listeDiag1 = $db->query("SELECT DISTINCT diagnostic FROM t_diagnostic WHERE diagnostic IS NOT NULL AND diagnostic != '' ORDER BY diagnostic")->fetchAll(PDO::FETCH_COLUMN);
 $listeDiag2 = $db->query("SELECT DISTINCT DicII FROM T_dianstcII WHERE DicII IS NOT NULL AND DicII != '' ORDER BY DicII")->fetchAll(PDO::FETCH_COLUMN);
 $listeDiag3 = $db->query("SELECT DISTINCT dic_non_cardio FROM T_id_dic_non_cardio WHERE dic_non_cardio IS NOT NULL AND dic_non_cardio != '' ORDER BY dic_non_cardio")->fetchAll(PDO::FETCH_COLUMN);
 
-// Posologies prédéfinies
 $posologies = [
     '1 cp 1 fois par jour','1 cp 1 jour sur deux','1 cp 2 fois par jour',
-    '1 cp 3 fois par jour','1 cp 4 fois par jour',
-    '1 cp alterné avec 1cp + 1/4 cp',
-    '1 gel 1 fois par jour','1 gel 2 fois par jour',
-    '1 gel 3 fois par jour','1 gel 4 fois par jour',
+    '1 cp 3 fois par jour','1 cp 4 fois par jour','1 cp alterné avec 1cp + 1/4 cp',
+    '1 gel 1 fois par jour','1 gel 2 fois par jour','1 gel 3 fois par jour','1 gel 4 fois par jour',
     '1 sachet 1 x par jour','1 sachet 3 x par jour',
-    '1/2 cp 1 fois par jour','1/2 cp 1 jour sur deux',
-    '1/2 cp 2 fois par jour','1/2 cp 3 fois par jour',
-    '1/2 cp 4 fois par jour','1/2 cp par jour',
-    '1/4 cp 1 fois par jour','1/4 cp 1 jour sur deux',
-    '1/4 cp 2 fois par jour','1/4 cp 3 fois par jour',
-    '1/4 cp 4 fois par jour',
+    '1/2 cp 1 fois par jour','1/2 cp 1 jour sur deux','1/2 cp 2 fois par jour',
+    '1/2 cp 3 fois par jour','1/2 cp 4 fois par jour','1/2 cp par jour',
+    '1/4 cp 1 fois par jour','1/4 cp 1 jour sur deux','1/4 cp 2 fois par jour',
+    '1/4 cp 3 fois par jour','1/4 cp 4 fois par jour',
     '1/4 cp alterné avec 1/2 cp','1/4 cp alterné avec rien',
     '2 cp 1 fois par jour','2 cp 2 fois par jour','2 cp 3 fois par jour',
-    '3 cp 1 fois par jour','3/4 cp 1 fois par jour',
-    '3/4 cp alterné avec 1 cp','4 gel 1 fois par jour',
+    '3 cp 1 fois par jour','3/4 cp 1 fois par jour','3/4 cp alterné avec 1 cp','4 gel 1 fois par jour',
 ];
 $durees = ['1 semaine','2 semaines','1 mois','2 mois','3 mois','6 mois'];
 
-// Catalogue actes
 $stmtActes = $db->prepare("SELECT n_acte, ACTE FROM t_acte_simplifiée ORDER BY n_acte");
 $stmtActes->execute();
 $actesCat = $stmtActes->fetchAll();
 
-// ── DONNÉES COLONNE "DERNIÈRE VISITE" ─────────────────────────────────────
-// = ordonnance précédente (idxOrdCourante + 1)
 $dernVisite = null;
 $dernActesFact = [];
 if ($ordPrecedente) {
     $dernVisite = $ordPrecedente;
-    // Acte(s) réalisé(s) = dernière facture proche de cette date
-    $stmtDF = $db->prepare("
+   $stmtDF = $db->prepare("
         SELECT TOP 1 f.n_facture, f.date_facture
         FROM facture f
         WHERE f.id = ?
-        AND f.date_facture >= ?
-        AND f.date_facture <= DATEADD(day, 7, ?)
+        AND f.date_facture >= CONVERT(datetime, ?, 120)
+        AND f.date_facture <= DATEADD(day, 7, CONVERT(datetime, ?, 120))
         ORDER BY f.date_facture ASC
     ");
     $dateOrdPrec = $ordPrecedente['date_ordon'] ?? null;
@@ -276,18 +227,13 @@ if ($ordPrecedente) {
         $stmtDF->execute([$id, $dateOrdPrec, $dateOrdPrec]);
         $factPrec = $stmtDF->fetch();
         if ($factPrec) {
-            $stmtActesPrec = $db->prepare("
-                SELECT a.ACTE FROM detail_acte d
-                LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte
-                WHERE d.N_fact = ?
-            ");
+            $stmtActesPrec = $db->prepare("SELECT a.ACTE FROM detail_acte d LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte WHERE d.N_fact = ?");
             $stmtActesPrec->execute([$factPrec['n_facture']]);
             $dernActesFact = $stmtActesPrec->fetchAll(PDO::FETCH_COLUMN);
         }
     }
 }
 
-// ── CALCUL DÉLAI DEPUIS DERNIÈRE VISITE ──────────────────────────────────
 $delaiVisite = null;
 $delaiCouleur = '#27ae60';
 if ($ordPrecedente && !empty($ordPrecedente['date_ordon'])) {
@@ -299,29 +245,23 @@ if ($ordPrecedente && !empty($ordPrecedente['date_ordon'])) {
         $totalJours = $diff->days;
         $mois = $diff->m + ($diff->y * 12);
         $jours = $diff->d;
-
         if ($mois > 0) {
             $delaiVisite = $mois . ' mois' . ($jours > 0 ? ' ' . $jours . 'j' : '');
         } else {
             $delaiVisite = $totalJours . ' jours';
         }
-
-        // Couleur selon écart avec RDV prévu
         $rdvPrevu = !empty($ordPrecedente['DATE REDEZ VOUS']) ? strtotime($ordPrecedente['DATE REDEZ VOUS']) : null;
         if ($rdvPrevu) {
             $ecartJours = (int)(($tsPrec + $totalJours * 86400 - $rdvPrevu) / 86400);
-            if ($ecartJours <= 14) $delaiCouleur = '#27ae60';       // vert
-            elseif ($ecartJours <= 30) $delaiCouleur = '#f39c12';   // orange
-            else $delaiCouleur = '#e74c3c';                          // rouge
+            if ($ecartJours <= 14) $delaiCouleur = '#27ae60';
+            elseif ($ecartJours <= 30) $delaiCouleur = '#f39c12';
+            else $delaiCouleur = '#e74c3c';
         }
     }
 }
 
-// ── ACTE SUGGÉRÉ POUR COLONNE "ACTUEL VISITE" ────────────────────────────
 $acteSugActuel = [];
-foreach ($actesSuggeres as $a) {
-    $acteSugActuel[] = $a['acte'];
-}
+foreach ($actesSuggeres as $a) { $acteSugActuel[] = $a['acte']; }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -332,125 +272,58 @@ foreach ($actesSuggeres as $a) {
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
-
-/* HEADER */
 .header { background: #1a4a7a; color: white; padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .header a { color: white; text-decoration: none; background: #2e6da4; padding: 5px 12px; border-radius: 4px; font-size: 12px; }
 .header h1 { font-size: 15px; flex: 1; }
-
-/* BANDEAU PATIENT */
 .patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
 .patient-bar .info span { font-weight: bold; color: #FFD700; }
-
-/* LAYOUT PRINCIPAL */
 .main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
 .col-left { display: flex; flex-direction: column; gap: 8px; }
-.col-mid { display: flex; flex-direction: column; gap: 8px; }
-.col-right { display: flex; flex-direction: column; gap: 8px; }
-
-/* CARTES */
+.col-mid  { display: flex; flex-direction: column; gap: 8px; }
+.col-right{ display: flex; flex-direction: column; gap: 8px; }
 .card { background: white; border-radius: 6px; padding: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 .card-title { color: #1a4a7a; font-size: 12px; font-weight: bold; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
-
-/* NAVIGATION */
 .nav-btns { display: flex; gap: 3px; }
 .nav-btn { background: #1a4a7a; color: white; border: none; padding: 3px 7px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
 .nav-btn:hover { background: #2e6da4; }
-.nav-btn.danger { background: #e74c3c; }
-
-/* BARRE NAVIGATION ORDONNANCE - en bas, centrée */
-.nav-ord-barre {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3px;
-    margin-top: 14px;
-    padding-top: 10px;
-    border-top: 2px solid #e0e0e0;
-}
-
-/* CHAMPS */
+.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 3px; margin-top: 14px; padding-top: 10px; border-top: 2px solid #e0e0e0; }
 .champ { margin-bottom: 6px; }
 .champ label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
 .champ input, .champ select, .champ textarea { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; }
 .champ textarea { resize: vertical; height: auto; overflow: hidden; field-sizing: content; }
-
-/* ACTES BOUTONS */
-.actes-btns { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
-.acte-btn { background: #27ae60; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; }
-.acte-btn:hover { background: #2ecc71; }
-
-/* MEDICAMENTS */
-.med-ligne { display: grid; grid-template-columns: 2fr 2fr 1fr 24px; gap: 4px; margin-bottom: 4px; align-items: center; }
-.med-ligne select, .med-ligne input { padding: 3px 5px; border: 1px solid #ddd; border-radius: 3px; font-size: 11px; width: 100%; }
-.btn-del { background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 3px 6px; cursor: pointer; font-size: 11px; }
-
-/* DELAI RDV */
-.delai-btns { display: flex; gap: 4px; flex-wrap: wrap; }
-.delai-btn { padding: 4px 10px; border: 1px solid #2e6da4; border-radius: 3px; cursor: pointer; font-size: 11px; background: white; color: #2e6da4; text-decoration: none; display: inline-block; }
-.delai-btn.actif { background: #1a4a7a; color: white; border-color: #1a4a7a; }
-
-/* DIAGNOSTICS EDITABLES */
 .diag-bloc { display:flex; flex-direction:column; gap:3px; margin-bottom:4px; }
 .diag-ligne { display:flex; gap:4px; align-items:center; }
 .creneaux-wrap { margin-top: 6px; }
-.creneaux-titre { font-size: 10px; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 4px; }
 .creneaux-grille { display: flex; flex-wrap: wrap; gap: 3px; }
-.creneau-btn {
-    padding: 3px 7px; border-radius: 3px; border: 2px solid transparent;
-    cursor: pointer; font-size: 11px; font-weight: bold; min-width: 48px;
-    text-align: center; transition: transform 0.1s;
-}
+.creneau-btn { padding: 3px 7px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; font-size: 11px; font-weight: bold; min-width: 48px; text-align: center; transition: transform 0.1s; }
 .creneau-btn:hover { transform: scale(1.08); }
 .creneau-btn.libre  { background: #27ae60; color: white; border-color: #1e8449; }
 .creneau-btn.moyen  { background: #f39c12; color: white; border-color: #d68910; }
 .creneau-btn.plein  { background: #e74c3c; color: #fdd; border-color: #c0392b; cursor: not-allowed; opacity: 0.7; }
 .creneau-btn.selectionne { border-color: #1a4a7a !important; box-shadow: 0 0 0 3px rgba(26,74,122,0.35); transform: scale(1.1); }
-.creneaux-msg { font-size: 11px; color: #e74c3c; margin-top: 4px; font-weight: bold; }
+.creneaux-msg     { font-size: 11px; color: #e74c3c; margin-top: 4px; font-weight: bold; }
 .creneaux-loading { font-size: 11px; color: #888; font-style: italic; margin-top: 4px; }
 .jauge-jour { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; }
-.jauge-bar { flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+.jauge-bar  { flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
 .jauge-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
 .jauge-fill.ok   { background: #27ae60; }
 .jauge-fill.warn { background: #f39c12; }
 .jauge-fill.full { background: #e74c3c; }
-
-/* FULL WIDTH */
-.row-full { padding: 0 8px 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .row-bottom { padding: 0 8px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-/* TENSION */
 .ta-val { font-size: 16px; font-weight: bold; }
-
-/* FDR badges */
 .fdr-badge { background: #ffe0e0; color: #c0392b; padding: 1px 6px; border-radius: 8px; font-size: 11px; margin: 1px; display: inline-block; }
-
-/* Acte badge */
-.acte-badge { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 8px; font-size: 11px; }
-
-/* Boutons délai dans tableau RDV */
 .delai-btn-rdv { padding: 3px 8px; border: 1px solid #8e44ad; border-radius: 3px; cursor: pointer; font-size: 11px; background: white; color: #8e44ad; }
 .delai-btn-rdv:hover, .delai-btn-rdv.actif { background: #8e44ad; color: white; }
-
-/* TABLEAU RDV 3 colonnes */
 .tableau-rdv { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 .tableau-rdv th { padding: 7px 6px; text-align: center; font-size: 11px; }
 .tableau-rdv td { padding: 5px 6px; border-bottom: 1px solid #e8e8e8; }
 .tableau-rdv td:first-child { background: #f0f4f8; font-size: 11px; font-weight: bold; color: #1a4a7a; text-align: right; white-space: nowrap; }
 .tableau-rdv tr:last-child td { border-bottom: none; }
-.col-visite { background: #e8f8ee; }
+.col-visite   { background: #e8f8ee; }
 .col-rdv-fixe { background: #e8f0fb; }
-.col-rdv-futur { background: #f3eafb; }
-
-/* NOUVELLE ORDONNANCE inline */
-.no-zone { background: #f0f8ff; border: 2px solid #27ae60; border-radius: 6px; padding: 10px; margin-top: 10px; }
-.no-zone-title { color: #27ae60; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
-
-@media (max-width: 900px) {
-    .main { grid-template-columns: 1fr; }
-    .row-full, .row-bottom { grid-template-columns: 1fr; }
-}
+.col-rdv-futur{ background: #f3eafb; }
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } .row-bottom { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -460,17 +333,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <a href="agenda.php">◀ Agenda</a>
     <a href="recherche.php" style="background:#27ae60;">🏠 Home</a>
     <div style="position:relative;display:inline-block;">
-        <input type="text" id="rech-patient" placeholder="🔍 Rechercher patient..."
-               style="padding:5px 10px;border-radius:4px;border:none;font-size:12px;width:200px;">
+        <input type="text" id="rech-patient" placeholder="🔍 Rechercher patient..." style="padding:5px 10px;border-radius:4px;border:none;font-size:12px;width:200px;">
         <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:white;border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
     <h1>🩺 Dossier médical</h1>
     <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;">
         <a href="dossier.php?id=<?= $first_id ?>" title="Premier patient" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏮</a>
-        <a href="dossier.php?id=<?= $prev_id ?>" title="Précédent" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">◀</a>
+        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent"       style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">◀</a>
         <span style="color:white;font-size:12px;min-width:70px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
-        <a href="dossier.php?id=<?= $next_id ?>" title="Suivant" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">▶</a>
-        <a href="dossier.php?id=<?= $last_id ?>" title="Dernier patient" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏭</a>
+        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant"         style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">▶</a>
+        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier patient" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏭</a>
     </div>
     <a href="bilan.php?id=<?= $id ?>">🧪 Bilans</a>
     <a href="logout.php" style="background:#e74c3c;">🚪 Déco</a>
@@ -489,39 +361,30 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 <!-- LAYOUT 3 COLONNES -->
 <div class="main">
 
-<!-- ══════════════════════════════════════════════════════
-     COLONNE GAUCHE : DOSSIER PATIENT
-     ══════════════════════════════════════════════════════ -->
+<!-- ══ COLONNE GAUCHE ══ -->
 <div class="col-left">
     <div class="card">
         <div class="card-title">👤 Dossier patient
             <span id="dossier_status" style="font-size:10px;color:#27ae60;font-weight:normal;"></span>
         </div>
-
-        <!-- MOTIF DE CONSULTATION — éditable -->
         <div class="champ">
             <label>Motif de consultation</label>
-            <textarea id="champ_motif"
-                onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
+            <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
                 style="border:1px solid #ddd;border-radius:3px;padding:4px 6px;width:100%;font-size:12px;resize:vertical;min-height:50px;field-sizing:content;"
             ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
         </div>
-
-        <!-- ANTÉCÉDENTS — éditable -->
         <div class="champ">
             <label>Antécédents</label>
-            <textarea id="champ_atcd"
-                onblur="sauvegarderChamp('ATCD', this.value)"
+            <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
                 style="border:1px solid #ddd;border-radius:3px;padding:4px 6px;width:100%;font-size:12px;resize:vertical;min-height:50px;field-sizing:content;"
             ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
         </div>
 
-        <!-- DIAGNOSTICS — éditables inline avec autocomplétion -->
         <?php
         $diagConfigs = [
-            1 => ['label' => 'Diagnostic principal',        'items' => $diagnostics,   'pk' => 'N_dic',            'champ' => 'diagnostic',      'liste' => $listeDiag1],
-            2 => ['label' => 'Diagnostic II',               'items' => $diagnosticsII, 'pk' => 'N_DIC_II',         'champ' => 'DicII',           'liste' => $listeDiag2],
-            3 => ['label' => 'Diagnostic non cardiologique','items' => $diagnosticsNC, 'pk' => 'N_dic_non_cardio', 'champ' => 'dic_non_cardio',  'liste' => $listeDiag3],
+            1 => ['label' => 'Diagnostic principal',        'items' => $diagnostics,   'pk' => 'N_dic',            'champ' => 'diagnostic',     'liste' => $listeDiag1],
+            2 => ['label' => 'Diagnostic II',               'items' => $diagnosticsII, 'pk' => 'N_DIC_II',         'champ' => 'DicII',          'liste' => $listeDiag2],
+            3 => ['label' => 'Diagnostic non cardiologique','items' => $diagnosticsNC, 'pk' => 'N_dic_non_cardio', 'champ' => 'dic_non_cardio', 'liste' => $listeDiag3],
         ];
         foreach ($diagConfigs as $type => $cfg):
         ?>
@@ -542,16 +405,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <div class="diag-vide" style="color:#999;font-size:11px;padding:2px 0;">—</div>
                 <?php endif; ?>
             </div>
-            <!-- Datalist autocomplétion -->
             <datalist id="datalist_diag_<?= $type ?>">
                 <?php foreach ($cfg['liste'] as $opt): ?>
                 <option value="<?= htmlspecialchars($opt) ?>">
                 <?php endforeach; ?>
             </datalist>
-            <!-- Champ ajout nouveau -->
             <div style="display:flex;gap:4px;margin-top:4px;">
-                <input type="text" id="new_diag_<?= $type ?>"
-                    list="datalist_diag_<?= $type ?>"
+                <input type="text" id="new_diag_<?= $type ?>" list="datalist_diag_<?= $type ?>"
                     placeholder="Choisir ou saisir..."
                     style="flex:1;border:1px solid #27ae60;border-radius:3px;padding:3px 6px;font-size:12px;">
                 <button type="button" onclick="diagAjouter(<?= $type ?>, <?= $id ?>, <?= htmlspecialchars(json_encode($cfg['liste']), ENT_QUOTES) ?>)"
@@ -560,32 +420,22 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         </div>
         <?php endforeach; ?>
 
-        <!-- FACTEURS DE RISQUE -->
         <?php
         $fdrs = [];
         $nomsfdrs = [
-            'FDR_Age' => "L'âge", 'FDR_ATCD_IDM_Fam' => 'ATCD IDM famille',
-            'FDR_ATCD_AVC_Fam' => 'ATCD AVC', 'FDR_Tabac' => 'Tabagisme',
-            'FDR_Diabete' => 'Diabète', 'FDR_HTA' => 'HTA',
-            'FDR_LDL_Oui' => 'LDL cholestérol', 'FDR_TG_Oui' => 'Triglycérides',
-            'FDR_Obesite' => 'Obésité', 'FDR_Surpoids' => 'Surpoids',
-            'FDR_Tour_Taille' => 'Tour de taille', 'FDR_Sedentarite' => 'Sédentarité',
-            'FDR_Synd_Metabolique' => 'Synd. métabolique',
-            'FDR_Stress_Depression' => 'Stress/Dépression',
-            'FDR_Sommeil' => 'Troubles du sommeil', 'FDR_Drogues' => 'Drogues',
+            'FDR_Age'=>"L'âge",'FDR_ATCD_IDM_Fam'=>'ATCD IDM famille','FDR_ATCD_AVC_Fam'=>'ATCD AVC',
+            'FDR_Tabac'=>'Tabagisme','FDR_Diabete'=>'Diabète','FDR_HTA'=>'HTA',
+            'FDR_LDL_Oui'=>'LDL cholestérol','FDR_TG_Oui'=>'Triglycérides',
+            'FDR_Obesite'=>'Obésité','FDR_Surpoids'=>'Surpoids','FDR_Tour_Taille'=>'Tour de taille',
+            'FDR_Sedentarite'=>'Sédentarité','FDR_Synd_Metabolique'=>'Synd. métabolique',
+            'FDR_Stress_Depression'=>'Stress/Dépression','FDR_Sommeil'=>'Troubles du sommeil','FDR_Drogues'=>'Drogues',
         ];
-        if ($examen) {
-            foreach ($nomsfdrs as $champFDR => $nomFDR) {  // ← renommé pour éviter conflit
-                if (!empty($examen[$champFDR])) $fdrs[] = $nomFDR;
-            }
-        }
+        if ($examen) { foreach ($nomsfdrs as $champFDR => $nomFDR) { if (!empty($examen[$champFDR])) $fdrs[] = $nomFDR; } }
         ?>
         <?php if (!empty($fdrs)): ?>
         <div class="champ">
             <label>Facteurs de risque (examen)</label>
-            <?php foreach ($fdrs as $f): ?>
-                <span class="fdr-badge"><?= $f ?></span>
-            <?php endforeach; ?>
+            <?php foreach ($fdrs as $f): ?><span class="fdr-badge"><?= $f ?></span><?php endforeach; ?>
         </div>
         <?php endif; ?>
 
@@ -600,54 +450,37 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <?php endforeach; ?>
                 </div>
             <?php endif; ?>
-            <div style="margin-top:6px;">
-                <a href="fdr_edit.php?id=<?= $id ?>" style="font-size:11px;color:#2e6da4;">✏️ Modifier</a>
-            </div>
+            <div style="margin-top:6px;"><a href="fdr_edit.php?id=<?= $id ?>" style="font-size:11px;color:#2e6da4;">✏️ Modifier</a></div>
         </div>
 
-        <!-- REMARQUE — éditable -->
         <div class="champ">
             <label>Remarque</label>
-            <textarea id="champ_remarque"
-                onblur="sauvegarderChamp('REMARQUE', this.value)"
+            <textarea id="champ_remarque" onblur="sauvegarderChamp('REMARQUE', this.value)"
                 style="border:1px solid #ddd;border-radius:3px;padding:4px 6px;width:100%;font-size:12px;resize:vertical;min-height:40px;field-sizing:content;"
             ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
         </div>
-
     </div>
 </div><!-- FIN col-left -->
 
-<!-- ══════════════════════════════════════════════════════
-     COLONNE MILIEU : ORDONNANCE
-     ══════════════════════════════════════════════════════ -->
+<!-- ══ COLONNE MILIEU ══ -->
 <div class="col-mid">
     <div class="card">
-
-        <!-- TITRE CARTE ORDONNANCE avec date ordonnance (police 12, côté titre) -->
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
             <span style="font-size:13px;">📋 Ordonnance
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
-                <?php
-                    $tsOrd = strtotime($ordCourante['date_ordon']);
-                    $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
-                ?>
-                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;margin-left:8px;">
-                    <?= $dateOrdAff ?>
-                </span>
+                <?php $tsOrd = strtotime($ordCourante['date_ordon']); $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—'; ?>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;margin-left:8px;"><?= $dateOrdAff ?></span>
                 <?php endif; ?>
             </span>
         </div>
 
         <?php if ($ordCourante): ?>
-
-        <!-- ═══ VUE ORDONNANCE — TABLEAU 4 COLONNES ═══ -->
         <div id="vue-ordonnance">
         <div id="ord-affichage" style="display:grid;grid-template-columns:1fr 380px;gap:8px;align-items:start;margin-bottom:8px;">
 
-        <!-- ══ COL GAUCHE : TABLEAU 4 COLONNES ══ -->
+        <!-- COL GAUCHE : TABLEAU RDV + MÉDICAMENTS -->
         <div>
         <?php
-        // COL 1 — Dernière visite (ordonnance précédente)
         $dv_dateOrd = '—'; $dv_heure = '—'; $dv_actes = '—';
         if ($ordPrecedente) {
             $ts = strtotime($ordPrecedente['date_ordon'] ?? '');
@@ -655,7 +488,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             $dv_heure   = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
             $dv_actes   = !empty($dernActesFact) ? implode(', ', $dernActesFact) : htmlspecialchars($ordPrecedente['acte1'] ?? '—');
         }
-        // COL 2 — RDV prévu (données de l'ordonnance précédente)
         $rdvp_date = '—'; $rdvp_heure = '—'; $rdvp_acte = '—';
         if ($ordPrecedente) {
             $ts = !empty($ordPrecedente['DATE REDEZ VOUS']) ? strtotime($ordPrecedente['DATE REDEZ VOUS']) : false;
@@ -663,7 +495,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             $rdvp_heure = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
             $rdvp_acte  = htmlspecialchars($ordPrecedente['acte1'] ?? '—');
         }
-        // COL 4 — RDV prochain
         $rdvFuturVal = '';
         if (!empty($ordCourante['DATE REDEZ VOUS'])) {
             $ts = strtotime($ordCourante['DATE REDEZ VOUS']);
@@ -682,7 +513,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </tr>
             </thead>
             <tbody>
-                <!-- LIGNE DATE + HEURE RDV côte à côte (points 5+6) -->
                 <tr>
                     <td>📅 Date<br>⏰ Heure</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
@@ -702,8 +532,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <td class="col-rdv-futur" style="padding:4px;">
                         <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
-
-                        <!-- Délai rapide + Report sur même ligne (point 11) -->
                         <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;align-items:center;">
                             <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
                             <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
@@ -712,13 +540,9 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                             <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
                             <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                             <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)"
-                                style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
-                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)"
-                                style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
+                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
+                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
                         </div>
-
-                        <!-- Date + Heure côte à côte (points 5+6) -->
                         <div style="display:flex;gap:4px;margin-bottom:4px;">
                             <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
                                    onchange="rdvDateChange(this.value,'rdv')"
@@ -727,13 +551,10 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                                 <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
                             </div>
                         </div>
-
-                        <!-- Jauge jour -->
                         <div class="jauge-jour" id="rdv_jauge" style="display:none;">
                             <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;font-size:10px;"></span>
                             <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill" style="width:0%"></div></div>
                         </div>
-                        <!-- Grille créneaux -->
                         <div class="creneaux-wrap">
                             <div class="creneaux-loading" id="rdv_loading" style="display:none;">⏳ Chargement…</div>
                             <div class="creneaux-msg"     id="rdv_msg"     style="display:none;"></div>
@@ -741,7 +562,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         </div>
                     </td>
                 </tr>
-                <!-- LIGNE ACTE (point 8 - actes suggérés sans couleur) -->
                 <tr>
                     <td>🏥 Acte</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
@@ -753,8 +573,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <td class="col-visite" style="text-align:center;padding:4px;">
                         <?php foreach ($actesSuggeres as $as): ?>
                         <div style="border:2px solid #555;color:#333;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:2px;display:inline-block;background:#f9f9f9;">
-                            <?= $as['acte'] ?>
-                            <span style="font-size:9px;color:#888;"><?= $as['derniere'] ? date('d/m/y', strtotime($as['derniere'])) : 'jamais' ?></span>
+                            <?= $as['acte'] ?> <span style="font-size:9px;color:#888;"><?= $as['derniere'] ? date('d/m/y', strtotime($as['derniere'])) : 'jamais' ?></span>
                         </div>
                         <?php endforeach; ?>
                         <?php if (empty($actesSuggeres)): ?><span style="color:#27ae60;font-size:11px;">✅ À jour</span><?php endif; ?>
@@ -774,14 +593,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </tbody>
         </table>
 
-        <!-- MÉDICAMENTS (point 9 - avec boutons Report) -->
+        <!-- MÉDICAMENTS -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)"
-                    style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)"
-                    style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
+                <?php $tsOrd2 = strtotime($ordCourante['date_ordon']); $dateOrd2 = ($tsOrd2 && $tsOrd2 > 0) ? date('d/m/Y', $tsOrd2) : '—'; ?>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;">📋 <?= $dateOrd2 ?></span>
+                <?php endif; ?>
             </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;margin-top:4px;">
@@ -802,23 +623,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 
         <!-- COL DROITE : FACTURATION -->
         <div>
-            <!-- TITRE avec date facture (point 2) -->
             <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
                 <span style="font-size:13px;">💰 Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php $tsFactTitre = strtotime($factCourante['date_facture'] ?? ''); $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—'; ?>
-                <span style="font-family:Arial Black,sans-serif;font-weight:900;font-size:20px;color:#1a4a7a;background:#e8f0fb;padding:4px 18px;border-radius:6px;border:2px solid #2e6da4;letter-spacing:2px;"><?= $dateFactTitre ?></span>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;margin-left:8px;"><?= $dateFactTitre ?></span>
                 <?php endif; ?>
             </div>
             <div id="fact-affichage">
             <?php if ($factCourante): ?>
-            <!-- N° Facture et date sur même ligne (point 4) -->
             <?php $tsF = strtotime($factCourante['date_facture'] ?? ''); $dateFactVal = ($tsF && $tsF > 86400) ? date('Y-m-d', $tsF) : ''; ?>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:4px 6px;background:#f0f4f8;border-radius:4px;">
                 <span style="color:#888;font-size:11px;text-transform:uppercase;white-space:nowrap;">N°</span>
                 <strong style="font-size:15px;color:#1a4a7a;"><?= $factCourante['n_facture'] ?></strong>
-                <input type="date" value="<?= $dateFactVal ?>"
-                    onchange="majDateFacture(<?= $nFact ?>, this.value)"
+                <input type="date" value="<?= $dateFactVal ?>" onchange="majDateFacture(<?= $nFact ?>, this.value)"
                     style="margin-left:auto;padding:3px 6px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
             </div>
             <table style="width:100%;border-collapse:collapse;font-size:11px;">
@@ -848,22 +666,21 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </tbody>
                 <tfoot style="background:#f0f4f8;font-weight:bold;">
                     <tr>
-                        <td style="padding:4px 6px;">Total</td>
-                        <td></td>
+                        <td style="padding:4px 6px;">Total</td><td></td>
                         <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['total'], 0, ',', ' ') ?> DH</td>
                         <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['verse_total'], 0, ',', ' ') ?> DH</td>
                         <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['dette_total'], 0, ',', ' ') ?> DH</td>
                     </tr>
                 </tfoot>
             </table>
-            <!-- Navigation facture petite (point 7) -->
             <div style="display:flex;justify-content:center;gap:2px;margin-top:6px;">
                 <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
                 <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
             </div>
             <?php else: ?>
                 <p style="color:#999;font-size:12px;">Aucune facture</p>
@@ -873,7 +690,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             <?php endif; ?>
             </div>
 
-            <!-- FORMULAIRE NOUVELLE FACTURE INLINE -->
+            <!-- FORMULAIRE NOUVELLE FACTURE -->
             <div id="formNouvelleFacture" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
@@ -912,138 +729,143 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </div>
             </div>
 
-            <!-- CERTIFICAT MÉDICAL -->
+            <!-- ══ CERTIFICAT MÉDICAL + RECRUTEMENT + TABLEAU ACTES ══ -->
             <div style="margin-top:12px;border-top:2px solid #e0e0e0;padding-top:10px;">
-                <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin-bottom:8px;">📄 Certificat médical</div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;">
-                    <span>du</span>
-                    <input type="date" id="cert_debut" style="border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;" onchange="calcNbrJ()">
-                    <span>au</span>
-                    <input type="date" id="cert_fin" style="border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;" onchange="calcNbrJ()">
-                    <span>Nbr J</span>
-                    <input type="number" id="cert_nbrj" style="width:55px;border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;text-align:center;" readonly>
-                    <button type="button" onclick="imprimerCertificat()" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">🖨️ Imprimer</button>
-                </div>
-            </div>
 
-            <!-- ACTES SUGGÉRÉS — sans couleur, style cases (point 10) -->
-            <?php if (!empty($actesSuggeres)): ?>
-            <div style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">
-                <div style="font-size:11px;font-weight:bold;color:#555;text-transform:uppercase;margin-bottom:5px;">⚡ Actes suggérés</div>
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                    <?php foreach ($actesSuggeres as $a): ?>
-                    <div style="border:2px solid #555;color:#333;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:bold;text-align:center;background:#f9f9f9;">
-                        <?= $a['acte'] ?><br>
-                        <span style="font-size:9px;color:#888;"><?= $a['derniere'] ? date('d/m/y', strtotime($a['derniere'])) : 'jamais' ?></span>
+                <!-- BOUTON CERTIFICAT -->
+                <button type="button"
+                    onclick="var z=document.getElementById('cert-zone');z.style.display=z.style.display==='none'?'block':'none'"
+                    style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:12px;margin-bottom:10px;">
+                    📄 Certificat médical
+                </button>
+
+                <!-- ZONE CERTIFICAT (cachée par défaut) -->
+                <div id="cert-zone" style="display:none;background:#f0f4f8;border-radius:6px;padding:8px;margin-bottom:10px;border:1px solid #dde3ea;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;">
+                        <span>du</span>
+                        <input type="date" id="cert_debut" style="border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;" onchange="calcNbrJ()">
+                        <span>au</span>
+                        <input type="date" id="cert_fin"   style="border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;" onchange="calcNbrJ()">
+                        <span>Nbr J</span>
+                        <input type="number" id="cert_nbrj" style="width:55px;border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;text-align:center;" readonly>
+                        <button type="button" onclick="imprimerCertificat()" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">🖨️ Imprimer</button>
                     </div>
-                    <?php endforeach; ?>
                 </div>
-            </div>
-            <?php endif; ?>
 
-            <!-- HISTORIQUE ACTES (point 1) -->
-            <div style="margin-top:10px;border-top:2px solid #e0e0e0;padding-top:8px;">
-                <div style="font-size:11px;font-weight:bold;color:#1a4a7a;text-transform:uppercase;margin-bottom:6px;">📊 Historique actes</div>
-
-                <?php
-                $tsPV = $datePremVisite ? strtotime($datePremVisite) : false;
-                $datePVAff = ($tsPV && $tsPV > 86400) ? date('d/m/Y', $tsPV) : '—';
-                ?>
+                <!-- DATE RECRUTEMENT -->
                 <div style="font-size:11px;color:#555;margin-bottom:8px;">
                     🏥 <strong>Recrutement :</strong> <?= $datePVAff ?>
                 </div>
 
-                <?php
-                $groupesActes = [
-                    'ECG'  => $histECG,
-                    'EDC'  => $histEDC,
-                    'DTSA' => $histDTSA,
-                ];
-                foreach ($groupesActes as $nomActe => $liste):
-                    $nb = count($liste);
-                    $datesJS = [];
-                    foreach ($liste as $row) {
-                        $d = dateActe($row);
-                        if ($d !== '—') $datesJS[] = $d;
-                    }
-                    $datesAttr = htmlspecialchars(json_encode($datesJS), ENT_QUOTES);
-                ?>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;min-width:35px;"><?= $nomActe ?></span>
-                    <?php if ($nb > 0): ?>
-                    <span class="hist-acte-btn"
-                          data-acte="<?= $nomActe ?>"
-                          data-dates="<?= $datesAttr ?>"
-                          style="background:#e8f0fb;color:#1a4a7a;padding:1px 10px;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;border:1px solid #2e6da4;"
-                          title="Cliquer pour voir les dates">
-                        <?= $nb ?>
-                    </span>
-                    <?php else: ?>
-                    <span style="color:#aaa;font-size:11px;">—</span>
-                    <?php endif; ?>
-                </div>
-                <?php endforeach; ?>
-            </div>
+                <!-- TABLEAU HISTORIQUE + ACTES SUGGÉRÉS (4 colonnes) -->
+                <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead>
+                        <tr style="background:#1a4a7a;color:white;">
+                            <th style="padding:5px 6px;text-align:left;">Acte</th>
+                            <th style="padding:5px 6px;text-align:center;">Historique</th>
+                            <th style="padding:5px 6px;text-align:center;">Dernière réal.</th>
+                            <th style="padding:5px 6px;text-align:center;">Acte suggéré</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    $actesTableau = [
+                        'ECG'  => ['hist' => $histECG,  'delai' => 30],
+                        'EDC'  => ['hist' => $histEDC,  'delai' => 335],
+                        'DTSA' => ['hist' => $histDTSA, 'delai' => 335],
+                    ];
+                    foreach ($actesTableau as $nomA => $cfg):
+                        $nb      = count($cfg['hist']);
+                        $datesJS = [];
+                        $dernDate = null;
+                        foreach ($cfg['hist'] as $row) {
+                            $d = dateActe($row);
+                            if ($d !== '—') { $datesJS[] = $d; if (!$dernDate) $dernDate = $row['dt']; }
+                        }
+                        $datesAttr = htmlspecialchars(json_encode($datesJS), ENT_QUOTES);
+                        $dernAff   = '—';
+                        if ($dernDate) { $ts = strtotime($dernDate); $dernAff = ($ts && $ts > 86400) ? date('d/m/Y', $ts) : '—'; }
+                        $suggAff   = '—';
+                        $suggStyle = 'color:#27ae60;font-weight:bold;';
+                        if (!$dernDate) {
+                            $suggAff = 'jamais fait'; $suggStyle = 'color:#e74c3c;font-weight:bold;';
+                        } else {
+                            $ts = strtotime($dernDate);
+                            if ($ts && $ts > 86400) {
+                                $dtSugg = new DateTime(date('Y-m-d', $ts));
+                                $dtSugg->modify('+' . $cfg['delai'] . ' days');
+                                $suggAff   = $dtSugg->format('d/m/Y');
+                                $suggStyle = ($dtSugg < new DateTime()) ? 'color:#e74c3c;font-weight:bold;' : 'color:#27ae60;font-weight:bold;';
+                            }
+                        }
+                    ?>
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:5px 6px;font-weight:bold;color:#1a4a7a;"><?= $nomA ?></td>
+                        <td style="padding:5px 6px;text-align:center;">
+                            <?php if ($nb > 0): ?>
+                            <span class="hist-acte-btn" data-acte="<?= $nomA ?>" data-dates="<?= $datesAttr ?>"
+                                  style="background:#e8f0fb;color:#1a4a7a;padding:1px 10px;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;border:1px solid #2e6da4;"
+                                  title="Cliquer pour voir les dates"><?= $nb ?></span>
+                            <?php else: ?><span style="color:#aaa;">—</span><?php endif; ?>
+                        </td>
+                        <td style="padding:5px 6px;text-align:center;font-size:11px;color:#555;"><?= $dernAff ?></td>
+                        <td style="padding:5px 6px;text-align:center;font-size:11px;<?= $suggStyle ?>"><?= $suggAff ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
 
-            <!-- POPUP DATES ACTES -->
-            <div id="popup-dates-acte" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:8px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:9998;min-width:200px;max-width:300px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <strong id="popup-dates-titre" style="color:#1a4a7a;font-size:14px;"></strong>
-                    <button onclick="document.getElementById('popup-dates-acte').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888;">✕</button>
+                <!-- POPUP DATES ACTES -->
+                <div id="popup-dates-acte" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:8px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:9998;min-width:200px;max-width:300px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <strong id="popup-dates-titre" style="color:#1a4a7a;font-size:14px;"></strong>
+                        <button onclick="document.getElementById('popup-dates-acte').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888;">✕</button>
+                    </div>
+                    <div id="popup-dates-liste" style="font-size:12px;line-height:1.8;color:#333;"></div>
                 </div>
-                <div id="popup-dates-liste" style="font-size:12px;line-height:1.8;color:#333;"></div>
-            </div>
+
+            </div><!-- FIN section certificat + tableau actes -->
 
         </div><!-- FIN COL DROITE -->
 
-        </div><!-- FIN GRID RDV + FACTURATION -->
+        </div><!-- FIN GRID -->
 
-        <!-- ═══════════════════════════════════════════════
-             NAVIGATION ORDONNANCE — en bas, centrée
-             Ordre : |◀  ◀  X/N  ▶  ▶|  ✚
-             ═══════════════════════════════════════════════ -->
+        <!-- NAVIGATION ORDONNANCE -->
         <div class="nav-ord-barre">
-            <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance (plus ancienne)">|◀</a>
-            <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>" class="nav-btn" title="Ordonnance précédente">◀</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
             <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
-            <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>" class="nav-btn" title="Ordonnance suivante">▶</a>
-            <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière ordonnance (plus récente)">▶|</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
             <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;" title="Nouvelle ordonnance">✚</button>
-        </div>
+			<a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
+        <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
+		</div>
 
         </div><!-- FIN vue-ordonnance -->
 
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucune ordonnance</p>
-            <!-- Navigation même si aucune ordonnance, pour pouvoir en créer une -->
             <div class="nav-ord-barre">
                 <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn">|◀</a>
-                <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>" class="nav-btn">◀</a>
+                <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn">◀</a>
                 <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;">0 / 0</span>
-                <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>" class="nav-btn">▶</a>
+                <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
                 <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
                 <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;">✚</button>
             </div>
         <?php endif; ?>
 
-        </div><!-- FIN form-nouvelle-ordonnance inline supprimé -->
-
     </div><!-- FIN card ordonnance -->
 </div><!-- FIN col-mid -->
 
-<!-- ══════════════════════════════════════════════════════
-     POPUP MODAL NOUVELLE ORDONNANCE
-     ══════════════════════════════════════════════════════ -->
+<!-- ══ POPUP NOUVELLE ORDONNANCE ══ -->
 <div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
     <div style="background:white;border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
-
-        <!-- ENTÊTE POPUP -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #27ae60;">
             <strong style="color:#27ae60;font-size:15px;">✚ Nouvelle ordonnance</strong>
             <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
         </div>
-
-        <!-- LIGNE 1 : DATE ORDONNANCE + ACTE -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div>
                 <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
@@ -1051,8 +873,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </div>
             <div>
                 <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
-                <input type="text" id="no_acte" placeholder="ECG, EDC..."
-                       oninput="syncActe(this.value,'no')"
+                <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
                        style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
                     <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
@@ -1061,14 +882,10 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 </div>
             </div>
         </div>
-
-        <!-- LIGNE 2 : DATE & HEURE RDV -->
         <div style="margin-bottom:12px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
             <label style="font-size:10px;color:#8e44ad;font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
-
             <input type="hidden" id="no_rdv"   value="">
             <input type="hidden" id="no_heure" value="">
-
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
                 <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
                 <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
@@ -1077,27 +894,21 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
                 <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
             </div>
-
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-                <input type="date" id="no_rdv_visible"
-                       onchange="rdvDateChange(this.value,'no')"
+                <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
                        style="flex:1;border:1px solid #8e44ad;border-radius:4px;padding:5px 8px;font-size:12px;">
                 <div id="no_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
             </div>
-
             <div class="jauge-jour" id="no_jauge" style="display:none;">
                 <span id="no_jauge_txt" style="white-space:nowrap;color:#555;font-size:11px;"></span>
                 <div class="jauge-bar"><div class="jauge-fill ok" id="no_jauge_fill" style="width:0%"></div></div>
             </div>
-
             <div class="creneaux-wrap">
-                <div class="creneaux-loading" id="no_loading" style="display:none;">⏳ Chargement…</div>
-                <div class="creneaux-msg"     id="no_msg_rdv" style="display:none;"></div>
+                <div class="creneaux-loading" id="no_loading"  style="display:none;">⏳ Chargement…</div>
+                <div class="creneaux-msg"     id="no_msg_rdv"  style="display:none;"></div>
                 <div class="creneaux-grille"  id="no_grille"></div>
             </div>
         </div>
-
-        <!-- TABLEAU MÉDICAMENTS -->
         <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin-bottom:8px;">💊 Médicaments :</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
             <thead style="background:#1a4a7a;color:white;">
@@ -1110,8 +921,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             </thead>
             <tbody id="no_lignes"></tbody>
         </table>
-
-        <!-- BOUTONS ENREGISTREMENT -->
         <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
             <button type="button" onclick="noAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
             <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600;">💾 Enregistrer</button>
@@ -1120,9 +929,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     COLONNE DROITE : EXAMEN CLINIQUE
-     ══════════════════════════════════════════════════════ -->
+<!-- ══ COLONNE DROITE : EXAMEN CLINIQUE ══ -->
 <div class="col-right">
     <div class="card">
         <div class="card-title">🩺 Examen clinique</div>
@@ -1131,18 +938,14 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             <?= $examen['DateExam'] ? date('d/m/Y', strtotime($examen['DateExam'])) : '—' ?>
         </div>
         <?php
-        $tas = (int)($examen['TAS'] ?? 0);
-        $tad = (int)($examen['TAD'] ?? 0);
+        $tas = (int)($examen['TAS'] ?? 0); $tad = (int)($examen['TAD'] ?? 0);
         $coulTA = '#333';
         if ($tas >= 140 || $tad >= 90) $coulTA = '#e74c3c';
         elseif ($tas >= 130 || $tad >= 80) $coulTA = '#f39c12';
         elseif ($tas > 0) $coulTA = '#27ae60';
         ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div class="champ">
-                <label>TAS/TAD</label>
-                <span class="ta-val" style="color:<?= $coulTA ?>"><?= ($tas && $tad) ? $tas.'/'.$tad : '—' ?></span>
-            </div>
+            <div class="champ"><label>TAS/TAD</label><span class="ta-val" style="color:<?= $coulTA ?>"><?= ($tas && $tad) ? $tas.'/'.$tad : '—' ?></span></div>
             <div class="champ"><label>FC</label><span><?= htmlspecialchars($examen['FC'] ?? '—') ?></span></div>
             <div class="champ"><label>Poids</label><span><?= htmlspecialchars($examen['POIDS'] ?? '—') ?> kg</span></div>
             <div class="champ"><label>Taille</label><span><?= htmlspecialchars($examen['TAILLE'] ?? '—') ?> cm</span></div>
@@ -1150,78 +953,89 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucun examen enregistré</p>
         <?php endif; ?>
-    </div>
-</div><!-- FIN col-right -->
-
-</div><!-- FIN .main -->
-
-<!-- ══════════════════════════════════════════════════════
-     BAS DE PAGE : ECG + ECHO
-     ══════════════════════════════════════════════════════ -->
-<div class="row-bottom">
-
-    <!-- ECG -->
-    <div class="card">
-        <div class="card-title">
+		<!-- ══ ECG COMPACT ══ -->
+    <div class="card" style="padding:6px;">
+        <div class="card-title" style="font-size:11px;margin-bottom:4px;">
             ⚡ ECG
-            <div class="nav-btns">
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn">|◀</a>
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn">◀</a>
-                <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn">▶</a>
-                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn">▶|</a>
-                <a href="nouveau_ecg.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;" title="Nouvel ECG">✚</a>
+            <div class="nav-btns" style="gap:2px;">
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 3px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+                <a href="nouveau_ecg.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;">✚</a>
             </div>
         </div>
         <?php if ($ecgCourant): ?>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div class="champ"><label>Date ECG</label><input type="text" value="<?= $ecgCourant['Date ECG'] ? date('d/m/Y', strtotime($ecgCourant['Date ECG'])) : '—' ?>" readonly></div>
-            <div class="champ"><label>Fréquence</label><input type="text" value="<?= htmlspecialchars($ecgCourant['FREQUENCE'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>Trouble de rythme</label><input type="text" value="<?= htmlspecialchars($ecgCourant['trouble de rythme'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>Rythme supra vent.</label><input type="text" value="<?= htmlspecialchars($ecgCourant['RYTHME SUPRA VENTRICULAIRE'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>Segment ST</label><input type="text" value="<?= htmlspecialchars($ecgCourant['SEGMENT ST'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>Repolarisation</label><input type="text" value="<?= htmlspecialchars($ecgCourant['LA REPOLARISATION'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>IDM</label><input type="text" value="<?= htmlspecialchars($ecgCourant['IDM'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>C/C</label><input type="text" value="<?= htmlspecialchars($ecgCourant['C/C'] ?? '') ?>" readonly></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date ECG</span>
+                <span style="font-size:11px;font-weight:bold;color:#1a4a7a;"><?= $ecgCourant['Date ECG'] ? date('d/m/Y', strtotime($ecgCourant['Date ECG'])) : '—' ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Fréquence</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['FREQUENCE'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Rythme</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['trouble de rythme'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Supra vent.</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['RYTHME SUPRA VENTRICULAIRE'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Seg. ST</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['SEGMENT ST'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Repolarisation</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['LA REPOLARISATION'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">IDM</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['IDM'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">C/C</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['C/C'] ?? '—') ?></span></div>
         </div>
         <?php else: ?>
-            <p style="color:#999;font-size:12px;">Aucun ECG enregistré</p>
+            <p style="color:#999;font-size:11px;">Aucun ECG enregistré</p>
         <?php endif; ?>
     </div>
 
-    <!-- ECHO DOPPLER -->
-    <div class="card">
-        <div class="card-title">
+    <!-- ══ ECHO-DOPPLER COMPACT ══ -->
+    <div class="card" style="padding:6px;">
+        <div class="card-title" style="font-size:11px;margin-bottom:4px;">
             🫀 Echo-Doppler
-            <div class="nav-btns">
-                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn">|◀</a>
-                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn">◀</a>
-                <span style="font-size:11px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
-                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn">▶</a>
-                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn">▶|</a>
-                <a href="nouveau_echo.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;" title="Nouvel Echo">✚</a>
+            <div class="nav-btns" style="gap:2px;">
+                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 3px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
+                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+                <a href="nouveau_echo.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;">✚</a>
             </div>
         </div>
         <?php if ($echoCourant): ?>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div class="champ"><label>Date Echo</label><input type="text" value="<?= $echoCourant['DATEchog'] ? date('d/m/Y', strtotime($echoCourant['DATEchog'])) : '—' ?>" readonly></div>
-            <div class="champ"><label>FEVG</label><input type="text" value="<?= htmlspecialchars($echoCourant['FEVG'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>DTD-VG</label><input type="text" value="<?= htmlspecialchars($echoCourant['DTD-VG'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>S,OG</label><input type="text" value="<?= htmlspecialchars($echoCourant['S,OG'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>Cinétique</label><input type="text" value="<?= htmlspecialchars($echoCourant['CINETIQUE'] ?? '') ?>" readonly></div>
-            <div class="champ"><label>AO ASC</label><input type="text" value="<?= htmlspecialchars($echoCourant['AO ASC,'] ?? '') ?>" readonly></div>
-            <div class="champ" style="grid-column:1/-1;"><label>Doppler</label><textarea readonly style="min-height:30px;field-sizing:content;"><?= htmlspecialchars($echoCourant['DOPPLER'] ?? '') ?></textarea></div>
-            <div class="champ" style="grid-column:1/-1;"><label>DTSA</label><textarea readonly style="min-height:30px;field-sizing:content;"><?= htmlspecialchars($echoCourant['DOPPLER DES TRONCS SUPRA AORTIQUES'] ?? '') ?></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date Echo</span>
+                <span style="font-size:11px;font-weight:bold;color:#1a4a7a;"><?= $echoCourant['DATEchog'] ? date('d/m/Y', strtotime($echoCourant['DATEchog'])) : '—' ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">FEVG</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['FEVG'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">DTD-VG</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['DTD-VG'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">S,OG</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['S,OG'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Cinétique</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['CINETIQUE'] ?? '—') ?></span></div>
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">AO ASC</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['AO ASC,'] ?? '—') ?></span></div>
+            <div style="grid-column:1/-1;"><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Doppler</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['DOPPLER'] ?? '—') ?></span></div>
+            <div style="grid-column:1/-1;"><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">DTSA</span>
+                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['DOPPLER DES TRONCS SUPRA AORTIQUES'] ?? '—') ?></span></div>
         </div>
         <?php else: ?>
-            <p style="color:#999;font-size:12px;">Aucun Echo enregistré</p>
+            <p style="color:#999;font-size:11px;">Aucun Echo enregistré</p>
         <?php endif; ?>
     </div>
+    </div>
+	
+</div>
 
-</div><!-- FIN row-bottom -->
+</div><!-- FIN .main -->
+
+<!-- BAS DE PAGE : ECG + ECHO -->
+
 
 <script>
-// ── Recherche patient ──
 document.getElementById('rech-patient').addEventListener('input', function() {
     const val = this.value.trim();
     const sugg = document.getElementById('rech-suggestions');
@@ -1243,272 +1057,114 @@ document.getElementById('rech-patient').addEventListener('input', function() {
             sugg.style.display = 'block';
         });
 });
-
-// Recherche directe par numéro patient avec Entrée
 document.getElementById('rech-patient').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const val = this.value.trim();
-        if (/^\d+$/.test(val)) {
-            // C'est un numéro → ouvrir directement ce patient
-            window.location.href = 'dossier.php?id=' + val;
-        }
+        if (/^\d+$/.test(val)) window.location.href = 'dossier.php?id=' + val;
     }
 });
-
 document.addEventListener('click', e => {
-    if (!e.target.closest('#rech-patient') && !e.target.closest('#rech-suggestions')) {
+    if (!e.target.closest('#rech-patient') && !e.target.closest('#rech-suggestions'))
         document.getElementById('rech-suggestions').style.display = 'none';
-    }
 });
 
-// ── Diagnostics éditables inline ─────────────────────────────────────────
 function diagUpdate(type, nDic, valeur) {
-    fetch('ajax_maj_diagnostic.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ action: 'update', type, n_dic: nDic, valeur })
-    });
+    fetch('ajax_maj_diagnostic.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'update', type, n_dic:nDic, valeur }) });
 }
-
 function diagDelete(type, nDic, patId, btn) {
     if (!confirm('Supprimer ce diagnostic ?')) return;
-    fetch('ajax_maj_diagnostic.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ action: 'delete', type, n_dic: nDic, id: patId })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) btn.closest('.diag-ligne').remove();
-        else alert('❌ ' + data.error);
-    });
+    fetch('ajax_maj_diagnostic.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'delete', type, n_dic:nDic, id:patId }) })
+    .then(r => r.json()).then(data => { if (data.success) btn.closest('.diag-ligne').remove(); else alert('❌ '+data.error); });
 }
-
 function diagAjouter(type, patId, liste) {
     const input = document.getElementById('new_diag_' + type);
     const valeur = input.value.trim();
     if (!valeur) return;
-
-    // Vérifier si déjà assigné à ce patient
     const bloc = document.getElementById('diag_' + type);
-    const dejaDans = Array.from(bloc.querySelectorAll('input[type=text]'))
-        .some(inp => inp.value.trim().toLowerCase() === valeur.toLowerCase());
-    if (dejaDans) {
-        alert('⚠️ Ce diagnostic est déjà dans la liste de ce patient.');
-        input.value = '';
-        return;
-    }
-
-    // Vérifier si le diagnostic existe dans le référentiel
+    const dejaDans = Array.from(bloc.querySelectorAll('input[type=text]')).some(inp => inp.value.trim().toLowerCase() === valeur.toLowerCase());
+    if (dejaDans) { alert('⚠️ Ce diagnostic est déjà dans la liste de ce patient.'); input.value = ''; return; }
     const existe = liste.some(d => d.toLowerCase() === valeur.toLowerCase());
-    if (!existe) {
-        if (!confirm(`"${valeur}" n'existe pas dans la liste.\nVoulez-vous l'ajouter comme nouveau diagnostic ?`)) {
-            return;
-        }
-    }
-
-    fetch('ajax_maj_diagnostic.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ action: 'add', type, id: patId, valeur })
-    })
-    .then(r => r.json())
-    .then(data => {
+    if (!existe && !confirm(`"${valeur}" n'existe pas dans la liste.\nVoulez-vous l'ajouter comme nouveau diagnostic ?`)) return;
+    fetch('ajax_maj_diagnostic.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'add', type, id:patId, valeur }) })
+    .then(r => r.json()).then(data => {
         if (data.success) {
-            const bloc = document.getElementById('diag_' + type);
-            // Supprimer le "—" s'il existe
-            const vide = bloc.querySelector('.diag-vide');
-            if (vide) vide.remove();
-            // Ajouter la nouvelle ligne
+            const vide = bloc.querySelector('.diag-vide'); if (vide) vide.remove();
             const div = document.createElement('div');
-            div.className = 'diag-ligne';
-            div.dataset.pk = data.n_dic;
-            div.innerHTML = `
-                <input type="text" value="${valeur.replace(/"/g, '&quot;')}"
-                    list="datalist_diag_${type}"
-                    onblur="diagUpdate(${type}, ${data.n_dic}, this.value)"
-                    style="flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 5px;font-size:12px;">
-                <button type="button" onclick="diagDelete(${type}, ${data.n_dic}, ${patId}, this)"
-                    style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>`;
-            bloc.appendChild(div);
-            input.value = '';
-            // Si nouveau diagnostic, l'ajouter au datalist
-            if (!existe) {
-                const dl = document.getElementById('datalist_diag_' + type);
-                if (dl) {
-                    const opt = document.createElement('option');
-                    opt.value = valeur;
-                    dl.appendChild(opt);
-                }
-            }
-        } else {
-            alert('❌ ' + data.error);
-        }
+            div.className = 'diag-ligne'; div.dataset.pk = data.n_dic;
+            div.innerHTML = `<input type="text" value="${valeur.replace(/"/g,'&quot;')}" list="datalist_diag_${type}"
+                onblur="diagUpdate(${type},${data.n_dic},this.value)"
+                style="flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 5px;font-size:12px;">
+                <button type="button" onclick="diagDelete(${type},${data.n_dic},${patId},this)"
+                style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>`;
+            bloc.appendChild(div); input.value = '';
+            if (!existe) { const dl=document.getElementById('datalist_diag_'+type); if(dl){const o=document.createElement('option');o.value=valeur;dl.appendChild(o);} }
+        } else alert('❌ '+data.error);
     });
 }
 
-// ── Sauvegarde automatique dossier patient ────────────────────────────────
 function sauvegarderChamp(champ, valeur) {
-    const statusEl = document.getElementById('dossier_status');
-    if (statusEl) { statusEl.textContent = '⏳ Enregistrement…'; statusEl.style.color = '#888'; }
-
-    fetch('ajax_maj_dossier.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: <?= $id ?>, champ: champ, valeur: valeur })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (statusEl) {
-            if (data.success) {
-                statusEl.textContent = '✅ Enregistré';
-                statusEl.style.color = '#27ae60';
-                setTimeout(() => { statusEl.textContent = ''; }, 2000);
-            } else {
-                statusEl.textContent = '❌ Erreur';
-                statusEl.style.color = '#e74c3c';
-            }
-        }
-    })
-    .catch(() => {
-        if (statusEl) { statusEl.textContent = '❌ Erreur réseau'; statusEl.style.color = '#e74c3c'; }
-    });
+    const s = document.getElementById('dossier_status');
+    if (s) { s.textContent='⏳ Enregistrement…'; s.style.color='#888'; }
+    fetch('ajax_maj_dossier.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id:<?= $id ?>, champ, valeur }) })
+    .then(r=>r.json()).then(data => {
+        if (s) { s.textContent=data.success?'✅ Enregistré':'❌ Erreur'; s.style.color=data.success?'#27ae60':'#e74c3c';
+            if(data.success) setTimeout(()=>{s.textContent='';},2000); }
+    }).catch(()=>{ if(s){s.textContent='❌ Erreur réseau';s.style.color='#e74c3c';} });
 }
-// ── Popup dates actes ─────────────────────────────────────────────────────
+
 function afficherDatesActe(nomActe, dates) {
     document.getElementById('popup-dates-titre').textContent = nomActe + ' — ' + dates.length + ' réalisation(s)';
     const liste = document.getElementById('popup-dates-liste');
-    liste.innerHTML = dates.length
-        ? dates.map(d => `<div>• ${d}</div>`).join('')
-        : '<div style="color:#aaa;">Aucune date enregistrée</div>';
+    liste.innerHTML = dates.length ? dates.map(d=>`<div>• ${d}</div>`).join('') : '<div style="color:#aaa;">Aucune date enregistrée</div>';
     document.getElementById('popup-dates-acte').style.display = 'block';
 }
-
-// Listener pour les boutons d'historique (data-attributes)
 document.addEventListener('click', function(e) {
     const btn = e.target.closest('.hist-acte-btn');
-    if (btn) {
-        const acte  = btn.dataset.acte;
-        const dates = JSON.parse(btn.dataset.dates || '[]');
-        afficherDatesActe(acte, dates);
-    }
-    // Fermer popup si clic en dehors
+    if (btn) { afficherDatesActe(btn.dataset.acte, JSON.parse(btn.dataset.dates||'[]')); }
     const popup = document.getElementById('popup-dates-acte');
-    if (popup && popup.style.display !== 'none' && !popup.contains(e.target) && !e.target.closest('.hist-acte-btn')) {
-        popup.style.display = 'none';
-    }
+    if (popup && popup.style.display!=='none' && !popup.contains(e.target) && !e.target.closest('.hist-acte-btn'))
+        popup.style.display='none';
 });
 
 function majDateFacture(nFact, val) {
-    fetch('ajax_maj_facture.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({n_facture: nFact, date_facture: val})
-    });
+    fetch('ajax_maj_facture.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({n_facture:nFact, date_facture:val}) });
 }
-
-// ── Mise à jour date acte ──
 function majDateActe(nAacte, val) {
-    fetch('ajax_maj_acte.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({n_aacte: nAacte, date_H: val})
-    });
+    fetch('ajax_maj_acte.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({n_aacte:nAacte, date_H:val}) });
 }
-
-// ── Certificat médical ──
 function calcNbrJ() {
-    const d1 = document.getElementById('cert_debut').value;
-    const d2 = document.getElementById('cert_fin').value;
-    if (d1 && d2) {
-        const diff = Math.round((new Date(d2) - new Date(d1)) / 86400000);
-        document.getElementById('cert_nbrj').value = diff >= 0 ? diff : 0;
-    }
+    const d1=document.getElementById('cert_debut').value, d2=document.getElementById('cert_fin').value;
+    if (d1&&d2) { const diff=Math.round((new Date(d2)-new Date(d1))/86400000); document.getElementById('cert_nbrj').value=diff>=0?diff:0; }
 }
-function imprimerCertificat() {
-    alert('Impression certificat — à implémenter');
-}
+function imprimerCertificat() { alert('Impression certificat — à implémenter'); }
 
-// ── Report de traitement (même ordonnance + nouvelle facture ECG) ──────────
 function reportTraitement(mois, patientId) {
-    if (!confirm(`Confirmer le report du traitement dans ${mois} mois ?\nCela créera une nouvelle ordonnance identique + une facture ECG (300 DH) à la date du jour.`)) return;
-
-    const msgEl = document.getElementById('no_msg') || document.createElement('span');
-    msgEl.textContent = '⏳ Report en cours…';
-
-    fetch('ajax_report_traitement.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: patientId, mois: mois })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = `dossier.php?id=${patientId}&ord=${data.n_ordon}`;
-        } else {
-            alert('❌ ' + data.error);
-        }
-    })
-    .catch(() => alert('❌ Erreur réseau'));
+    if (!confirm(`Confirmer le report du traitement dans ${mois} mois ?`)) return;
+    fetch('ajax_report_traitement.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id:patientId, mois }) })
+    .then(r=>r.json()).then(data => {
+        if (data.success) window.location.href=`dossier.php?id=${patientId}&ord=${data.n_ordon}`;
+        else alert('❌ '+data.error);
+    }).catch(()=>alert('❌ Erreur réseau'));
 }
 
-// ══════════════════════════════════════════════════════════════════
-// SYSTÈME CRÉNEAUX — commun aux deux formulaires RDV
-//
-// prefixe = 'rdv'  → formulaire tableau violet (RDV existant)
-// prefixe = 'no'   → formulaire ✚ nouvelle ordonnance (vert)
-//
-// Champs utilisés :
-//   rdv : #rdv_futur (hidden date), #rdv_futur_visible (input date)
-//         #heure_rdv_futur (hidden heure), #rdv_grille, #rdv_loading, #rdv_msg
-//   no  : #no_rdv (hidden date), #no_rdv_visible (input date)
-//         #no_heure (hidden heure), #no_grille, #no_loading, #no_msg_rdv
-//
-// Acte  : #acte_rdv_futur (violet) ↔ #no_acte (vert) — synchronisés
-// ══════════════════════════════════════════════════════════════════
-
-// IDs des éléments selon le préfixe
 function rdvIds(p) {
-    if (p === 'rdv') return {
-        dateH:     'rdv_futur',
-        dateV:     'rdv_futur_visible',
-        heureH:    'heure_rdv_futur',
-        grille:    'rdv_grille',
-        loading:   'rdv_loading',
-        msg:       'rdv_msg',
-        jauge:     'rdv_jauge',
-        jaugeTxt:  'rdv_jauge_txt',
-        jaugeFill: 'rdv_jauge_fill',
-        acte:      'acte_rdv_futur',
-    };
-    return {
-        dateH:     'no_rdv',
-        dateV:     'no_rdv_visible',
-        heureH:    'no_heure',
-        grille:    'no_grille',
-        loading:   'no_loading',
-        msg:       'no_msg_rdv',
-        jauge:     'no_jauge',
-        jaugeTxt:  'no_jauge_txt',
-        jaugeFill: 'no_jauge_fill',
-        acte:      'no_acte',
-    };
+    if (p==='rdv') return { dateH:'rdv_futur', dateV:'rdv_futur_visible', heureH:'heure_rdv_futur',
+        grille:'rdv_grille', loading:'rdv_loading', msg:'rdv_msg',
+        jauge:'rdv_jauge', jaugeTxt:'rdv_jauge_txt', jaugeFill:'rdv_jauge_fill', acte:'acte_rdv_futur' };
+    return { dateH:'no_rdv', dateV:'no_rdv_visible', heureH:'no_heure',
+        grille:'no_grille', loading:'no_loading', msg:'no_msg_rdv',
+        jauge:'no_jauge', jaugeTxt:'no_jauge_txt', jaugeFill:'no_jauge_fill', acte:'no_acte' };
 }
+function syncActe(val, source) { const el=document.getElementById(source==='rdv'?'no_acte':'acte_rdv_futur'); if(el) el.value=val; }
+function setActeRdv(val, prefixe) { const ids=rdvIds(prefixe); document.getElementById(ids.acte).value=val; syncActe(val,prefixe); }
 
-// Synchronise l'acte entre les deux formulaires
-function syncActe(val, source) {
-    const autreId = (source === 'rdv') ? 'no_acte' : 'acte_rdv_futur';
-    const el = document.getElementById(autreId);
-    if (el) el.value = val;
-}
-
-function setActeRdv(val, prefixe) {
-    const ids = rdvIds(prefixe);
-    document.getElementById(ids.acte).value = val;
-    syncActe(val, prefixe);
-}
-
-// Chargement et affichage des créneaux pour une date
 function rdvChargerCreneaux(date, prefixe, heureAuto) {
     const ids = rdvIds(prefixe);
     const grille  = document.getElementById(ids.grille);
@@ -1516,279 +1172,194 @@ function rdvChargerCreneaux(date, prefixe, heureAuto) {
     const msgEl   = document.getElementById(ids.msg);
     const jaugeEl = document.getElementById(ids.jauge);
 
-    grille.innerHTML  = '';
+    grille.innerHTML = '';
     msgEl.style.display   = 'none';
     loading.style.display = 'block';
     jaugeEl.style.display = 'none';
 
-    fetch('ajax_creneaux.php?date=' + date)
-        .then(r => r.json())
-        .then(data => {
-            loading.style.display = 'none';
+    if (heureAuto) {
+        document.getElementById(ids.heureH).value = '';
+        const ha  = document.getElementById('rdv_heure_affichage');
+        const han = document.getElementById('no_heure_affichage');
+        if (ha)  ha.textContent  = '—:——';
+        if (han) han.textContent = '—:——';
+    }
 
-            if (!data.date_ok) {
-                msgEl.textContent    = '⛔ ' + data.raison;
-                msgEl.style.display  = 'block';
-                // Effacer la date invalide et chercher le prochain jour
-                document.getElementById(ids.dateH).value = '';
-                document.getElementById(ids.dateV).value = '';
-                document.getElementById(ids.heureH).value = '';
-                return;
+    fetch('ajax_creneaux.php?date=' + date).then(r => r.json()).then(data => {
+        loading.style.display = 'none';
+
+        if (!data.date_ok) {
+            msgEl.textContent = '⛔ ' + data.raison;
+            msgEl.style.display = 'block';
+            document.getElementById(ids.dateH).value  = '';
+            document.getElementById(ids.dateV).value  = '';
+            document.getElementById(ids.heureH).value = '';
+            return;
+        }
+
+        if (data.jour_complet) {
+            msgEl.textContent = '⛔ Journée complète (' + data.total_jour + '/' + data.max_jour + ' patients).';
+            msgEl.style.display = 'block';
+        }
+
+        const pct = Math.min(100, Math.round(data.total_jour / data.max_jour * 100));
+        const cl  = pct < 60 ? 'ok' : pct < 90 ? 'warn' : 'full';
+        document.getElementById(ids.jaugeTxt).textContent = data.total_jour + ' / ' + data.max_jour + ' patients';
+        const fill = document.getElementById(ids.jaugeFill);
+        fill.style.width = pct + '%';
+        fill.className   = 'jauge-fill ' + cl;
+        jaugeEl.style.display = 'flex';
+
+        const heureActuelle = document.getElementById(ids.heureH).value;
+        data.creneaux.forEach(c => {
+            const btn = document.createElement('button');
+            btn.type        = 'button';
+            btn.textContent = c.heure;
+            btn.className   = 'creneau-btn ' + c.statut;
+            btn.title       = c.nb + ' patient(s)';
+            if (c.statut === 'plein') {
+                btn.disabled = true;
+            } else {
+                btn.onclick = () => rdvSelectionnerCreneau(c.heure, prefixe);
             }
-
-            if (data.jour_complet) {
-                msgEl.textContent   = '⛔ Journée complète (' + data.total_jour + '/' + data.max_jour + ' patients). Choisissez un autre jour.';
-                msgEl.style.display = 'block';
-            }
-
-            // Jauge du jour
-            const pct   = Math.min(100, Math.round(data.total_jour / data.max_jour * 100));
-            const cl    = pct < 60 ? 'ok' : pct < 90 ? 'warn' : 'full';
-            document.getElementById(ids.jaugeTxt).textContent = data.total_jour + ' / ' + data.max_jour + ' patients';
-            const fill = document.getElementById(ids.jaugeFill);
-            fill.style.width = pct + '%';
-            fill.className   = 'jauge-fill ' + cl;
-            jaugeEl.style.display = 'flex';
-
-            // Grille créneaux
-            const heureActuelle = document.getElementById(ids.heureH).value;
-            data.creneaux.forEach(c => {
-                const btn = document.createElement('button');
-                btn.type      = 'button';
-                btn.textContent = c.heure;
-                btn.className = 'creneau-btn ' + c.statut;
-                btn.title     = c.nb + ' patient(s) sur ce créneau';
-
-                if (c.statut === 'plein') {
-                    btn.disabled = true;
-                } else {
-                    btn.onclick = () => rdvSelectionnerCreneau(c.heure, prefixe);
-                }
-
-                // Marquer le créneau actuellement sélectionné
-                if (c.heure === heureActuelle) btn.classList.add('selectionne');
-
-                grille.appendChild(btn);
-            });
-
-            // Sélection automatique du premier créneau libre si demandé
-            if (heureAuto && data.premier_libre && !heureActuelle) {
-                rdvSelectionnerCreneau(data.premier_libre, prefixe);
-            }
-        })
-        .catch(() => {
-            loading.style.display = 'none';
-            msgEl.textContent     = '❌ Erreur de connexion';
-            msgEl.style.display   = 'block';
+            if (c.heure === heureActuelle) btn.classList.add('selectionne');
+            grille.appendChild(btn);
         });
+
+        if (heureAuto && data.premier_libre) {
+    setTimeout(() => {
+        
+        rdvSelectionnerCreneau(data.premier_libre, prefixe);
+        
+        
+    }, 100);
 }
 
-// Sélectionner un créneau (met à jour les champs cachés + visuel)
-function rdvSelectionnerCreneau(heure, prefixe) {
-    const ids = rdvIds(prefixe);
+        const actesSugg = <?= json_encode($acteSugActuel) ?>;
+        let divActes = document.getElementById('rdv_actes_sugg_' + prefixe);
+        if (!divActes) {
+            divActes = document.createElement('div');
+            divActes.id = 'rdv_actes_sugg_' + prefixe;
+            divActes.style.cssText = 'margin-top:6px;';
+            grille.parentNode.appendChild(divActes);
+        }
+        divActes.innerHTML = '';
 
-    // Mettre à jour le champ heure caché
-    document.getElementById(ids.heureH).value = heure;
+        if (actesSugg.length > 0) {
+            const lbl = document.createElement('div');
+            lbl.style.cssText = 'font-size:10px;color:#e74c3c;font-weight:bold;margin-bottom:3px;';
+            lbl.textContent   = '⚠ Actes suggérés :';
+            divActes.appendChild(lbl);
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+            actesSugg.forEach(acte => {
+                const badge = document.createElement('button');
+                badge.type          = 'button';
+                badge.textContent   = acte;
+                badge.title         = 'Cliquer pour sélectionner cet acte';
+                badge.style.cssText = 'background:#e74c3c;color:white;border:none;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:bold;cursor:pointer;';
+                badge.onclick = () => setActeRdv(acte, prefixe);
+                wrap.appendChild(badge);
+            });
+            divActes.appendChild(wrap);
+        } else {
+            const ok = document.createElement('div');
+            ok.style.cssText = 'font-size:11px;color:#27ae60;font-weight:bold;margin-top:4px;';
+            ok.textContent   = '✅ Actes à jour';
+            divActes.appendChild(ok);
+        }
 
-    // Mettre à jour l'affichage heure visible (tableau ET popup)
-    const heureAff = document.getElementById('rdv_heure_affichage');
-    if (heureAff) heureAff.textContent = heure;
-    const heureAffNo = document.getElementById('no_heure_affichage');
-    if (heureAffNo) heureAffNo.textContent = heure;
-
-    // Synchroniser les deux formulaires
-    const autreHId = (prefixe === 'rdv') ? 'no_heure' : 'heure_rdv_futur';
-    const autreEl  = document.getElementById(autreHId);
-    if (autreEl) autreEl.value = heure;
-
-    // Visuel : retirer selectionne de tous, ajouter au cliqué
-    const grille = document.getElementById(ids.grille);
-    grille.querySelectorAll('.creneau-btn').forEach(b => b.classList.remove('selectionne'));
-    grille.querySelectorAll('.creneau-btn').forEach(b => {
-        if (b.textContent === heure) b.classList.add('selectionne');
+    }).catch(() => {
+        loading.style.display = 'none';
+        msgEl.textContent     = '❌ Erreur de connexion';
+        msgEl.style.display   = 'block';
     });
-
-    // Synchroniser aussi la grille de l'autre formulaire
-    const autreGrilleId = (prefixe === 'rdv') ? 'no_grille' : 'rdv_grille';
-    const autreGrille   = document.getElementById(autreGrilleId);
-    if (autreGrille) {
-        autreGrille.querySelectorAll('.creneau-btn').forEach(b => {
-            b.classList.remove('selectionne');
-            if (b.textContent === heure && !b.disabled) b.classList.add('selectionne');
-        });
-    }
+}
+function rdvSelectionnerCreneau(heure, prefixe) {
+    const ids=rdvIds(prefixe);
+    document.getElementById(ids.heureH).value=heure;
+    const ha=document.getElementById('rdv_heure_affichage'); if(ha) { ha.textContent=heure;   }
+    const han=document.getElementById('no_heure_affichage'); if(han) han.textContent=heure;
+    const autreHEl=document.getElementById(prefixe==='rdv'?'no_heure':'heure_rdv_futur'); if(autreHEl) autreHEl.value=heure;
+    const grille=document.getElementById(ids.grille);
+    grille.querySelectorAll('.creneau-btn').forEach(b=>b.classList.remove('selectionne'));
+    grille.querySelectorAll('.creneau-btn').forEach(b=>{ if(b.textContent===heure) b.classList.add('selectionne'); });
+    const autreGrille=document.getElementById(prefixe==='rdv'?'no_grille':'rdv_grille');
+    if(autreGrille) { autreGrille.querySelectorAll('.creneau-btn').forEach(b=>{b.classList.remove('selectionne');if(b.textContent===heure&&!b.disabled)b.classList.add('selectionne');}); }
 }
 
-// Appel quand l'utilisateur change la date manuellement
 function rdvDateChange(date, prefixe) {
-    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || date === '1970-01-01') return;
-    const ids = rdvIds(prefixe);
-
-    // Synchroniser la date dans le champ caché
-    document.getElementById(ids.dateH).value = date;
-
-    // Synchroniser l'autre formulaire (date visible + caché)
-    const autreV = (prefixe === 'rdv') ? 'no_rdv_visible'     : 'rdv_futur_visible';
-    const autreH = (prefixe === 'rdv') ? 'no_rdv'             : 'rdv_futur';
-    const evEl   = document.getElementById(autreV);
-    const ehEl   = document.getElementById(autreH);
-    if (evEl) evEl.value = date;
-    if (ehEl) ehEl.value = date;
-
-    // Effacer l'heure (on va recharger les créneaux)
-    document.getElementById(ids.heureH).value = '';
-    const autreHId = (prefixe === 'rdv') ? 'no_heure' : 'heure_rdv_futur';
-    const autreHEl = document.getElementById(autreHId);
-    if (autreHEl) autreHEl.value = '';
-
-    // Charger les créneaux avec sélection automatique
-    rdvChargerCreneaux(date, prefixe, true);
-
-    // Recharger aussi la grille de l'autre formulaire
-    const autrePrefixe = (prefixe === 'rdv') ? 'no' : 'rdv';
-    const autreGrille  = document.getElementById(rdvIds(autrePrefixe).grille);
-    if (autreGrille && autreGrille.closest('#form-nouvelle-ordonnance')?.style.display !== 'none'
-        || autreGrille && prefixe === 'no') {
-        rdvChargerCreneaux(date, autrePrefixe, false);
-    }
+    if (!date||!/^\d{4}-\d{2}-\d{2}$/.test(date)||date==='1970-01-01') return;
+    const ids=rdvIds(prefixe);
+    document.getElementById(ids.dateH).value=date;
+    const ev=document.getElementById(prefixe==='rdv'?'no_rdv_visible':'rdv_futur_visible');
+    const eh=document.getElementById(prefixe==='rdv'?'no_rdv':'rdv_futur');
+    if(ev) ev.value=date; if(eh) eh.value=date;
+    
+    const autreHEl=document.getElementById(prefixe==='rdv'?'no_heure':'heure_rdv_futur'); if(autreHEl) autreHEl.value='';
+    rdvChargerCreneaux(date, prefixe, false);
+    const autrePrefixe=prefixe==='rdv'?'no':'rdv';
+    const autreGrille=document.getElementById(rdvIds(autrePrefixe).grille);
+    if(autreGrille && prefixe==='no') rdvChargerCreneaux(date, autrePrefixe, false);
 }
 
-// Appel quand on clique 1M / 3M / 6M / 7J / 15J / 21J
-// Pour les délais en mois (1M, 3M, 6M) → cherche le prochain jour disponible
-// Pour les délais en jours (7J, 15J, 21J) → affiche directement
 function rdvSetDelai(mois, jours, prefixe) {
-    const ids = rdvIds(prefixe);
-
-    const d = new Date();
-    if (mois)  d.setMonth(d.getMonth() + mois);
-    if (jours) d.setDate(d.getDate() + jours);
-    const dateCible = d.toISOString().split('T')[0];
-
-    if (mois > 0) {
-        // Pour 1M / 3M / 6M → chercher le prochain jour disponible
-        const loading = document.getElementById(ids.loading);
-        const grille  = document.getElementById(ids.grille);
-        const msgEl   = document.getElementById(ids.msg);
-        grille.innerHTML  = '';
-        msgEl.style.display   = 'none';
-        loading.style.display = 'block';
-        loading.textContent   = '⏳ Recherche du prochain jour disponible…';
-
-        fetch('ajax_prochain_jour.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ date_cible: dateCible })
-        })
-        .then(r => r.json())
-        .then(data => {
-            loading.style.display = 'none';
-            loading.textContent   = '⏳ Chargement…';
-
-            if (data.error) {
-                msgEl.textContent   = '⛔ ' + data.error;
-                msgEl.style.display = 'block';
-                return;
-            }
-
-            const dateTrouvee = data.date_trouvee;
-
-            // Mettre à jour les deux formulaires
-            ['rdv_futur', 'no_rdv'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = dateTrouvee;
-            });
-            ['rdv_futur_visible', 'no_rdv_visible'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = dateTrouvee;
-            });
-
-            // Effacer les heures
-            ['heure_rdv_futur','no_heure'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-
-            // Afficher les créneaux dans les deux grilles
-            rdvChargerCreneaux(dateTrouvee, 'rdv', true);
-            rdvChargerCreneaux(dateTrouvee, 'no',  false);
-        })
-        .catch(() => {
-            loading.style.display = 'none';
-            loading.textContent   = '⏳ Chargement…';
-        });
-
+    const ids=rdvIds(prefixe);
+    const d=new Date();
+    if(mois) d.setMonth(d.getMonth()+mois);
+    if(jours) d.setDate(d.getDate()+jours);
+    const dateCible=d.toISOString().split('T')[0];
+    if (mois>0) {
+        const loading=document.getElementById(ids.loading), grille=document.getElementById(ids.grille), msgEl=document.getElementById(ids.msg);
+        grille.innerHTML=''; msgEl.style.display='none'; loading.style.display='block'; loading.textContent='⏳ Recherche…';
+        fetch('ajax_prochain_jour.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date_cible:dateCible})})
+        .then(r=>r.json()).then(data=>{
+            loading.style.display='none'; loading.textContent='⏳ Chargement…';
+            if(data.error){msgEl.textContent='⛔ '+data.error;msgEl.style.display='block';return;}
+            const dt=data.date_trouvee;
+            ['rdv_futur','no_rdv'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dt;});
+            ['rdv_futur_visible','no_rdv_visible'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dt;});
+            ['heure_rdv_futur','no_heure'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+            rdvChargerCreneaux(dt,'rdv',true);
+        }).catch(()=>{loading.style.display='none';loading.textContent='⏳ Chargement…';});
     } else {
-        // Pour 7J / 15J / 21J → afficher directement
-        ['rdv_futur','no_rdv'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = dateCible;
-        });
-        ['rdv_futur_visible','no_rdv_visible'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = dateCible;
-        });
-        ['heure_rdv_futur','no_heure'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
+        ['rdv_futur','no_rdv'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dateCible;});
+        ['rdv_futur_visible','no_rdv_visible'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dateCible;});
+        ['heure_rdv_futur','no_heure'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 
-        rdvChargerCreneaux(dateCible, 'rdv', true);
-        rdvChargerCreneaux(dateCible, 'no',  false);
-    }
+rdvChargerCreneaux(dateCible,'rdv',true);    }
 }
 
-// ══════════════════════════════════════════════════════
-// NOUVELLE ORDONNANCE
-// ══════════════════════════════════════════════════════
 function afficherNouvelleOrdonnance() {
-    document.getElementById('modal-nouvelle-ordonnance').style.display = 'block';
-    document.body.style.overflow = 'hidden'; // empêcher scroll fond
-    if (document.getElementById('no_lignes').children.length === 0) {
-        noAjouterLigne();
-    }
-    // Si une date RDV est déjà définie, charger ses créneaux
-    const dateExistante = document.getElementById('no_rdv').value;
-    if (dateExistante && document.getElementById('no_grille').children.length === 0) {
-        rdvChargerCreneaux(dateExistante, 'no', false);
-    }
+    document.getElementById('modal-nouvelle-ordonnance').style.display='block';
+    document.body.style.overflow='hidden';
+    if(document.getElementById('no_lignes').children.length===0) noAjouterLigne();
+    const de=document.getElementById('no_rdv').value;
+    if(de&&document.getElementById('no_grille').children.length===0) rdvChargerCreneaux(de,'no',false);
 }
-
 function masquerNouvelleOrdonnance() {
-    document.getElementById('modal-nouvelle-ordonnance').style.display = 'none';
-    document.body.style.overflow = ''; // rétablir scroll
+    document.getElementById('modal-nouvelle-ordonnance').style.display='none';
+    document.body.style.overflow='';
 }
-
-// Fermer popup en cliquant sur le fond
-document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('modal-nouvelle-ordonnance');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) masquerNouvelleOrdonnance();
-        });
-    }
+document.addEventListener('DOMContentLoaded', ()=>{
+    const modal=document.getElementById('modal-nouvelle-ordonnance');
+    if(modal) modal.addEventListener('click',e=>{if(e.target===modal)masquerNouvelleOrdonnance();});
 });
 
-const noMeds = <?= json_encode(array_map(fn($m) => [
-    'id'  => $m['NuméroPRODUIT'],
-    'nom' => $m['PRODUIT']
-], $listeMeds)) ?>;
-
+const noMeds = <?= json_encode(array_map(fn($m)=>['id'=>$m['NuméroPRODUIT'],'nom'=>$m['PRODUIT']],$listeMeds)) ?>;
 const noPosologies = <?= json_encode($posologies) ?>;
 const noDurees     = <?= json_encode($durees) ?>;
-let noIdx = 0;
+let noIdx=0;
 function noAjouterLigne() {
-    const i = noIdx++;
-    let optsMed = '<option value="">— Médicament —</option>';
-    noMeds.forEach(m => { optsMed += `<option value="${m.id}">${m.nom}</option>`; });
-    let optsPoso = '<option value="">— Posologie —</option>';
-    noPosologies.forEach(p => { optsPoso += `<option value="${p}">${p}</option>`; });
-    let optsDuree = '<option value="">— Durée —</option>';
-    noDurees.forEach(d => { optsDuree += `<option value="${d}">${d}</option>`; });
-
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid #eee';
-    tr.innerHTML = `
-        <td style="padding:3px 4px;"><select id="no_med_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsMed}</select></td>
+    const i=noIdx++;
+    let optsMed='<option value="">— Médicament —</option>';
+    noMeds.forEach(m=>{optsMed+=`<option value="${m.id}">${m.nom}</option>`;});
+    let optsPoso='<option value="">— Posologie —</option>';
+    noPosologies.forEach(p=>{optsPoso+=`<option value="${p}">${p}</option>`;});
+    let optsDuree='<option value="">— Durée —</option>';
+    noDurees.forEach(d=>{optsDuree+=`<option value="${d}">${d}</option>`;});
+    const tr=document.createElement('tr'); tr.style.borderBottom='1px solid #eee';
+    tr.innerHTML=`<td style="padding:3px 4px;"><select id="no_med_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsMed}</select></td>
         <td style="padding:3px 4px;"><select id="no_poso_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsPoso}</select></td>
         <td style="padding:3px 4px;"><select id="no_duree_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsDuree}</select></td>
         <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
@@ -1796,103 +1367,48 @@ function noAjouterLigne() {
 }
 
 function noEnregistrer(patientId) {
-    const date_ordon = document.getElementById('no_date').value;
-    const acte       = document.getElementById('no_acte').value;
-    const date_rdv   = document.getElementById('no_rdv').value;
-    const heure_rdv  = document.getElementById('no_heure').value;
-    const msgEl      = document.getElementById('no_msg');
-    const lignes     = [];
-
-    // ── Validations obligatoires ──────────────────────────────────────
-    if (!date_ordon) {
-        msgEl.textContent = '⛔ La date d\'ordonnance est obligatoire.';
-        msgEl.style.color = '#e74c3c';
-        document.getElementById('no_date').style.border = '2px solid #e74c3c';
-        document.getElementById('no_date').focus();
-        return;
-    }
-    document.getElementById('no_date').style.border = '';
-
-    if (!date_rdv) {
-        msgEl.textContent = '⛔ La date de RDV est obligatoire — choisissez un créneau.';
-        msgEl.style.color = '#e74c3c';
-        document.getElementById('no_rdv_visible').style.border = '2px solid #e74c3c';
-        document.getElementById('no_rdv_visible').focus();
-        return;
-    }
-    document.getElementById('no_rdv_visible').style.border = '';
-
-    if (!heure_rdv) {
-        msgEl.textContent = '⛔ L\'heure de RDV est obligatoire — cliquez sur un créneau vert ou jaune.';
-        msgEl.style.color = '#e74c3c';
-        return;
-    }
-    // ─────────────────────────────────────────────────────────────────
-
-    document.querySelectorAll('#no_lignes tr').forEach(tr => {
-        const idx = tr.querySelector('select')?.id?.replace('no_med_', '');
-        if (!idx) return;
-        const med   = document.getElementById(`no_med_${idx}`)?.value;
-        const poso  = document.getElementById(`no_poso_${idx}`)?.value;
-        const duree = document.getElementById(`no_duree_${idx}`)?.value;
-        if (med) lignes.push({ med, poso, duree });
+    const date_ordon=document.getElementById('no_date').value;
+    const acte=document.getElementById('no_acte').value;
+    const date_rdv=document.getElementById('no_rdv').value;
+    const heure_rdv=document.getElementById('no_heure').value;
+    const msgEl=document.getElementById('no_msg');
+    const lignes=[];
+    if (!date_ordon) { msgEl.textContent='⛔ La date d\'ordonnance est obligatoire.'; msgEl.style.color='#e74c3c'; document.getElementById('no_date').style.border='2px solid #e74c3c'; document.getElementById('no_date').focus(); return; }
+    document.getElementById('no_date').style.border='';
+    if (!date_rdv) { msgEl.textContent='⛔ La date de RDV est obligatoire.'; msgEl.style.color='#e74c3c'; document.getElementById('no_rdv_visible').style.border='2px solid #e74c3c'; return; }
+    document.getElementById('no_rdv_visible').style.border='';
+    if (!heure_rdv) { msgEl.textContent='⛔ L\'heure de RDV est obligatoire.'; msgEl.style.color='#e74c3c'; return; }
+    document.querySelectorAll('#no_lignes tr').forEach(tr=>{
+        const idx=tr.querySelector('select')?.id?.replace('no_med_',''); if(!idx) return;
+        const med=document.getElementById(`no_med_${idx}`)?.value;
+        const poso=document.getElementById(`no_poso_${idx}`)?.value;
+        const duree=document.getElementById(`no_duree_${idx}`)?.value;
+        if(med) lignes.push({med,poso,duree});
     });
-
-    msgEl.textContent = 'Enregistrement…';
-    msgEl.style.color = '#999';
-
-    fetch('ajax_nouvelle_ordonnance.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: patientId, date_ordon, acte, date_rdv, heure_rdv, lignes })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = `dossier.php?id=${patientId}&ord=${data.n_ordon}`;
-        } else {
-            document.getElementById('no_msg').textContent = '❌ ' + data.error;
-            document.getElementById('no_msg').style.color = '#e74c3c';
-        }
-    })
-    .catch(() => {
-        document.getElementById('no_msg').textContent = '❌ Erreur réseau';
-        document.getElementById('no_msg').style.color = '#e74c3c';
-    });
+    msgEl.textContent='Enregistrement…'; msgEl.style.color='#999';
+    fetch('ajax_nouvelle_ordonnance.php',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id:patientId,date_ordon,acte,date_rdv,heure_rdv,lignes})})
+    .then(r=>r.json()).then(data=>{
+        if(data.success) window.location.href=`dossier.php?id=${patientId}&ord=${data.n_ordon}`;
+        else { document.getElementById('no_msg').textContent='❌ '+data.error; document.getElementById('no_msg').style.color='#e74c3c'; }
+    }).catch(()=>{document.getElementById('no_msg').textContent='❌ Erreur réseau';document.getElementById('no_msg').style.color='#e74c3c';});
 }
 
-// ══════════════════════════════════════════════════════
-// NOUVELLE FACTURE
-// ══════════════════════════════════════════════════════
-const nfActes = <?= json_encode(array_map(fn($a) => [
-    'n_acte' => $a['n_acte'],
-    'ACTE'   => $a['ACTE'],
-    'cout'   => (float)$a['cout']
-], $listeActes)) ?>;
-let nfIdx = 0;
-
+const nfActes = <?= json_encode(array_map(fn($a)=>['n_acte'=>$a['n_acte'],'ACTE'=>$a['ACTE'],'cout'=>(float)$a['cout']],$listeActes)) ?>;
+let nfIdx=0;
 function toggleNouvelleFacture() {
-    const form = document.getElementById('formNouvelleFacture');
-    const aff  = document.getElementById('fact-affichage');
-    const visible = form.style.display !== 'none';
-    form.style.display = visible ? 'none' : 'block';
-    if (aff) aff.style.display = visible ? 'block' : 'none';
-    if (!visible && document.getElementById('nf_lignes').children.length === 0) {
-        nfAjouterLigne();
-    }
+    const form=document.getElementById('formNouvelleFacture'), aff=document.getElementById('fact-affichage');
+    const visible=form.style.display!=='none';
+    form.style.display=visible?'none':'block';
+    if(aff) aff.style.display=visible?'block':'none';
+    if(!visible&&document.getElementById('nf_lignes').children.length===0) nfAjouterLigne();
 }
-
 function nfAjouterLigne() {
-    const i = nfIdx++;
-    const today = document.getElementById('nf_date').value;
-    let opts = '<option value="">— Acte —</option>';
-    nfActes.forEach(a => {
-        opts += `<option value="${a.n_acte}" data-cout="${a.cout}">${a.ACTE}</option>`;
-    });
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid #eee';
-    tr.innerHTML = `
-        <td style="padding:3px 4px;"><input type="date" id="nf_dateacte_${i}" value="${today}" style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:105px;"></td>
+    const i=nfIdx++; const today=document.getElementById('nf_date').value;
+    let opts='<option value="">— Acte —</option>';
+    nfActes.forEach(a=>{opts+=`<option value="${a.n_acte}" data-cout="${a.cout}">${a.ACTE}</option>`;});
+    const tr=document.createElement('tr'); tr.style.borderBottom='1px solid #eee';
+    tr.innerHTML=`<td style="padding:3px 4px;"><input type="date" id="nf_dateacte_${i}" value="${today}" style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:105px;"></td>
         <td style="padding:3px 4px;"><select id="nf_acte_${i}" onchange="nfRemplirPrix(${i})" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;">${opts}</select></td>
         <td style="padding:3px 4px;"><input type="number" id="nf_prix_${i}" min="0" step="0.01" placeholder="0" oninput="nfRecalculer(${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
         <td style="padding:3px 4px;"><input type="number" id="nf_verse_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer(${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
@@ -1900,89 +1416,55 @@ function nfAjouterLigne() {
         <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
     document.getElementById('nf_lignes').appendChild(tr);
 }
-
 function nfRemplirPrix(i) {
-    const sel = document.getElementById(`nf_acte_${i}`);
-    const cout = sel.options[sel.selectedIndex]?.getAttribute('data-cout') || '';
-    document.getElementById(`nf_prix_${i}`).value = cout;
+    const sel=document.getElementById(`nf_acte_${i}`);
+    document.getElementById(`nf_prix_${i}`).value=sel.options[sel.selectedIndex]?.getAttribute('data-cout')||'';
     nfRecalculer(i);
 }
-
 function nfRecalculer(i) {
-    const prix  = parseFloat(document.getElementById(`nf_prix_${i}`)?.value) || 0;
-    const verse = parseFloat(document.getElementById(`nf_verse_${i}`)?.value) || 0;
-    const el = document.getElementById(`nf_dette_${i}`);
-    if (el) el.textContent = (prix - verse).toLocaleString('fr-FR') + ' DH';
+    const prix=parseFloat(document.getElementById(`nf_prix_${i}`)?.value)||0;
+    const verse=parseFloat(document.getElementById(`nf_verse_${i}`)?.value)||0;
+    const el=document.getElementById(`nf_dette_${i}`); if(el) el.textContent=(prix-verse).toLocaleString('fr-FR')+' DH';
     nfMajTotaux();
 }
-
 function nfMajTotaux() {
-    let tp = 0, tv = 0, td = 0;
-    document.querySelectorAll('#nf_lignes tr').forEach(tr => {
-        const idx = tr.querySelector('select')?.id?.replace('nf_acte_', '');
-        if (!idx) return;
-        const p = parseFloat(document.getElementById(`nf_prix_${idx}`)?.value) || 0;
-        const v = parseFloat(document.getElementById(`nf_verse_${idx}`)?.value) || 0;
-        tp += p; tv += v; td += (p - v);
+    let tp=0,tv=0,td=0;
+    document.querySelectorAll('#nf_lignes tr').forEach(tr=>{
+        const idx=tr.querySelector('select')?.id?.replace('nf_acte_',''); if(!idx) return;
+        const p=parseFloat(document.getElementById(`nf_prix_${idx}`)?.value)||0;
+        const v=parseFloat(document.getElementById(`nf_verse_${idx}`)?.value)||0;
+        tp+=p;tv+=v;td+=(p-v);
     });
-    document.getElementById('nf_totalPrix').textContent  = tp.toLocaleString('fr-FR') + ' DH';
-    document.getElementById('nf_totalVerse').textContent = tv.toLocaleString('fr-FR') + ' DH';
-    document.getElementById('nf_totalDette').textContent = td.toLocaleString('fr-FR') + ' DH';
+    document.getElementById('nf_totalPrix').textContent=tp.toLocaleString('fr-FR')+' DH';
+    document.getElementById('nf_totalVerse').textContent=tv.toLocaleString('fr-FR')+' DH';
+    document.getElementById('nf_totalDette').textContent=td.toLocaleString('fr-FR')+' DH';
 }
-
 function nfEnregistrer(patientId) {
-    const date_facture = document.getElementById('nf_date').value;
-    const lignes = [];
-    document.querySelectorAll('#nf_lignes tr').forEach(tr => {
-        const idx = tr.querySelector('select')?.id?.replace('nf_acte_', '');
-        if (!idx) return;
-        const acte  = document.getElementById(`nf_acte_${idx}`)?.value;
-        const prix  = parseFloat(document.getElementById(`nf_prix_${idx}`)?.value) || 0;
-        const verse = parseFloat(document.getElementById(`nf_verse_${idx}`)?.value) || 0;
-        const dateA = document.getElementById(`nf_dateacte_${idx}`)?.value;
-        if (acte) lignes.push({ acte, prix, verse, date_acte: dateA });
+    const date_facture=document.getElementById('nf_date').value; const lignes=[];
+    document.querySelectorAll('#nf_lignes tr').forEach(tr=>{
+        const idx=tr.querySelector('select')?.id?.replace('nf_acte_',''); if(!idx) return;
+        const acte=document.getElementById(`nf_acte_${idx}`)?.value;
+        const prix=parseFloat(document.getElementById(`nf_prix_${idx}`)?.value)||0;
+        const verse=parseFloat(document.getElementById(`nf_verse_${idx}`)?.value)||0;
+        const dateA=document.getElementById(`nf_dateacte_${idx}`)?.value;
+        if(acte) lignes.push({acte,prix,verse,date_acte:dateA});
     });
-    if (lignes.length === 0) {
-        document.getElementById('nf_msg').textContent = '⚠ Ajoutez au moins un acte.';
-        document.getElementById('nf_msg').style.color = '#e74c3c';
-        return;
-    }
-    document.getElementById('nf_msg').textContent = 'Enregistrement…';
-    document.getElementById('nf_msg').style.color = '#999';
-    fetch('ajax_nouvelle_facture.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: patientId, date_facture, lignes })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = `dossier.php?id=${patientId}&fact=${data.n_facture}`;
-        } else {
-            document.getElementById('nf_msg').textContent = '❌ ' + data.error;
-            document.getElementById('nf_msg').style.color = '#e74c3c';
-        }
-    })
-    .catch(() => {
-        document.getElementById('nf_msg').textContent = '❌ Erreur réseau';
-        document.getElementById('nf_msg').style.color = '#e74c3c';
-    });
+    if(lignes.length===0){document.getElementById('nf_msg').textContent='⚠ Ajoutez au moins un acte.';document.getElementById('nf_msg').style.color='#e74c3c';return;}
+    document.getElementById('nf_msg').textContent='Enregistrement…';document.getElementById('nf_msg').style.color='#999';
+    fetch('ajax_nouvelle_facture.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:patientId,date_facture,lignes})})
+    .then(r=>r.json()).then(data=>{
+        if(data.success) window.location.href=`dossier.php?id=${patientId}&fact=${data.n_facture}`;
+        else{document.getElementById('nf_msg').textContent='❌ '+data.error;document.getElementById('nf_msg').style.color='#e74c3c';}
+    }).catch(()=>{document.getElementById('nf_msg').textContent='❌ Erreur réseau';document.getElementById('nf_msg').style.color='#e74c3c';});
 }
 
-// ── Initialisation au chargement ──────────────────────────────────────────
-// Si l'ordonnance courante a déjà une date RDV → afficher ses créneaux
-document.addEventListener('DOMContentLoaded', () => {
-    // Valider que la date est bien au format yyyy-mm-dd avant de charger
-    const dateInit = document.getElementById('rdv_futur')?.value;
-    const reDate = /^\d{4}-\d{2}-\d{2}$/;
-    if (dateInit && reDate.test(dateInit) && dateInit !== '1970-01-01') {
-        rdvChargerCreneaux(dateInit, 'rdv', false);
-    }
+document.addEventListener('DOMContentLoaded', ()=>{
+    const dateInit=document.getElementById('rdv_futur')?.value;
+    if(dateInit && /^\d{4}-\d{2}-\d{2}$/.test(dateInit) && dateInit!=='1970-01-01')
+        rdvChargerCreneaux(dateInit,'rdv',false);
 });
-
-// Validation format date utilisée dans rdvDateChange et rdvSetDelai
-function dateValide(d) {
-    return d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d !== '1970-01-01';
+function afficherModifierOrdonnance() {
+    window.location.href = 'modifier_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>';
 }
 </script>
 </body>

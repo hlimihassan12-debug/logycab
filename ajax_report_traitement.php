@@ -23,10 +23,11 @@ if ($id == 0) {
 }
 
 $db = getDB();
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 try {
     // 1. Récupérer l'ordonnance courante (la plus récente)
-    $stmtOrd = $db->prepare("SELECT TOP 1 * FROM ORD WHERE id = ? ORDER BY date_ordon DESC");
+    $stmtOrd = $db->prepare("SELECT TOP 1 * FROM ORD WHERE id = ? ORDER BY n_ordon DESC");
     $stmtOrd->execute([$id]);
     $ordCourante = $stmtOrd->fetch(PDO::FETCH_ASSOC);
 
@@ -35,36 +36,82 @@ try {
         exit;
     }
 
-    // 2. Calculer les nouvelles dates
-    $dateAujourd = date('Y-m-d');
-    $dateNouvelleOrd = date('Y-m-d H:i:s'); // date ordonnance = aujourd'hui
+    // 2. Calculer les nouvelles dates (format ISO 120 pour CONVERT)
+    $dateAujourdHui     = date('Y-m-d H:i:s');   // ex: 2026-05-13 13:07:56
+    $dateAujourdHuiDate = date('Y-m-d');           // ex: 2026-05-13
 
     $dtRdv = new DateTime();
     $dtRdv->modify("+{$mois} months");
-    $dateNouveauRdv = $dtRdv->format('Y-m-d') . ' 00:00:00';
-    $jourRdv  = (int)$dtRdv->format('d');
-    $moisRdv  = (int)$dtRdv->format('m');
+    $dateNouveauRdv     = $dtRdv->format('Y-m-d') . ' 00:00:00'; // ex: 2026-08-13 00:00:00
+    $dateNouveauRdvDate = $dtRdv->format('Y-m-d');                // ex: 2026-08-13
+
+    $jourRdv = (int)$dtRdv->format('d');
+    $moisRdv = (int)$dtRdv->format('m');
+
+    // Nettoyer acte1 et HeureRDV
+    $acte1    = trim($ordCourante['acte1'] ?? '');
+    // Chercher le premier créneau libre à la date du nouveau RDV
+$heureRDV = null;
+$stmtOccup = $db->prepare("
+    SELECT HeureRDV, COUNT(*) AS nb
+    FROM ORD
+    WHERE (
+        ([DATE REDEZ VOUS] IS NOT NULL AND CAST([DATE REDEZ VOUS] AS DATE) = ?)
+        OR (Date_Rdv IS NOT NULL AND CAST(Date_Rdv AS DATE) = ?)
+    )
+    AND HeureRDV IS NOT NULL AND HeureRDV != ''
+    GROUP BY HeureRDV
+");
+$stmtOccup->execute([$dateNouveauRdvDate, $dateNouveauRdvDate]);
+$occup = [];
+while ($row = $stmtOccup->fetch(PDO::FETCH_ASSOC)) {
+    $h = substr(trim($row['HeureRDV']), 0, 5);
+    $occup[$h] = (int)$row['nb'];
+}
+for ($t = strtotime('09:00'); $t <= strtotime('16:00'); $t += 1800) {
+    $h  = date('H:i', $t);
+    $nb = $occup[$h] ?? 0;
+    if ($nb < 2) { $heureRDV = $h; break; }
+}
 
     $db->beginTransaction();
 
     // 3. Insérer la nouvelle ordonnance
+    // CONVERT(datetime, ?, 120) → format ISO yyyy-mm-dd hh:mm:ss accepté par SQL Server
+    // CONVERT(date,     ?, 23)  → format ISO yyyy-mm-dd pour colonne date
     $stmtInsert = $db->prepare("
         INSERT INTO ORD (
             id, date_ordon, acte1,
-            [DATE REDEZ VOUS], HeureRDV,
-            jour_rdv, mois_rdv, JourRDV
+            Date_Rdv, [DATE REDEZ VOUS],
+            HeureRDV, jour_rdv, mois_rdv,
+            JourRDV, DateSaisie,
+            Urgence, vu, SansReponse
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+            ?,
+            CONVERT(datetime, ?, 120),
+            ?,
+            CONVERT(datetime, ?, 120),
+            CONVERT(datetime, ?, 120),
+            ?,
+            ?, ?,
+            CONVERT(date, ?, 23),
+            CONVERT(datetime, ?, 120),
+            0, 0, 0
+        )
     ");
+
     $stmtInsert->execute([
         $id,
-        $dateNouvelleOrd,
-        $ordCourante['acte1'] ?? '',
-        $dateNouveauRdv,
-        $ordCourante['HeureRDV'] ?? '',
-        $jourRdv,
-        $moisRdv,
-        $dateNouveauRdv,
+        $dateAujourdHui,        // date_ordon
+        $acte1,                 // acte1
+        $dateNouveauRdv,        // Date_Rdv
+        $dateNouveauRdv,        // DATE REDEZ VOUS
+        $heureRDV,              // HeureRDV
+        $jourRdv,               // jour_rdv
+        $moisRdv,               // mois_rdv
+        $dateNouveauRdvDate,    // JourRDV
+        $dateAujourdHui,        // DateSaisie
     ]);
 
     $nOrdNouveau = $db->query("SELECT MAX(n_ordon) FROM ORD WHERE id = $id")->fetchColumn();
@@ -92,37 +139,36 @@ try {
     }
 
     // 5. Créer une nouvelle facture ECG à 300 DH à la date du jour
-    // Trouver le n_acte de l'ECG dans t_acte_simplifiée
-    $stmtECG = $db->query("SELECT TOP 1 n_acte FROM t_acte_simplifiée WHERE ACTE LIKE '%ECG%' ORDER BY n_acte");
+    $stmtECG  = $db->query("SELECT TOP 1 n_acte FROM t_acte_simplifiée WHERE ACTE LIKE '%ECG%' ORDER BY n_acte");
     $nActeECG = $stmtECG->fetchColumn();
+    $nFacture = null;
 
     if ($nActeECG) {
-        // Créer la facture
         $stmtFact = $db->prepare("
             INSERT INTO facture (id, date_facture, montant)
-            VALUES (?, ?, 300)
+            VALUES (?, CONVERT(datetime, ?, 120), 300)
         ");
-        $stmtFact->execute([$id, $dateAujourd . ' 00:00:00']);
+        $stmtFact->execute([$id, $dateAujourdHui]);
+
         $nFacture = $db->query("SELECT MAX(n_facture) FROM facture WHERE id = $id")->fetchColumn();
 
-        // Créer le détail acte
         $stmtDetail = $db->prepare("
             INSERT INTO detail_acte (N_fact, ACTE, [date-H], prixU, Versé, dette)
-            VALUES (?, ?, ?, 300, 300, 0)
+            VALUES (?, ?, CONVERT(datetime, ?, 120), 300, 300, 0)
         ");
-        $stmtDetail->execute([$nFacture, $nActeECG, $dateAujourd . ' 00:00:00']);
+        $stmtDetail->execute([$nFacture, $nActeECG, $dateAujourdHui]);
     }
 
     $db->commit();
 
     echo json_encode([
-        'success'  => true,
-        'n_ordon'  => $nOrdNouveau,
-        'n_facture' => $nFacture ?? null,
+        'success'   => true,
+        'n_ordon'   => $nOrdNouveau,
+        'n_facture' => $nFacture,
     ]);
 
 } catch (Exception $e) {
-    $db->rollBack();
+    if ($db->inTransaction()) $db->rollBack();
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>
