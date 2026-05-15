@@ -542,7 +542,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                             <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
                             <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
                             <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
-                        </div>
+                    <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)" style="background:#27ae60;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">✔ RDV</button>   
+					   </div>
                         <div style="display:flex;gap:4px;margin-bottom:4px;">
                             <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
                                    onchange="rdvDateChange(this.value,'rdv')"
@@ -1153,7 +1154,25 @@ function reportTraitement(mois, patientId) {
         else alert('❌ '+data.error);
     }).catch(()=>alert('❌ Erreur réseau'));
 }
-
+function confirmerRdv(nOrdon) {
+    const dateRdv  = document.getElementById('rdv_futur')?.value;
+    const heureRdv = document.getElementById('heure_rdv_futur')?.value || '';
+    if (!dateRdv) { alert('Veuillez choisir une date de RDV'); return; }
+    fetch('ajax_maj_rdv.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ n_ordon: nOrdon, date_rdv: dateRdv, heure_rdv: heureRdv })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ RDV enregistré : ' + dateRdv + (heureRdv ? ' à ' + heureRdv : ''));
+            location.reload();
+        } else {
+            alert('❌ Erreur : ' + data.error);
+        }
+    });
+}
 function rdvIds(p) {
     if (p==='rdv') return { dateH:'rdv_futur', dateV:'rdv_futur_visible', heureH:'heure_rdv_futur',
         grille:'rdv_grille', loading:'rdv_loading', msg:'rdv_msg',
