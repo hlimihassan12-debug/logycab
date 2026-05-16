@@ -48,24 +48,31 @@ try {
 
     // INSERT ordonnance avec toutes les dates
     $stmt = $db->prepare("
-        INSERT INTO ORD (
-            id, date_ordon, acte1,
-            [DATE REDEZ VOUS], HeureRDV,
-            jour_rdv, mois_rdv, JourRDV
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->execute([
-        $id,
-        $date_ordon,
-        $acte,
-        $date_rdv,    // DATE REDEZ VOUS — correctement rempli
-        $heure_rdv,   // HeureRDV — correctement rempli
-        $jour_rdv,
-        $mois_rdv,
-        $date_rdv,    // JourRDV (même valeur que DATE REDEZ VOUS)
-    ]);
-
+    INSERT INTO ORD (
+        id, date_ordon, acte1,
+        [DATE REDEZ VOUS], HeureRDV,
+        jour_rdv, mois_rdv, JourRDV
+    )
+    VALUES (
+        ?,
+        CONVERT(datetime, ?, 120),
+        ?,
+        CONVERT(datetime, ?, 120),
+        ?,
+        ?, ?,
+        CONVERT(datetime, ?, 120)
+    )
+");
+$stmt->execute([
+    $id,
+    $date_ordon,        // date_ordon → CONVERT
+    $acte,
+    $date_rdv,          // DATE REDEZ VOUS → CONVERT
+    $heure_rdv,
+    $jour_rdv,
+    $mois_rdv,
+    $date_rdv,          // JourRDV → CONVERT
+]);
     $nOrd = $db->query("SELECT MAX(n_ordon) FROM ORD WHERE id = $id")->fetchColumn();
 
     // INSERT médicaments

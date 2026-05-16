@@ -346,6 +346,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     </div>
     <a href="bilan.php?id=<?= $id ?>">🧪 Bilans</a>
     <a href="logout.php" style="background:#e74c3c;">🚪 Déco</a>
+
+    <!-- Horloge temps réel -->
+    <div style="margin-left:auto;background:rgba(255,255,255,0.12);border-radius:6px;
+                padding:3px 10px;text-align:right;min-width:130px;">
+        <div id="clockTime" style="font-size:15px;font-weight:bold;letter-spacing:1px;color:#f0f4f8;">--:--:--</div>
+        <div id="clockDate" style="font-size:9px;opacity:0.75;">---</div>
+    </div>
 </div>
 
 <!-- BANDEAU PATIENT -->
@@ -468,8 +475,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
             <span style="font-size:13px;">📋 Ordonnance
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
-                <?php $tsOrd = strtotime($ordCourante['date_ordon']); $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—'; ?>
-                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;margin-left:8px;"><?= $dateOrdAff ?></span>
+                <?php
+                    $tsOrd = strtotime($ordCourante['date_ordon']);
+                    $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
+                    $estAujourdHui = ($tsOrd && date('Y-m-d', $tsOrd) === date('Y-m-d'));
+                    $coulOrd = $estAujourdHui ? '#e74c3c' : '#1a4a7a';
+                    $bgOrd   = $estAujourdHui ? '#fdecea' : '#e8f0fb';
+                    $bordOrd = $estAujourdHui ? '#e74c3c' : '#2e6da4';
+                ?>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
+                             color:<?= $coulOrd ?>;background:<?= $bgOrd ?>;
+                             padding:2px 8px;border-radius:4px;
+                             border:1px solid <?= $bordOrd ?>;margin-left:8px;">
+                    <?= $dateOrdAff ?>
+                </span>
                 <?php endif; ?>
             </span>
         </div>
@@ -542,12 +561,27 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                             <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
                             <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
                             <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
-                    <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)" style="background:#27ae60;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">✔ RDV</button>   
+                    <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)"
+                            title="Enregistrer le RDV"
+                            style="background:#27ae60;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="3" width="20" height="18" rx="2" ry="2" fill="none" stroke="white" stroke-width="1.5"/>
+                            <rect x="5" y="3" width="14" height="8" rx="1" fill="white" opacity="0.3"/>
+                            <rect x="8" y="4" width="2" height="6" rx="0.5" fill="white"/>
+                            <rect x="14" y="4" width="2" height="6" rx="0.5" fill="white"/>
+                            <circle cx="8"  cy="15" r="2.2" fill="none" stroke="white" stroke-width="1.2"/>
+                            <circle cx="16" cy="15" r="2.2" fill="none" stroke="white" stroke-width="1.2"/>
+                            <line x1="10.2" y1="15" x2="13.8" y2="15" stroke="white" stroke-width="1.2"/>
+                        </svg>
+                        RDV
+                    </button>
 					   </div>
                         <div style="display:flex;gap:4px;margin-bottom:4px;">
                             <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
                                    onchange="rdvDateChange(this.value,'rdv')"
-                                   style="flex:1;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;">
+                                   ondblclick="if(this.value) window.location.href='agenda.php?date='+this.value"
+                                   title="Double-clic → ouvrir l'agenda ce jour"
+                                   style="flex:1;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;cursor:pointer;">
                             <div id="rdv_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;white-space:nowrap;">
                                 <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
                             </div>
@@ -601,8 +635,19 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
                 <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
-                <?php $tsOrd2 = strtotime($ordCourante['date_ordon']); $dateOrd2 = ($tsOrd2 && $tsOrd2 > 0) ? date('d/m/Y', $tsOrd2) : '—'; ?>
-                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;">📋 <?= $dateOrd2 ?></span>
+                <?php
+                    $tsOrd2 = strtotime($ordCourante['date_ordon']);
+                    $dateOrd2 = ($tsOrd2 && $tsOrd2 > 0) ? date('d/m/Y', $tsOrd2) : '—';
+                    $estAuj2  = ($tsOrd2 && date('Y-m-d', $tsOrd2) === date('Y-m-d'));
+                    $coul2 = $estAuj2 ? '#e74c3c' : '#1a4a7a';
+                    $bg2   = $estAuj2 ? '#fdecea' : '#e8f0fb';
+                    $bord2 = $estAuj2 ? '#e74c3c' : '#2e6da4';
+                ?>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
+                             color:<?= $coul2 ?>;background:<?= $bg2 ?>;
+                             padding:2px 8px;border-radius:4px;border:1px solid <?= $bord2 ?>;">
+                    📋 <?= $dateOrd2 ?>
+                </span>
                 <?php endif; ?>
             </div>
             <?php if (!empty($medicaments)): ?>
@@ -627,8 +672,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
             <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
                 <span style="font-size:13px;">💰 Facturation</span>
                 <?php if ($factCourante): ?>
-                <?php $tsFactTitre = strtotime($factCourante['date_facture'] ?? ''); $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—'; ?>
-                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;color:#1a4a7a;background:#e8f0fb;padding:2px 8px;border-radius:4px;border:1px solid #2e6da4;margin-left:8px;"><?= $dateFactTitre ?></span>
+                <?php
+                    $tsFactTitre  = strtotime($factCourante['date_facture'] ?? '');
+                    $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—';
+                    $estAujFact   = ($tsFactTitre && $tsFactTitre > 86400 && date('Y-m-d', $tsFactTitre) === date('Y-m-d'));
+                    $coulFact = $estAujFact ? '#e74c3c' : '#1a4a7a';
+                    $bgFact   = $estAujFact ? '#fdecea' : '#e8f0fb';
+                    $bordFact = $estAujFact ? '#e74c3c' : '#2e6da4';
+                ?>
+                <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
+                             color:<?= $coulFact ?>;background:<?= $bgFact ?>;
+                             padding:2px 8px;border-radius:4px;
+                             border:1px solid <?= $bordFact ?>;margin-left:8px;">
+                    <?= $dateFactTitre ?>
+                </span>
                 <?php endif; ?>
             </div>
             <div id="fact-affichage">
@@ -935,8 +992,24 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <div class="card">
         <div class="card-title">🩺 Examen clinique</div>
         <?php if ($examen): ?>
-        <div style="text-align:center;margin-bottom:8px;font-size:11px;color:#888;">
-            <?= $examen['DateExam'] ? date('d/m/Y', strtotime($examen['DateExam'])) : '—' ?>
+        <?php
+            $dateExamRaw = $examen['DateExam'] ?? null;
+            $dateExamAff = '—';
+            $dateExamStyle = 'font-size:11px;font-weight:bold;color:#1a4a7a;';
+            if ($dateExamRaw) {
+                $tsExam = strtotime($dateExamRaw);
+                if ($tsExam && $tsExam > 86400) {
+                    $dateExamAff = date('d/m/Y', $tsExam);
+                    // Rouge si c'est aujourd'hui
+                    if (date('Y-m-d', $tsExam) === date('Y-m-d')) {
+                        $dateExamStyle = 'font-size:11px;font-weight:bold;color:#e74c3c;';
+                    }
+                }
+            }
+        ?>
+        <div style="text-align:center;margin-bottom:8px;">
+            <span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date examen</span>
+            <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
         </div>
         <?php
         $tas = (int)($examen['TAS'] ?? 0); $tad = (int)($examen['TAD'] ?? 0);
@@ -1143,7 +1216,90 @@ function calcNbrJ() {
     const d1=document.getElementById('cert_debut').value, d2=document.getElementById('cert_fin').value;
     if (d1&&d2) { const diff=Math.round((new Date(d2)-new Date(d1))/86400000); document.getElementById('cert_nbrj').value=diff>=0?diff:0; }
 }
-function imprimerCertificat() { alert('Impression certificat — à implémenter'); }
+function imprimerCertificat() {
+    const debut = document.getElementById('cert_debut').value;
+    const fin   = document.getElementById('cert_fin').value;
+    const nbrj  = document.getElementById('cert_nbrj').value;
+
+    const nom    = <?= json_encode($patient['NOMPRENOM'] ?? '') ?>;
+    const age    = <?= json_encode($age) ?>;
+    const dateAuj = new Date().toLocaleDateString('fr-FR');
+
+    // Formatage des dates
+    function fmtDate(d) {
+        if (!d) return '___________';
+        const p = d.split('-');
+        return p[2]+'/'+p[1]+'/'+p[0];
+    }
+
+    let texteArret = '';
+    if (debut && fin) {
+        texteArret = `du ${fmtDate(debut)} au ${fmtDate(fin)} inclus (${nbrj} jour(s))`;
+    } else if (debut) {
+        texteArret = `à partir du ${fmtDate(debut)}`;
+    }
+
+    const contenu = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Certificat médical</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #000;
+    background: #fff;
+    padding: 60px 80px;
+    font-weight: normal;
+  }
+  h1 {
+    font-size: 16px;
+    font-weight: normal;
+    text-align: center;
+    text-decoration: underline;
+    margin-bottom: 40px;
+    letter-spacing: 1px;
+  }
+  p { line-height: 2; margin-bottom: 12px; }
+  .signature {
+    margin-top: 60px;
+    text-align: right;
+    font-size: 12px;
+  }
+  @media print {
+    body { padding: 40px 60px; }
+    button { display: none; }
+  }
+</style>
+</head>
+<body>
+<h1>Certificat médical</h1>
+
+<p>Je soussigné, médecin, certifie avoir examiné ce jour M./Mme <strong style="font-weight:normal;text-decoration:underline;">${nom}</strong>, âgé(e) de ${age} ans.</p>
+
+<p>À l'issue de cet examen, il/elle est en repos médical ${texteArret}.</p>
+
+<p>Ce certificat est établi sur sa demande et remis en main propre à l'intéressé(e) pour faire valoir ce que de droit.</p>
+
+<div class="signature">
+    <p>Tétouan, le ${dateAuj}</p>
+    <br><br>
+    <p>Signature et cachet du médecin</p>
+</div>
+
+<div style="margin-top:30px;text-align:center;">
+    <button onclick="window.print()" style="padding:6px 20px;font-size:12px;cursor:pointer;border:1px solid #000;background:white;">🖨️ Imprimer</button>
+    <button onclick="window.close()" style="padding:6px 20px;font-size:12px;cursor:pointer;border:1px solid #ccc;background:white;margin-left:10px;">✕ Fermer</button>
+</div>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank', 'width=750,height=600');
+    w.document.write(contenu);
+    w.document.close();
+}
 
 function reportTraitement(mois, patientId) {
     if (!confirm(`Confirmer le report du traitement dans ${mois} mois ?`)) return;
@@ -1485,6 +1641,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function afficherModifierOrdonnance() {
     window.location.href = 'modifier_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>';
 }
+
+// ── Horloge temps réel ────────────────────────────────
+(function miseAJourHorloge() {
+    const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const mois  = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    function tick() {
+        const n = new Date();
+        const h = String(n.getHours()).padStart(2,'0');
+        const m = String(n.getMinutes()).padStart(2,'0');
+        const s = String(n.getSeconds()).padStart(2,'0');
+        const ct = document.getElementById('clockTime');
+        const cd = document.getElementById('clockDate');
+        if (ct) ct.textContent = h+':'+m+':'+s;
+        if (cd) cd.textContent = jours[n.getDay()]+' '+n.getDate()+' '+mois[n.getMonth()]+' '+n.getFullYear();
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>

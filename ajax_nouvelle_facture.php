@@ -19,11 +19,11 @@ $db = getDB();
 try {
     $db->beginTransaction();
 
-    $stmt = $db->prepare("INSERT INTO facture (id, date_facture, mode_paiement, montant, remarque) VALUES (?, ?, NULL, 0, NULL)");
+    $stmt = $db->prepare("INSERT INTO facture (id, date_facture, mode_paiement, montant, remarque) VALUES (?, CONVERT(datetime, ?, 120), NULL, 0, NULL)");
     $stmt->execute([$id, $date_facture]);
     $nFact = $db->query("SELECT MAX(n_facture) FROM facture WHERE id = $id")->fetchColumn();
 
-    $stmtDA = $db->prepare("INSERT INTO detail_acte (N_fact, [date-H], ACTE, prixU, QTIT, Versé, dette) VALUES (?, ?, ?, ?, 1, ?, ?)");
+    $stmtDA = $db->prepare("INSERT INTO detail_acte (N_fact, [date-H], ACTE, prixU, QTIT, Versé, dette) VALUES (?, CONVERT(datetime, ?, 120), ?, ?, 1, ?, ?)");
     $total = 0;
     foreach ($lignes as $l) {
         $acteId   = (int)$l['acte'];
