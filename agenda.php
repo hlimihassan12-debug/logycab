@@ -161,8 +161,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .pat-card.absent { border-left-color: #e74c3c; background: #fff8f8; }
 .pat-card.hidden { display: none; }
 
-/* Ligne principale */
-.pat-line { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
+/* Ligne principale — overflow hidden : rien ne déborde jamais */
+.pat-line { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
 
 /* ── Éléments LARGEUR FIXE — ne bougent pas selon le contenu ── */
 .pat-heure { background: #1a4a7a; color: white; padding: 0;
@@ -180,13 +180,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 
 /* Nom : largeur fixe, overflow caché avec ellipse si trop long */
 .pat-nom   { font-size: 12px; font-weight: bold; color: #1a4a7a;
-             width: 180px; flex-shrink: 0;
+             width: 180px; max-width: 180px; flex-shrink: 0;
              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pat-nom.vu     { color: #aaa; }
 .pat-nom.absent { color: #e67e22; }
 
+/* Acte : largeur FIXE — ne s'étire jamais selon le contenu */
 .pat-acte  { background: #e8f0fb; color: #2e6da4; padding: 1px 5px;
-             border-radius: 6px; font-size: 9px; font-weight: bold; flex-shrink: 0; }
+             border-radius: 6px; font-size: 9px; font-weight: bold; flex-shrink: 0;
+             width: 90px; max-width: 90px;
+             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Boutons compacts — largeur fixe */
 .btn-p { border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer;
@@ -415,36 +418,46 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
                 <?= htmlspecialchars($pat['NOMPRENOM'] ?? '—') ?>
             </span>
 
-            <!-- 5. Acte -->
-            <?php if ($acte): ?>
-            <span class="pat-acte">🔬 <?= htmlspecialchars($acte) ?></span>
-            <?php endif; ?>
+            <!-- 5. Acte — toujours présent pour garder l'alignement -->
+            <span class="pat-acte"><?= $acte ? '🔬 '.htmlspecialchars($acte) : '' ?></span>
 
             <!-- 6. Bouton Vu -->
             <button class="btn-p btn-vu" id="btnVu-<?= $pat['n_ordon'] ?>"
+                    title="Marquer comme vu / annuler"
                     onclick="toggleVu(<?= $pat['n_ordon'] ?>, <?= $estVu?1:0 ?>)">
                 <?= $estVu ? '✅ Vu' : '👁 Vu' ?>
             </button>
 
             <!-- 7. Bouton Absent -->
             <button class="btn-p btn-absent" id="btnAbs-<?= $pat['n_ordon'] ?>"
+                    title="Marquer comme absent / annuler"
                     onclick="toggleAbsent(<?= $pat['n_ordon'] ?>, <?= $estAbsent?1:0 ?>)">
                 <?= $estAbsent ? '🔴 Abs' : '❌ Abs' ?>
             </button>
 
-            <!-- 8. Bouton Déplacer -->
+            <!-- 8. Bouton Déplacer — losange SVG -->
             <button class="btn-p btn-dep"
-                    onclick="deplacerRdv(<?= $pat['n_ordon'] ?>, '<?= $dateAff ?>')">📆</button>
+                    title="Déplacer le RDV à une autre date"
+                    onclick="deplacerRdv(<?= $pat['n_ordon'] ?>, '<?= $dateAff ?>')">
+                <svg viewBox="0 0 22 16" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:13px;">
+                    <polygon points="11,1 21,8 11,15 1,8" fill="white" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+                    <line x1="11" y1="1" x2="11" y2="15" stroke="rgba(0,0,0,0.25)" stroke-width="1.2"/>
+                    <polygon points="11,1 21,8 11,15" fill="rgba(255,255,255,0.55)"/>
+                </svg>
+            </button>
 
             <!-- 9. Dossier -->
-            <a href="dossier.php?id=<?= $pat['id'] ?>" class="btn-p btn-dos">📋</a>
+            <a href="dossier.php?id=<?= $pat['id'] ?>" class="btn-p btn-dos"
+               title="Ouvrir le dossier patient">📋</a>
 
-            <!-- 10. Supprimer (après Dossier) -->
+            <!-- 10. Supprimer -->
             <button class="btn-p btn-sup"
+                    title="Supprimer ce RDV définitivement"
                     onclick="supprimerRdv(<?= $pat['n_ordon'] ?>, '<?= htmlspecialchars($pat['NOMPRENOM'] ?? '') ?>')">🗑</button>
 
             <!-- 11. Créneau horaire -->
             <select class="creneau-select"
+                    title="Attribuer un créneau horaire"
                     onchange="changerHeure(<?= $pat['n_ordon'] ?>, this.value)">
                 <option value="">—H—</option>
                 <?php foreach ($creneaux as $cr): ?>
@@ -452,13 +465,15 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
                 <?php endforeach; ?>
             </select>
 
-            <!-- 12. Montant DH (avant Observation) -->
-            <span class="montant-badge <?= $verse > 0 ? 'ok' : 'non' ?>">
+            <!-- 12. Montant DH -->
+            <span class="montant-badge <?= $verse > 0 ? 'ok' : 'non' ?>"
+                  title="Montant versé ce jour">
                 <?= $verse > 0 ? number_format($verse,0,',',' ').' DH' : '0 DH' ?>
             </span>
 
-            <!-- 13. Observation (large, occupe l'espace restant) -->
+            <!-- 13. Observation -->
             <input type="text" class="obs-input" placeholder="Observation..."
+                   title="Note libre — sauvegardée automatiquement à la sortie du champ"
                    value="<?= $obs ?>"
                    onblur="sauvegarderObs(<?= $pat['n_ordon'] ?>, this.value)">
 
@@ -642,6 +657,39 @@ async function toggleAbsent(n, estAbs) {
     toast(estAbs ? 'Statut Absent retiré' : 'Marqué Absent 🔴');
 }
 
+// ── Mettre à jour les points colorés des créneaux ────
+function majCreneaux() {
+    // Recompter depuis le DOM
+    const comptage = {};
+    document.querySelectorAll('.pat-card:not(.hidden)').forEach(c => {
+        const h = c.dataset.heure;
+        if (h) comptage[h] = (comptage[h] || 0) + 1;
+    });
+    // Mettre à jour chaque ligne créneau
+    document.querySelectorAll('.cr-item').forEach(item => {
+        const heure = item.querySelector('.cr-heure')?.textContent.trim();
+        if (!heure) return;
+        const nb  = comptage[heure] || 0;
+        const dot = item.querySelector('.cr-dot');
+        let nbEl  = item.querySelector('.cr-nb');
+        // Couleur du point
+        if (dot) {
+            dot.className = 'cr-dot ' + (nb === 0 ? 'vert' : nb === 1 ? 'jaune' : 'rouge');
+        }
+        // Chiffre à côté
+        if (nb > 0) {
+            if (!nbEl) {
+                nbEl = document.createElement('span');
+                nbEl.className = 'cr-nb';
+                item.appendChild(nbEl);
+            }
+            nbEl.textContent = nb;
+        } else {
+            if (nbEl) nbEl.remove();
+        }
+    });
+}
+
 // ── Changer heure ─────────────────────────────────────
 async function changerHeure(n, heure) {
     if (heure) {
@@ -660,6 +708,7 @@ async function changerHeure(n, heure) {
         const el = document.getElementById('heure-'+n);
         el.textContent = heure || '—';
         document.getElementById('card-'+n).dataset.heure = heure;
+        majCreneaux(); // ← actualise les points colorés à gauche
         toast('Heure mise à jour ⏰');
     }
 }
