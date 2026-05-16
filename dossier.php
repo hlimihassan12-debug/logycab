@@ -345,6 +345,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier patient" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏭</a>
     </div>
     <a href="bilan.php?id=<?= $id ?>">🧪 Bilans</a>
+    <a href="jours_feries.php" style="background:#8e44ad;">📅 Fériés</a>
     <a href="logout.php" style="background:#e74c3c;">🚪 Déco</a>
 
     <!-- Horloge temps réel -->
@@ -793,8 +794,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                 <!-- BOUTON CERTIFICAT -->
                 <button type="button"
                     onclick="var z=document.getElementById('cert-zone');z.style.display=z.style.display==='none'?'block':'none'"
-                    style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:12px;margin-bottom:10px;">
-                    📄 Certificat médical
+                    style="background:white;color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
+                    Certificat médical
                 </button>
 
                 <!-- ZONE CERTIFICAT (cachée par défaut) -->
@@ -1310,23 +1311,149 @@ function reportTraitement(mois, patientId) {
         else alert('❌ '+data.error);
     }).catch(()=>alert('❌ Erreur réseau'));
 }
+// ════════════════════════════════════════════════════════════
+// UTILITAIRE date
+// ════════════════════════════════════════════════════════════
+function dateEnFr(d) {
+    if (!d) return '';
+    const [a,m,j] = d.split('-');
+    return j+'/'+m+'/'+a;
+}
+
+// ════════════════════════════════════════════════════════════
+// MODALE JOUR FERMÉ / SPÉCIAL
+// ════════════════════════════════════════════════════════════
+function jfFermer() {
+    const m = document.getElementById('modal-jour-ferme');
+    if (m) m.remove();
+}
+function jfAfficher(data, onChoix) {
+    jfFermer();
+    const estSamedi = data.est_samedi || false;
+    const estLundi  = data.est_lundi  || false;
+    const raison    = data.raison     || 'Jour fermé';
+    let titre, sousTitre;
+    if (estLundi) {
+        titre     = '⚠️ Lundi — Habituellement non travaillé';
+        sousTitre = 'Le lundi est généralement réservé. Que souhaitez-vous faire ?';
+    } else if (estSamedi) {
+        titre     = '⚠️ Samedi — Demi-journée habituelle';
+        sousTitre = 'Le samedi est particulier. Que souhaitez-vous faire ?';
+    } else {
+        titre     = '⛔ ' + raison + ' — Cabinet fermé';
+        sousTitre = 'Ce jour est fermé. Choisissez une alternative :';
+    }
+    const base = 'border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:bold;';
+    let btns = '';
+    if (data.date_avant)
+        btns += `<button style="${base}background:#2e6da4;color:white;" onclick="jfChoisir('${data.date_avant}')">◀ ${data.label_avant}</button>`;
+    if ((estLundi || estSamedi) && data.date_cible) {
+        const lbl = estLundi ? 'Garder lundi' : 'Garder samedi';
+        btns += `<button style="${base}background:#e67e22;color:white;" onclick="jfChoisir('${data.date_cible}')">${lbl}</button>`;
+    }
+    if (data.date_apres)
+        btns += `<button style="${base}background:#1a4a7a;color:white;" onclick="jfChoisir('${data.date_apres}')">${data.label_apres} ▶</button>`;
+    btns += `<button style="${base}background:#555;color:white;" onclick="jfChoisirDate()">📅 Choisir date</button>`;
+    btns += `<button style="${base}background:#ddd;color:#444;" onclick="jfFermer()">✕ Annuler</button>`;
+
+    document.body.insertAdjacentHTML('beforeend', `
+    <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
+         background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:10px;padding:24px 28px;
+                    max-width:500px;width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:14px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">${titre}</div>
+            <div style="font-size:12px;color:#666;margin-bottom:18px;">${sousTitre}</div>
+            <div id="jf-btns" style="display:flex;flex-wrap:wrap;gap:8px;">${btns}</div>
+            <div id="jf-datepicker" style="display:none;margin-top:14px;">
+                <input type="date" id="jf-input-date"
+                       style="padding:5px 8px;border:1px solid #2e6da4;border-radius:4px;font-size:12px;">
+                <button style="${base}background:#1a4a7a;color:white;margin-left:8px;" onclick="jfConfirmerDate()">✔ Confirmer</button>
+            </div>
+        </div>
+    </div>`);
+    window._jfCallback = onChoix;
+}
+function jfChoisir(date) {
+    jfFermer();
+    if (window._jfCallback) { window._jfCallback(date); window._jfCallback = null; }
+}
+function jfChoisirDate() {
+    document.getElementById('jf-datepicker').style.display = 'block';
+    document.getElementById('jf-btns').style.display = 'none';
+}
+function jfConfirmerDate() {
+    const d = document.getElementById('jf-input-date').value;
+    if (!d) return;
+    jfFermer();
+    if (window._jfCallback) { window._jfCallback(d); window._jfCallback = null; }
+}
+
+// ════════════════════════════════════════════════════════════
+// VÉRIFIER UNE DATE via ajax_prochain_jour.php
+// ════════════════════════════════════════════════════════════
+function verifierEtAppliquerDate(dateCible, prefixe, callback) {
+    fetch('ajax_prochain_jour.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ date_cible: dateCible })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { alert('❌ ' + data.error); return; }
+        if (data.ok) {
+            // Jour libre → appliquer directement
+            callback(data.date_trouvee);
+        } else {
+            // Fermé / samedi / lundi → modale
+            jfAfficher(
+                { ...data, date_cible: dateCible },
+                (dateChoisie) => verifierEtAppliquerDate(dateChoisie, prefixe, callback)
+            );
+        }
+    })
+    .catch(() => alert('❌ Erreur réseau'));
+}
+
+// ════════════════════════════════════════════════════════════
+// APPLIQUER une date validée dans les champs RDV
+// ════════════════════════════════════════════════════════════
+function appliquerDateRdv(date, prefixe) {
+    ['rdv_futur','no_rdv'].forEach(id => { const el=document.getElementById(id); if(el) el.value=date; });
+    ['rdv_futur_visible','no_rdv_visible'].forEach(id => { const el=document.getElementById(id); if(el) el.value=date; });
+    ['heure_rdv_futur','no_heure'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    rdvChargerCreneaux(date, prefixe, true);
+}
+
+// ════════════════════════════════════════════════════════════
+// FONCTIONS PUBLIQUES
+// ════════════════════════════════════════════════════════════
+function reportTraitement(mois, patientId) {
+    if (!confirm(`Confirmer le report du traitement dans ${mois} mois ?`)) return;
+    fetch('ajax_report_traitement.php', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id:patientId, mois }) })
+    .then(r=>r.json()).then(data => {
+        if (data.success) window.location.href=`dossier.php?id=${patientId}&ord=${data.n_ordon}`;
+        else alert('❌ '+data.error);
+    }).catch(()=>alert('❌ Erreur réseau'));
+}
+
 function confirmerRdv(nOrdon) {
     const dateRdv  = document.getElementById('rdv_futur')?.value;
     const heureRdv = document.getElementById('heure_rdv_futur')?.value || '';
     if (!dateRdv) { alert('Veuillez choisir une date de RDV'); return; }
-    fetch('ajax_maj_rdv.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ n_ordon: nOrdon, date_rdv: dateRdv, heure_rdv: heureRdv })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            alert('✅ RDV enregistré : ' + dateRdv + (heureRdv ? ' à ' + heureRdv : ''));
-            location.reload();
-        } else {
-            alert('❌ Erreur : ' + data.error);
-        }
+    verifierEtAppliquerDate(dateRdv, 'rdv', (dateFin) => {
+        const dateFr = dateEnFr(dateFin);
+        fetch('ajax_maj_rdv.php', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ n_ordon:nOrdon, date_rdv:dateFin, heure_rdv:heureRdv })
+        })
+        .then(r=>r.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ RDV enregistré : ' + dateFr + (heureRdv ? ' à ' + heureRdv : ''));
+                location.reload();
+            } else alert('❌ Erreur : ' + data.error);
+        });
     });
 }
 function rdvIds(p) {
@@ -1464,45 +1591,27 @@ function rdvSelectionnerCreneau(heure, prefixe) {
 }
 
 function rdvDateChange(date, prefixe) {
-    if (!date||!/^\d{4}-\d{2}-\d{2}$/.test(date)||date==='1970-01-01') return;
-    const ids=rdvIds(prefixe);
-    document.getElementById(ids.dateH).value=date;
-    const ev=document.getElementById(prefixe==='rdv'?'no_rdv_visible':'rdv_futur_visible');
-    const eh=document.getElementById(prefixe==='rdv'?'no_rdv':'rdv_futur');
-    if(ev) ev.value=date; if(eh) eh.value=date;
-    
-    const autreHEl=document.getElementById(prefixe==='rdv'?'no_heure':'heure_rdv_futur'); if(autreHEl) autreHEl.value='';
-    rdvChargerCreneaux(date, prefixe, false);
-    const autrePrefixe=prefixe==='rdv'?'no':'rdv';
-    const autreGrille=document.getElementById(rdvIds(autrePrefixe).grille);
-    if(autreGrille && prefixe==='no') rdvChargerCreneaux(date, autrePrefixe, false);
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || date==='1970-01-01') return;
+    const ids = rdvIds(prefixe);
+    document.getElementById(ids.dateH).value = date;
+    verifierEtAppliquerDate(date, prefixe, (dateFin) => appliquerDateRdv(dateFin, prefixe));
 }
 
 function rdvSetDelai(mois, jours, prefixe) {
-    const ids=rdvIds(prefixe);
-    const d=new Date();
-    if(mois) d.setMonth(d.getMonth()+mois);
-    if(jours) d.setDate(d.getDate()+jours);
-    const dateCible=d.toISOString().split('T')[0];
-    if (mois>0) {
-        const loading=document.getElementById(ids.loading), grille=document.getElementById(ids.grille), msgEl=document.getElementById(ids.msg);
-        grille.innerHTML=''; msgEl.style.display='none'; loading.style.display='block'; loading.textContent='⏳ Recherche…';
-        fetch('ajax_prochain_jour.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date_cible:dateCible})})
-        .then(r=>r.json()).then(data=>{
-            loading.style.display='none'; loading.textContent='⏳ Chargement…';
-            if(data.error){msgEl.textContent='⛔ '+data.error;msgEl.style.display='block';return;}
-            const dt=data.date_trouvee;
-            ['rdv_futur','no_rdv'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dt;});
-            ['rdv_futur_visible','no_rdv_visible'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dt;});
-            ['heure_rdv_futur','no_heure'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-            rdvChargerCreneaux(dt,'rdv',true);
-        }).catch(()=>{loading.style.display='none';loading.textContent='⏳ Chargement…';});
-    } else {
-        ['rdv_futur','no_rdv'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dateCible;});
-        ['rdv_futur_visible','no_rdv_visible'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dateCible;});
-        ['heure_rdv_futur','no_heure'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-
-rdvChargerCreneaux(dateCible,'rdv',true);    }
+    const d = new Date();
+    if (mois)  d.setMonth(d.getMonth() + mois);
+    if (jours) d.setDate(d.getDate() + jours);
+    const dateCible = d.toISOString().split('T')[0];
+    const ids = rdvIds(prefixe);
+    const loading = document.getElementById(ids.loading);
+    const grille  = document.getElementById(ids.grille);
+    const msgEl   = document.getElementById(ids.msg);
+    grille.innerHTML = ''; msgEl.style.display = 'none';
+    loading.style.display = 'block'; loading.textContent = '⏳ Vérification…';
+    verifierEtAppliquerDate(dateCible, prefixe, (dateFin) => {
+        loading.style.display = 'none'; loading.textContent = '⏳ Chargement…';
+        appliquerDateRdv(dateFin, prefixe);
+    });
 }
 
 function afficherNouvelleOrdonnance() {

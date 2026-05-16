@@ -59,14 +59,12 @@ $stmtGlobal = $db->prepare("
 $stmtGlobal->execute([$dateAff]);
 $totalGlobal = (float)$stmtGlobal->fetchColumn();
 
-// ── Créneaux 9h→16h30 par demi-heure ──────────────────────────
+// ── Créneaux 9h→16h par demi-heure ────────────────────────────
 $creneaux = [];
 for ($h = 9; $h <= 16; $h++) {
     $creneaux[] = sprintf('%02d:00', $h);
     if ($h < 16) $creneaux[] = sprintf('%02d:30', $h);
 }
-// Ajouter 16:30 manuellement
-$creneaux[] = '16:30';
 
 // Compter patients par créneau
 $patParCreneau = [];
@@ -89,33 +87,19 @@ foreach ($patients as $pat) {
 body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 
 /* ── Header ── */
-.header { background: #1a4a7a; color: white; padding: 6px 12px;
-          display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.header h1 { font-size: 14px; }
+.header { background: #1a4a7a; color: white; padding: 5px 12px;
+          display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.header h1 { font-size: 14px; white-space: nowrap; }
+/* btn-h : boutons de l'en-tête UNIQUEMENT — pas affectés par btn-wa-end */
 .btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
-         padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
-         display: inline-block; }
+         padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
+         display: inline-flex; align-items: center; height: 24px;
+         white-space: nowrap; line-height: 1; }
 .btn-h.blue   { background: #2e6da4; }
 .btn-h.green  { background: #27ae60; }
 .btn-h.orange { background: #e67e22; }
 .btn-h.grey   { background: #555; }
-.btn-h.active { background: #f39c12; }
 .btn-h:hover  { opacity: 0.85; }
-
-/* Horloge temps réel */
-.clock-display {
-    margin-left: auto;
-    background: rgba(255,255,255,0.12);
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-align: right;
-    min-width: 130px;
-}
-.clock-display .clock-time { font-size: 15px; color: #f0f4f8; }
-.clock-display .clock-date { font-size: 9px; opacity: 0.75; }
 
 /* ── Navigation date ── */
 .nav-date { background: #0f3460; color: white; padding: 5px 10px;
@@ -169,97 +153,89 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 /* ── Patients ── */
 .col-patients { flex: 1; padding: 8px; overflow-x: auto; }
 
-/* ── Carte patient — LIGNE UNIQUE avec colonnes fixes ── */
-.pat-card { background: white; border-radius: 6px; padding: 5px 8px;
-            margin-bottom: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+/* ── Carte patient — hauteur réduite pour 15-20 patients/page ── */
+.pat-card { background: white; border-radius: 5px; padding: 3px 8px;
+            margin-bottom: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.07);
             border-left: 4px solid #2e6da4; }
 .pat-card.vu     { border-left-color: #27ae60; background: #f8fff9; }
 .pat-card.absent { border-left-color: #e74c3c; background: #fff8f8; }
 .pat-card.hidden { display: none; }
 
-/* Ligne principale : colonnes à largeur fixe */
-.pat-line {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-}
+/* Ligne principale */
+.pat-line { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
 
-/* Colonne heure */
-.pat-heure {
-    background: #1a4a7a; color: white; padding: 2px 6px;
-    border-radius: 8px; font-size: 11px; font-weight: bold;
-    width: 50px; text-align: center; flex-shrink: 0;
-}
+/* ── Éléments LARGEUR FIXE — ne bougent pas selon le contenu ── */
+.pat-heure { background: #1a4a7a; color: white; padding: 0;
+             border-radius: 6px; font-size: 11px; font-weight: bold;
+             width: 54px; height: 22px; text-align: center; flex-shrink: 0;
+             display: inline-flex; align-items: center; justify-content: center; }
 
-/* N° patient */
-.pat-num {
-    font-size: 10px; color: #888;
-    width: 42px; flex-shrink: 0; overflow: hidden;
-    text-overflow: ellipsis;
-}
+/* Numéro patient : largeur fixe, aligné à droite, sans préfixe N° */
+.pat-num   { font-size: 10px; color: #999; flex-shrink: 0;
+             width: 32px; text-align: right; }
 
-/* Téléphone — sans icône, largeur fixe 10 chiffres */
-.pat-tel {
-    font-size: 11px; color: #555;
-    width: 90px; flex-shrink: 0;
-    overflow: hidden; text-overflow: ellipsis;
-    font-family: monospace;
-    letter-spacing: 0.3px;
-}
+/* Téléphone : largeur fixe, police monospace pour alignement */
+.pat-tel   { font-size: 10px; color: #666; flex-shrink: 0; white-space: nowrap;
+             font-family: monospace; width: 88px; }
 
-/* Nom — double-clic ouvre dossier */
-.pat-nom {
-    font-size: 12px; font-weight: bold; color: #1a4a7a;
-    width: 300px; flex-shrink: 0;
-    overflow: hidden; text-overflow: ellipsis;
-    cursor: pointer;
-    border-radius: 3px;
-    padding: 1px 3px;
-}
-.pat-nom:hover { background: #e8f0fb; text-decoration: underline; }
+/* Nom : largeur fixe, overflow caché avec ellipse si trop long */
+.pat-nom   { font-size: 12px; font-weight: bold; color: #1a4a7a;
+             width: 180px; flex-shrink: 0;
+             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pat-nom.vu     { color: #aaa; }
 .pat-nom.absent { color: #e67e22; }
 
-/* Boutons compacts */
-.btn-p { border: none; border-radius: 4px; padding: 2px 7px; cursor: pointer;
-         font-size: 10px; font-weight: bold; flex-shrink: 0; }
-.btn-vu     { background: #27ae60; color: white; }
-.btn-absent { background: #e74c3c; color: white; }
-.btn-dep    { background: #8e44ad; color: white; }
-.btn-sup    { background: #c0392b; color: white; width: 26px; text-align: center; }
-.btn-p:hover { opacity: 0.85; }
+.pat-acte  { background: #e8f0fb; color: #2e6da4; padding: 1px 5px;
+             border-radius: 6px; font-size: 9px; font-weight: bold; flex-shrink: 0; }
 
-/* WhatsApp — icône SVG verte, visible seulement au survol de la carte */
-.btn-wa-wrap {
-    width: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-}
-.btn-wa {
-    text-decoration: none; display: none; line-height: 0;
-}
-.pat-card:hover .btn-wa { display: inline-flex; }
-.btn-wa svg { width: 22px; height: 22px; }
-.btn-wa-placeholder {
-    display: flex; align-items: center; justify-content: center; line-height: 0;
-}
-.btn-wa-placeholder svg { width: 22px; height: 22px; opacity: 0.15; }
-.pat-card:hover .btn-wa-placeholder { display: none; }
+/* Boutons compacts — largeur fixe */
+.btn-p { border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer;
+         font-size: 10px; font-weight: bold; flex-shrink: 0; height: 22px;
+         display: inline-flex; align-items: center; justify-content: center; }
+.btn-vu     { background: #27ae60; color: white; width: 44px; }
+.btn-absent { background: #e74c3c; color: white; width: 44px; }
+.btn-dep    { background: #8e44ad; color: white; width: 26px; }
+.btn-sup    { background: #c0392b; color: white; width: 26px; }
+.btn-dos    { background: #1a4a7a; color: white; text-decoration: none;
+              display: inline-flex; align-items: center; justify-content: center;
+              width: 26px; height: 22px; }
+.btn-p:hover, .btn-dos:hover { opacity: 0.85; }
 
-/* Créneau select compact */
-.creneau-select { padding: 2px 2px; border: 1px solid #ddd; border-radius: 4px;
-                  font-size: 10px; color: #555; flex-shrink: 0; width: 65px; }
+/* Créneau select — largeur fixe, hauteur alignée aux boutons */
+.creneau-select { padding: 0 3px; border: 1px solid #ddd; border-radius: 4px;
+                  font-size: 10px; color: #555; flex-shrink: 0;
+                  width: 62px; height: 22px; }
 
-/* Observation inline — largeur fixe ~200px */
-.obs-input {
-    width: 200px; flex-shrink: 0; padding: 2px 4px;
-    border: 1px solid #ddd; border-radius: 4px; font-size: 10px;
-}
-
-/* Montant */
-.montant-badge { font-size: 10px; font-weight: bold; flex-shrink: 0; width: 52px; text-align: right; }
+/* Montant DH — largeur fixe */
+.montant-badge { font-size: 10px; font-weight: bold; flex-shrink: 0;
+                 white-space: nowrap; width: 54px; text-align: right; }
 .montant-badge.ok  { color: #27ae60; }
-.montant-badge.non { color: #ccc; }
+.montant-badge.non { color: #bbb; }
+
+/* ── Observation : occupe tout l'espace restant, police bleue visible ── */
+.obs-input { flex: 1; min-width: 120px; padding: 2px 7px;
+             border: 1px solid #c5d8ee; border-radius: 4px;
+             font-size: 11px; height: 22px;
+             color: #1a4a7a; background: #f5f9ff; }
+.obs-input::placeholder { color: #aac0d8; font-style: italic; }
+.obs-input:focus { outline: none; border-color: #2e6da4; background: white; }
+
+/* ── Bouton WhatsApp à droite — icône SVG officielle ── */
+.btn-wa-end {
+    flex-shrink: 0;
+    width: 26px; height: 22px;
+    border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.btn-wa-end:hover { opacity: 0.85; }
+/* Avec numéro : vert WhatsApp */
+.btn-wa-end.has-tel  { background: #25D366; }
+/* Sans numéro : gris */
+.btn-wa-end.no-tel   { background: #ccc; cursor: default; pointer-events: none; }
+/* SVG WhatsApp blanc */
+.btn-wa-end svg { width: 15px; height: 15px; fill: white; }
 
 /* ── Footer ── */
 .footer-bar { background: #1a4a7a; color: white; padding: 6px 12px;
@@ -283,7 +259,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .toast.show    { display: block; }
 .toast.success { background: #27ae60; }
 .toast.error   { background: #e74c3c; }
-.toast.info    { background: #2e6da4; }
 
 /* ── Modals ── */
 .modal-ov { display: none; position: fixed; top:0; left:0; width:100%; height:100%;
@@ -301,55 +276,39 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .btn-ok  { background: #1a4a7a; color: white; }
 .btn-ann { background: #ddd; color: #555; }
 
-/* Avertissement jour férié / lundi */
-.dep-avertissement {
-    background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;
-    padding: 6px 10px; font-size: 11px; color: #856404;
-    margin-bottom: 10px; display: none;
-}
-
 /* ── Calendrier picker ── */
 input[type=date].date-pick { padding: 4px 8px; border: 1px solid rgba(255,255,255,0.4);
     border-radius: 4px; background: rgba(255,255,255,0.12); color: white;
     font-size: 12px; cursor: pointer; }
 input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1); }
-
-/* Tooltip nom patient */
-.pat-nom[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    background: #1a4a7a;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    white-space: nowrap;
-    z-index: 100;
-    margin-top: 20px;
-    margin-left: -50px;
-    pointer-events: none;
-}
-.pat-nom { position: relative; }
 </style>
 </head>
 <body>
 
 <!-- ── HEADER ── -->
 <div class="header">
-    <a href="recherche.php" class="btn-h blue">🏠 Accueil</a>
+    <a href="recherche.php" class="btn-h blue">◀ Accueil</a>
     <h1>📅 Agenda</h1>
-    <a href="agenda.php?date=<?= $dateAff ?>" class="btn-h active">📅 Agenda</a>
-    <a href="planning.php" class="btn-h blue">📆 Planning</a>
     <button class="btn-h green"  onclick="ouvrirAjoutPatient()">➕ Ajouter</button>
     <button class="btn-h orange" onclick="modifierLimite()">⚙️ Max (<?= $nbrMax ?>)</button>
     <button class="btn-h grey"   onclick="voirSemaine()">📊 Semaine</button>
-    <button class="btn-h green"  onclick="envoyerWaListe()">📲 WA liste</button>
-
-    <!-- Horloge temps réel -->
-    <div class="clock-display">
-        <div class="clock-time" id="clockTime">--:--:--</div>
-        <div class="clock-date" id="clockDate">---</div>
+    <a href="planning.php" class="btn-h blue">📅 Planning</a>
+    <a href="jours_feries.php" class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
+    <!-- Horloge widget identique à dossier.php -->
+    <div style="margin-left:auto; background:rgba(255,255,255,0.12); border-radius:6px;
+                padding:3px 10px; text-align:center; min-width:130px; flex-shrink:0;">
+        <div id="clockTime" style="font-size:15px;font-weight:bold;letter-spacing:1px;color:#f0f4f8;">--:--:--</div>
+        <div id="clockDate" style="font-size:9px;opacity:0.75;">---</div>
     </div>
+    <!-- Icône WA liste tout à droite -->
+    <button onclick="envoyerWaListe()" title="Envoyer WhatsApp à tous"
+            style="background:#25D366; border:none; border-radius:8px;
+                   width:34px; height:34px; cursor:pointer; padding:0; flex-shrink:0;
+                   display:inline-flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;fill:white;">
+            <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
+        </svg>
+    </button>
 </div>
 
 <!-- ── NAVIGATION DATE ── -->
@@ -388,9 +347,7 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
         <span class="val"><?= number_format($totalVerse,0,',',' ') ?> DH</span>
         <span class="lbl">versé RDV</span>
     </div>
-    <!-- Recherche sur nom ET N°PAT -->
-    <input type="text" class="search-input"
-           placeholder="🔍 Nom ou N° patient..."
+    <input type="text" class="search-input" placeholder="🔍 Rechercher..."
            oninput="filtrerPatients(this.value)">
 </div>
 
@@ -432,70 +389,61 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
         $acte      = trim($pat['acte1'] ?? '');
         $obs       = htmlspecialchars($pat['Observation'] ?? '');
         $verse     = (float)$pat['montant_verse'];
-        // Nom complet pour tooltip si tronqué
-        $nomComplet = htmlspecialchars($pat['NOMPRENOM'] ?? '—');
     ?>
     <div class="pat-card <?= $cardCl ?>"
          id="card-<?= $pat['n_ordon'] ?>"
-         data-nom="<?= strtolower($nomComplet) ?>"
-         data-num="<?= $pat['id'] ?>"
+         data-nom="<?= strtolower(htmlspecialchars($pat['NOMPRENOM'] ?? '')) ?>"
          data-heure="<?= $heure ?>">
 
         <div class="pat-line">
-            <!-- Heure -->
+
+            <!-- 1. Heure -->
             <span class="pat-heure" id="heure-<?= $pat['n_ordon'] ?>"><?= htmlspecialchars($heureAff) ?></span>
 
-            <!-- N° patient -->
-            <span class="pat-num">N°<?= $pat['id'] ?></span>
+            <!-- 2. N° patient (sans préfixe N°, juste le numéro) -->
+            <span class="pat-num"><?= $pat['id'] ?></span>
 
-            <!-- Téléphone SANS icône -->
+            <!-- 3. Téléphone : texte simple, sans emoji -->
+            <?php if ($tel): ?>
             <span class="pat-tel"><?= htmlspecialchars($tel) ?></span>
+            <?php else: ?>
+            <span class="pat-tel" style="color:#ddd;">—</span>
+            <?php endif; ?>
 
-            <!-- Nom — double-clic ouvre dossier, title = nom complet pour tooltip -->
-            <span class="pat-nom <?= $nomCl ?>"
-                  id="nom-<?= $pat['n_ordon'] ?>"
-                  title="<?= $nomComplet ?> — N°<?= $pat['id'] ?>"
-                  ondblclick="window.location.href='dossier.php?id=<?= $pat['id'] ?>'">
-                <?= $nomComplet ?>
+            <!-- 4. Nom -->
+            <span class="pat-nom <?= $nomCl ?>" id="nom-<?= $pat['n_ordon'] ?>">
+                <?= htmlspecialchars($pat['NOMPRENOM'] ?? '—') ?>
             </span>
 
-            <!-- Bouton Vu (toggle : marquer / annuler) -->
+            <!-- 5. Acte -->
+            <?php if ($acte): ?>
+            <span class="pat-acte">🔬 <?= htmlspecialchars($acte) ?></span>
+            <?php endif; ?>
+
+            <!-- 6. Bouton Vu -->
             <button class="btn-p btn-vu" id="btnVu-<?= $pat['n_ordon'] ?>"
                     onclick="toggleVu(<?= $pat['n_ordon'] ?>, <?= $estVu?1:0 ?>)">
                 <?= $estVu ? '✅ Vu' : '👁 Vu' ?>
             </button>
 
-            <!-- Bouton Absent (toggle) -->
+            <!-- 7. Bouton Absent -->
             <button class="btn-p btn-absent" id="btnAbs-<?= $pat['n_ordon'] ?>"
                     onclick="toggleAbsent(<?= $pat['n_ordon'] ?>, <?= $estAbsent?1:0 ?>)">
                 <?= $estAbsent ? '🔴 Abs' : '❌ Abs' ?>
             </button>
 
-            <!-- Bouton Déplacer -->
+            <!-- 8. Bouton Déplacer -->
             <button class="btn-p btn-dep"
                     onclick="deplacerRdv(<?= $pat['n_ordon'] ?>, '<?= $dateAff ?>')">📆</button>
 
-            <!-- WhatsApp — icône SVG officielle, visible au survol seulement -->
-            <?php
-            // SVG officiel WhatsApp (logo rond vert)
-            $svgWa = '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="24" cy="24" r="24" fill="#25D366"/>
-                <path fill="white" d="M34.5 13.5A14.9 14.9 0 0 0 24 9C15.7 9 9 15.7 9 24c0 2.6.7 5.2 2 7.4L9 39l7.8-2c2.1 1.1 4.5 1.8 7.2 1.8 8.3 0 15-6.7 15-15 0-4-.6-7.6-4.5-10.3zM24 37.1c-2.3 0-4.5-.6-6.4-1.7l-.5-.3-4.6 1.2 1.2-4.5-.3-.5A12.9 12.9 0 0 1 11.1 24c0-7.1 5.8-12.9 12.9-12.9 3.4 0 6.6 1.3 9 3.7s3.7 5.6 3.7 9c0 7.2-5.8 13.3-12.7 13.3zm7.1-9.7c-.4-.2-2.3-1.1-2.6-1.2-.3-.1-.6-.2-.8.2-.2.4-.9 1.2-1.1 1.4-.2.2-.4.2-.8 0-.4-.2-1.6-.6-3-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8l.6-.7c.2-.2.2-.4.4-.6.1-.2.1-.4 0-.6-.1-.2-.8-2-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.3 3.4 1.4 3.6c.2.2 2.5 3.8 6 5.3.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.1-.3-.2-.6-.4z"/>
-            </svg>';
-            ?>
-            <div class="btn-wa-wrap">
-                <?php if ($telWa): ?>
-                <a href="https://wa.me/<?= $telWa ?>?text=<?= $msgWa ?>"
-                   target="_blank" class="btn-wa" title="Envoyer WhatsApp">
-                    <?= $svgWa ?>
-                </a>
-                <span class="btn-wa-placeholder"><?= $svgWa ?></span>
-                <?php else: ?>
-                <span class="btn-wa-placeholder" title="Pas de numéro"><?= $svgWa ?></span>
-                <?php endif; ?>
-            </div>
+            <!-- 9. Dossier -->
+            <a href="dossier.php?id=<?= $pat['id'] ?>" class="btn-p btn-dos">📋</a>
 
-            <!-- Créneau horaire -->
+            <!-- 10. Supprimer (après Dossier) -->
+            <button class="btn-p btn-sup"
+                    onclick="supprimerRdv(<?= $pat['n_ordon'] ?>, '<?= htmlspecialchars($pat['NOMPRENOM'] ?? '') ?>')">🗑</button>
+
+            <!-- 11. Créneau horaire -->
             <select class="creneau-select"
                     onchange="changerHeure(<?= $pat['n_ordon'] ?>, this.value)">
                 <option value="">—H—</option>
@@ -504,21 +452,37 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
                 <?php endforeach; ?>
             </select>
 
-            <!-- Observation -->
-            <input type="text" class="obs-input" placeholder="Obs..."
-                   value="<?= $obs ?>"
-                   onblur="sauvegarderObs(<?= $pat['n_ordon'] ?>, this.value)">
-
-            <!-- Montant versé -->
+            <!-- 12. Montant DH (avant Observation) -->
             <span class="montant-badge <?= $verse > 0 ? 'ok' : 'non' ?>">
                 <?= $verse > 0 ? number_format($verse,0,',',' ').' DH' : '0 DH' ?>
             </span>
 
-            <!-- Supprimer -->
-            <button class="btn-p btn-sup"
-                    onclick="supprimerRdv(<?= $pat['n_ordon'] ?>, '<?= addslashes($pat['NOMPRENOM'] ?? '') ?>')">🗑</button>
-        </div>
-    </div>
+            <!-- 13. Observation (large, occupe l'espace restant) -->
+            <input type="text" class="obs-input" placeholder="Observation..."
+                   value="<?= $obs ?>"
+                   onblur="sauvegarderObs(<?= $pat['n_ordon'] ?>, this.value)">
+
+            <!-- 14. Bouton WhatsApp (tout à droite) — icône SVG officielle -->
+            <?php if ($telWa): ?>
+            <a href="https://wa.me/<?= $telWa ?>?text=<?= $msgWa ?>"
+               target="_blank"
+               class="btn-wa-end has-tel"
+               title="Envoyer WhatsApp à <?= htmlspecialchars($tel) ?>">
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
+                </svg>
+            </a>
+            <?php else: ?>
+            <span class="btn-wa-end no-tel"
+                  title="Pas de numéro disponible">
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
+                </svg>
+            </span>
+            <?php endif; ?>
+
+        </div><!-- /.pat-line -->
+    </div><!-- /.pat-card -->
     <?php endforeach; ?>
     <?php endif; ?>
     </div>
@@ -557,7 +521,7 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
     </div>
 </div>
 
-<!-- MODAL DÉPLACER — avec vérification jours fériés/lundi -->
+<!-- MODAL DÉPLACER -->
 <div class="modal-ov" id="modalDep">
     <div class="modal-box">
         <h3>📆 Déplacer le RDV</h3>
@@ -566,18 +530,7 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
             <button class="btn-ok" onclick="deplacerJ(-1)">◀ -1 jour</button>
             <button class="btn-ok" onclick="deplacerJ(+1)">+1 jour ▶</button>
         </div>
-        <input type="date" class="modal-inp" id="depDate"
-               onchange="verifierJourDep(this.value)">
-        <!-- Avertissement affiché si jour interdit -->
-        <div class="dep-avertissement" id="depAvert"></div>
-        <!-- Date corrigée proposée -->
-        <div id="depCorrection" style="display:none;margin-bottom:10px;">
-            <span style="font-size:11px;color:#555;">Date corrigée : </span>
-            <strong id="depDateCorrigee" style="color:#1a4a7a;font-size:12px;"></strong>
-            <button onclick="appliquerCorrection()" style="margin-left:8px;padding:2px 8px;
-                border:none;border-radius:4px;background:#27ae60;color:white;
-                cursor:pointer;font-size:10px;">Utiliser cette date</button>
-        </div>
+        <input type="date" class="modal-inp" id="depDate">
         <div class="modal-btns">
             <button class="btn-ann" onclick="fermerModal('modalDep')">Annuler</button>
             <button class="btn-ok"  onclick="confirmerDeplacement()">✔ Confirmer</button>
@@ -600,8 +553,8 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
 const dateAff = '<?= $dateAff ?>';
 const nbrMax  = <?= $nbrMax ?>;
 
-// ── Horloge temps réel ────────────────────────────────
-(function miseAJourHorloge() {
+// ── Horloge (identique à dossier.php) ────────────────
+(function() {
     const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
     const mois  = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
     function tick() {
@@ -609,9 +562,10 @@ const nbrMax  = <?= $nbrMax ?>;
         const h = String(n.getHours()).padStart(2,'0');
         const m = String(n.getMinutes()).padStart(2,'0');
         const s = String(n.getSeconds()).padStart(2,'0');
-        document.getElementById('clockTime').textContent = h+':'+m+':'+s;
-        document.getElementById('clockDate').textContent =
-            jours[n.getDay()] + ' ' + n.getDate() + ' ' + mois[n.getMonth()] + ' ' + n.getFullYear();
+        const ct = document.getElementById('clockTime');
+        const cd = document.getElementById('clockDate');
+        if (ct) ct.textContent = h+':'+m+':'+s;
+        if (cd) cd.textContent = jours[n.getDay()]+' '+n.getDate()+' '+mois[n.getMonth()]+' '+n.getFullYear();
     }
     tick();
     setInterval(tick, 1000);
@@ -637,15 +591,11 @@ function scrollToCreneau(h) {
     }
 }
 
-// ── Filtrer — sur nom ET N°PAT ────────────────────────
+// ── Filtrer ───────────────────────────────────────────
 function filtrerPatients(v) {
     v = v.toLowerCase().trim();
-    document.querySelectorAll('.pat-card').forEach(c => {
-        if (!v) { c.classList.remove('hidden'); return; }
-        const matchNom = c.dataset.nom.includes(v);
-        const matchNum = String(c.dataset.num).includes(v);
-        c.classList.toggle('hidden', !matchNom && !matchNum);
-    });
+    document.querySelectorAll('.pat-card').forEach(c =>
+        c.classList.toggle('hidden', !!v && !c.dataset.nom.includes(v)));
 }
 
 // ── Ajax ──────────────────────────────────────────────
@@ -658,7 +608,7 @@ async function ajax(action, data) {
     return r.json();
 }
 
-// ── Vu (toggle : marquer / annuler) ──────────────────
+// ── Vu ────────────────────────────────────────────────
 async function toggleVu(n, estVu) {
     const r = await ajax('toggle_vu', {n_ordon:n, vu: estVu?0:1});
     if (!r.ok) return;
@@ -668,13 +618,11 @@ async function toggleVu(n, estVu) {
     if (!estVu) {
         card.classList.add('vu'); card.classList.remove('absent');
         nom.classList.add('vu');  btn.textContent = '✅ Vu';
-        btn.onclick = () => toggleVu(n, 1);
     } else {
         card.classList.remove('vu'); nom.classList.remove('vu');
         btn.textContent = '👁 Vu';
-        btn.onclick = () => toggleVu(n, 0);
     }
-    toast(estVu ? 'Statut Vu retiré ↩' : 'Marqué Vu ✅');
+    toast(estVu ? 'Statut Vu retiré' : 'Marqué Vu ✅');
 }
 
 // ── Absent ────────────────────────────────────────────
@@ -687,13 +635,11 @@ async function toggleAbsent(n, estAbs) {
     if (!estAbs) {
         card.classList.add('absent'); card.classList.remove('vu');
         nom.classList.add('absent'); btn.textContent = '🔴 Abs';
-        btn.onclick = () => toggleAbsent(n, 1);
     } else {
         card.classList.remove('absent'); nom.classList.remove('absent');
         btn.textContent = '❌ Abs';
-        btn.onclick = () => toggleAbsent(n, 0);
     }
-    toast(estAbs ? 'Statut Absent retiré ↩' : 'Marqué Absent 🔴');
+    toast(estAbs ? 'Statut Absent retiré' : 'Marqué Absent 🔴');
 }
 
 // ── Changer heure ─────────────────────────────────────
@@ -703,7 +649,7 @@ async function changerHeure(n, heure) {
         let count = 0;
         cards.forEach(c => { if (c.dataset.heure === heure && c.id !== 'card-'+n) count++; });
         if (count >= 2) {
-            toast('⚠ Créneau ' + heure + ' déjà complet (max 2)', 'error');
+            toast('⚠ Créneau ' + heure + ' déjà complet (max 2 patients)', 'error');
             const sel = document.querySelector('#card-'+n+' .creneau-select');
             if (sel) sel.value = document.getElementById('heure-'+n).textContent.trim();
             return;
@@ -724,71 +670,21 @@ async function sauvegarderObs(n, obs) {
     if (r.ok) toast('Observation enregistrée 📝');
 }
 
-// ── Déplacer — avec vérification jours fériés/lundi ──
-let dateCorigee = null; // stocke la date corrigée proposée
-
-/**
- * Vérifie si une date est autorisée.
- * Règles : Lundi (1) interdit, Dimanche (0) interdit, Jours fériés interdits.
- * Samedi (6) autorisé.
- */
-async function verifierJourDep(dateStr) {
-    if (!dateStr) return;
-    const avert = document.getElementById('depAvert');
-    const corr  = document.getElementById('depCorrection');
-    avert.style.display = 'none';
-    corr.style.display  = 'none';
-    dateCorigee = null;
-
-    // Vérifier côté serveur (jours fériés + règles cabinet)
-    const r = await ajax('verifier_jour', {date: dateStr});
-    if (!r.ok) return;
-
-    if (!r.autorise) {
-        avert.style.display = 'block';
-        avert.textContent   = '⚠ ' + r.raison + ' → Date suggérée : ' + r.date_corrigee_label;
-        dateCorigee = r.date_corrigee;
-        document.getElementById('depDateCorrigee').textContent = r.date_corrigee_label;
-        corr.style.display = 'block';
-    }
-}
-
-function appliquerCorrection() {
-    if (!dateCorigee) return;
-    document.getElementById('depDate').value = dateCorigee;
-    document.getElementById('depAvert').style.display = 'none';
-    document.getElementById('depCorrection').style.display = 'none';
-    dateCorigee = null;
-    toast('Date corrigée appliquée ✅', 'info');
-}
-
+// ── Déplacer ──────────────────────────────────────────
 function deplacerRdv(n, d) {
     document.getElementById('depOrd').value  = n;
     document.getElementById('depDate').value = d;
-    document.getElementById('depAvert').style.display = 'none';
-    document.getElementById('depCorrection').style.display = 'none';
-    dateCorigee = null;
     ouvrirModal('modalDep');
 }
 function deplacerJ(delta) {
     const d = new Date(document.getElementById('depDate').value);
     d.setDate(d.getDate() + delta);
-    const newDate = d.toISOString().split('T')[0];
-    document.getElementById('depDate').value = newDate;
-    verifierJourDep(newDate);
+    document.getElementById('depDate').value = d.toISOString().split('T')[0];
 }
 async function confirmerDeplacement() {
     const n = document.getElementById('depOrd').value;
-    let   d = document.getElementById('depDate').value;
+    const d = document.getElementById('depDate').value;
     if (!d) return;
-
-    // Si une correction existe et n'a pas été appliquée, l'appliquer auto
-    if (dateCorigee) {
-        if (!confirm('La date choisie est invalide. Utiliser la date corrigée : ' +
-                     document.getElementById('depDateCorrigee').textContent + ' ?')) return;
-        d = dateCorigee;
-    }
-
     const r = await ajax('deplacer_rdv', {n_ordon:n, nouvelle_date:d});
     if (r.ok) {
         toast('RDV déplacé 📅'); fermerModal('modalDep');
@@ -828,7 +724,7 @@ async function voirSemaine() {
 
 // ── WhatsApp liste ────────────────────────────────────
 function envoyerWaListe() {
-    const liens = [...document.querySelectorAll('.btn-wa[href]')];
+    const liens = [...document.querySelectorAll('.btn-wa-end.has-tel')];
     if (!liens.length) { toast('Aucun numéro disponible', 'error'); return; }
     let i = 0;
     function next() {
