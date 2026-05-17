@@ -60,8 +60,10 @@ try {
         // ── Déplacer RDV ──────────────────────────────────────
         case 'deplacer_rdv': {
             $nOrd    = (int)$body['n_ordon'];
-            $newDate = $body['nouvelle_date'] ?? '';
+            $newDate = trim($body['nouvelle_date'] ?? '');
             if (!$newDate) { echo json_encode(['ok'=>false,'err'=>'Date manquante']); break; }
+            // Normaliser en YYYYMMDD (format universel SQL Server, sans tirets)
+            $newDate = str_replace('-', '', $newDate); // "2026-05-18" → "20260518"
             $db->prepare("UPDATE ORD SET [DATE REDEZ VOUS]=? WHERE n_ordon=?")->execute([$newDate, $nOrd]);
             echo json_encode(['ok' => true]);
             break;
@@ -182,6 +184,53 @@ try {
             $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $total    = array_sum(array_column($patients, 'montant'));
             echo json_encode(['ok'=>true, 'patients'=>$patients, 'total'=>$total]);
+            break;
+        }
+
+        // ── Rechercher RDV patient sur une période ────────────
+        case 'rechercher_rdv_periode': {
+            $q       = trim($body['q']       ?? '');
+            $mois    = (int)($body['mois']   ?? 1);
+            $dateRef = trim($body['date_ref'] ?? date('Y-m-d'));
+            if (strlen($q) < 2) { echo json_encode(['ok'=>true,'rdvs'=>[]]); break; }
+
+            // Format YYYYMMDD — universel SQL Server
+            $tsRef   = strtotime($dateRef);
+            $dateMin = date('Ymd', strtotime('-' . $mois . ' months', $tsRef));
+            $dateMax = date('Ymd', strtotime('+' . $mois . ' months', $tsRef));
+
+            // Convertir [DATE REDEZ VOUS] en YYYYMMDD pour comparaison fiable
+            $filtreDateSql = "CONVERT(varchar(8), o.[DATE REDEZ VOUS], 112) BETWEEN ? AND ?";
+
+            if (is_numeric($q)) {
+                $stmt = $db->prepare("
+                    SELECT o.n_ordon, o.id,
+                           CONVERT(varchar(10), o.[DATE REDEZ VOUS], 23) AS jour,
+                           ISNULL(CONVERT(varchar(5), o.HeureRDV), '')   AS heure,
+                           ISNULL(p.NOMPRENOM, '')                        AS nom
+                    FROM ORD o
+                    LEFT JOIN ID p ON o.id = p.[N°PAT]
+                    WHERE o.id = ?
+                      AND o.[DATE REDEZ VOUS] IS NOT NULL
+                      AND {$filtreDateSql}
+                    ORDER BY o.[DATE REDEZ VOUS]");
+                $stmt->execute([(int)$q, $dateMin, $dateMax]);
+            } else {
+                $stmt = $db->prepare("
+                    SELECT o.n_ordon, o.id,
+                           CONVERT(varchar(10), o.[DATE REDEZ VOUS], 23) AS jour,
+                           ISNULL(CONVERT(varchar(5), o.HeureRDV), '')   AS heure,
+                           ISNULL(p.NOMPRENOM, '')                        AS nom
+                    FROM ORD o
+                    LEFT JOIN ID p ON o.id = p.[N°PAT]
+                    WHERE p.NOMPRENOM LIKE ?
+                      AND o.[DATE REDEZ VOUS] IS NOT NULL
+                      AND {$filtreDateSql}
+                    ORDER BY o.[DATE REDEZ VOUS]");
+                $stmt->execute(['%' . $q . '%', $dateMin, $dateMax]);
+            }
+            $rdvs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['ok' => true, 'rdvs' => $rdvs]);
             break;
         }
 

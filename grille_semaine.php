@@ -25,6 +25,15 @@ $lundiNow = new DateTime($todayS);
 if ((int)$lundiNow->format('N') !== 1) $lundiNow->modify('monday this week');
 $lundiNowS = $lundiNow->format('Y-m-d');
 
+// ── NbrMax depuis T_Config ────────────────────────────────────
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
+
 // ── Les 5 jours Lun→Ven ───────────────────────────────────────
 $jourNoms = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
 $jours5   = [];
@@ -173,6 +182,19 @@ function renderPatients(array $patients): string {
                           title='Supprimer' onclick='gSupprimer({$ord},{$p['id']},\"{$nomE}\")'>
                       🗑</button>";
 
+        // Champ heure — select créneaux comme agenda.php
+        $heureVal = (strlen($p['heure']) === 5) ? $p['heure'] : '';
+        $html .= "<select class='g-heure' id='gheure-{$ord}' title='Attribuer un créneau'
+                          onchange='gSetHeure({$ord}, this.value)'>
+                      <option value=''>—H—</option>";
+        foreach (['09:00','09:30','10:00','10:30','11:00','11:30',
+                  '12:00','12:30','13:00','13:30','14:00','14:30',
+                  '15:00','15:30','16:00','16:30'] as $cr) {
+            $sel = ($heureVal === $cr) ? 'selected' : '';
+            $html .= "<option value='{$cr}' {$sel}>{$cr}</option>";
+        }
+        $html .= "</select>";
+
         // Nom cliquable
         $vuNomCl = $p['vu'] ? 'vu' : ($p['absent'] ? 'absent' : '');
         $html .= "<span class='pat-nom-txt {$vuNomCl}' id='gnom-{$ord}'
@@ -182,6 +204,14 @@ function renderPatients(array $patients): string {
         $html .= "</div>";
     }
     return $html;
+}
+function couleurBarre(int $nb, int $max): string {
+    if ($nb === 0) return '#b0c8e0';
+    $r = $max > 0 ? $nb / $max : 1;
+    if ($r <= 0.25) return '#27ae60';
+    if ($r <= 0.50) return '#f39c12';
+    if ($r <= 0.75) return '#e67e22';
+    return '#e74c3c';
 }
 ?>
 <!DOCTYPE html>
@@ -337,6 +367,27 @@ td.col-ferie { background: #f3e5f5; }
 .pat-nom-txt.vu     { color: #aaa; text-decoration: line-through; }
 .pat-nom-txt.absent { color: #e74c3c; }
 
+/* Barre progression sous l'entête jour */
+.barre-jour { margin-top:4px; height:5px; background:#dde; border-radius:3px; overflow:hidden; }
+.barre-jour-fill { height:100%; border-radius:3px; transition:width 0.3s; }
+.fraction-jour { font-size:9px; opacity:0.85; margin-top:2px; font-weight:bold; }
+
+/* Pastille couleur créneau — dans chaque cellule jour×créneau */
+.col-jour { position: relative; }
+.cr-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; vertical-align: middle; flex-shrink: 0; }
+.cr-dot.vert  { background: #27ae60; }
+.cr-dot.jaune { background: #f39c12; }
+.cr-dot.rouge { background: #e74c3c; }
+
+/* Champ heure dans la ligne patient */
+.g-heure {
+    width: 54px; height: 17px; font-size: 10px;
+    border: 1px solid #ddd; border-radius: 3px;
+    padding: 0 2px; flex-shrink: 0;
+    color: #555; background: #f0f8ff; cursor: pointer;
+}
+.g-heure:focus { border-color: #2e6da4; outline: none; }
+
 /* Recherche */
 .pat-row.highlight      { background: #fff3cd !important; outline: 1px solid #f39c12; }
 .pat-row.hidden-search  { display: none !important; }
@@ -390,15 +441,17 @@ td.col-ferie { background: #f3e5f5; }
     <input class="search-hdr" type="text" id="searchInput"
            placeholder="🔍 Rechercher patient..."
            oninput="filtrerGrille(this.value)">
+    <button id="btnClearSearch" onclick="clearSearch()"
+            style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
+                   border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
+    <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
     <!-- MILIEU : boutons fixes (grille = gris car page courante) -->
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <span                               class="btn-h grey"  >📋 Grille</span>
-    <a href="biologie.php" class="btn-h orange">🧪 Biologie</a>
+    <a href="biologie.php"              class="btn-h orange">🧪 Biologie</a>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-    <!-- TITRE -->
-    <h1 style="margin-left:8px;">📋 Grille Semaine</h1>
     <!-- DROITE : horloge -->
     <div class="hclock" style="margin-left:auto;">
         <div class="ct" id="clockTime">--:--:--</div>
@@ -432,12 +485,20 @@ td.col-ferie { background: #f3e5f5; }
                 : ($estAujourd ? 'background:#2980b9;' : '');
         ?>
         <th class="col-jour" style="<?= $bg ?>">
-            <?= $jourNoms[$i] ?><br>
-            <span style="font-size:10px;font-weight:normal;opacity:0.85;">
-                <?= dateCourt($jourS) ?>
+            <span style="font-size:11px;font-weight:bold;">
+                <?= dateCourt($jourS) ?> — <?= $jourNoms[$i] ?>
                 <?php if ($estFerie):   ?>&nbsp;🔴<?php endif; ?>
                 <?php if ($estAujourd): ?>&nbsp;★<?php endif; ?>
             </span>
+            <?php
+                $nbJour  = $totalJour[$jourS] ?? 0;
+                $pct     = $nbrMax > 0 ? min(100, round($nbJour / $nbrMax * 100)) : 0;
+                $barCol  = couleurBarre($nbJour, $nbrMax);
+            ?>
+            <div style="margin-top:5px;background:rgba(255,255,255,0.25);border-radius:4px;height:10px;overflow:hidden;">
+                <div style="width:<?= $pct ?>%;height:100%;background:<?= $barCol ?>;border-radius:4px;transition:width 0.3s;"></div>
+            </div>
+            <span style="font-size:10px;font-weight:bold;opacity:0.9;"><?= $nbJour ?> / <?= $nbrMax ?></span>
         </th>
         <?php endforeach; ?>
     </tr>
@@ -451,7 +512,7 @@ foreach ($creneaux as $cr):
     $trClass = $isHeurePleine ? ' class="heure-pleine"' : '';
 ?>
 <tr<?= $trClass ?>>
-    <!-- Heure à GAUCHE -->
+    <!-- Heure à GAUCHE : juste le texte, les pastilles sont dans chaque cellule -->
     <td class="td-heure"><?= $cr ?></td>
 
     <?php foreach ($jours5 as $jourS):
@@ -459,9 +520,11 @@ foreach ($creneaux as $cr):
         $estAujourd = ($jourS === $todayS);
         $colCl      = $estFerie ? 'col-ferie' : ($estAujourd ? 'col-today' : '');
         $patients   = $grille[$jourS][$cr] ?? [];
+        $nbPat      = count($patients);
+        $dotCl      = $nbPat === 0 ? 'vert' : ($nbPat === 1 ? 'jaune' : 'rouge');
     ?>
-    <!-- 1 seule cellule par jour : N° + boutons + Nom sur la même ligne -->
-    <td class="col-jour <?= $colCl ?>">
+    <td class="col-jour <?= $colCl ?>" data-jour="<?= $jourS ?>" data-cr="<?= $cr ?>" data-nb="<?= $nbPat ?>">
+        <span class="cr-dot <?= $dotCl ?>" id="dot-<?= $jourS ?>-<?= str_replace(':','',$cr) ?>"></span>
         <?= renderPatients($patients) ?>
     </td>
     <?php endforeach; ?>
@@ -484,7 +547,7 @@ if ($hasSansHeure):
         $colCl      = $estFerie ? 'col-ferie' : ($estAujourd ? 'col-today' : '');
         $patients   = $grille[$jourS]['__sans_heure__'] ?? [];
     ?>
-    <td class="col-jour <?= $colCl ?>">
+    <td class="col-jour <?= $colCl ?>" data-jour="<?= $jourS ?>" data-cr="__sans_heure__">
         <?= renderPatients($patients) ?>
     </td>
     <?php endforeach; ?>
@@ -530,18 +593,15 @@ if ($hasSansHeure):
 
 <div class="toast" id="toast"></div>
 
-<!-- ══ MODAL DÉPLACER ══ -->
-<div class="modal-ov" id="modalDep">
+<!-- ══ MODAL JOURNÉE PLEINE ══ -->
+<div class="modal-ov" id="modalPlein">
     <div class="modal-box">
-        <h3>📆 Déplacer le RDV</h3>
-        <input type="hidden" id="depOrd">
-        <div id="depMsg" style="font-size:11px;color:#666;margin-bottom:10px;min-height:16px;"></div>
+        <h3>📅 Journée complète</h3>
+        <div id="pleinMsg" style="font-size:11px;color:#666;margin-bottom:14px;white-space:pre-line;"></div>
         <div class="modal-btns">
-            <button class="btn-av"  id="btnAvant"  onclick="depChoisir('avant')" style="display:none">◀ Avant</button>
-            <button class="btn-ok"  id="btnGarder" onclick="depConfirmer()"      style="display:none">Garder</button>
-            <button class="btn-ap"  id="btnApres"  onclick="depChoisir('apres')" style="display:none">Après ▶</button>
-            <button class="btn-ch"                 onclick="depManuel()">📅 Choisir date</button>
-            <button class="btn-ann"                onclick="fermerModal('modalDep')">✕ Annuler</button>
+            <button class="btn-av" onclick="pleinChoisirJour(-1)">◀ Jour précédent</button>
+            <button class="btn-ap" onclick="pleinChoisirJour(+1)">Jour suivant ▶</button>
+            <button class="btn-ann" onclick="pleinAnnuler()">✕ Annuler</button>
         </div>
     </div>
 </div>
@@ -627,64 +687,292 @@ async function gSupprimer(n, id, nom) {
     } else toast('Erreur suppression', 'error');
 }
 
-// ── Déplacer ──────────────────────────────────────────────────
-let depDateCourante = '', depAvant = '', depApres = '';
+// ── Créneaux ordonnés ─────────────────────────────────────────
+const CRENEAUX = ['09:00','09:30','10:00','10:30','11:00','11:30',
+                  '12:00','12:30','13:00','13:30','14:00','14:30',
+                  '15:00','15:30','16:00','16:30'];
 
-async function gDeplacer(n, dateJour) {
-    document.getElementById('depOrd').value = n;
-    depDateCourante = dateJour;
-    document.getElementById('depMsg').textContent = 'Vérification…';
-    ['btnAvant','btnGarder','btnApres'].forEach(id =>
-        document.getElementById(id).style.display = 'none');
-
-    const r = await fetch('ajax_prochain_jour.php?date=' + dateJour);
-    const d = await r.json();
-    depAvant = d.avant ?? '';
-    depApres = d.apres ?? '';
-
-    let msg = 'Date : ' + dateJour;
-    if (d.statut === 'ferie')  msg += ' 🔴 Jour férié';
-    if (d.statut === 'samedi') msg += ' (Samedi)';
-    if (d.statut === 'lundi')  msg += ' (Lundi)';
-    document.getElementById('depMsg').textContent = msg;
-
-    if (depAvant) document.getElementById('btnAvant').style.display = '';
-    document.getElementById('btnGarder').style.display = '';
-    if (depApres) document.getElementById('btnApres').style.display = '';
-
-    ouvrirModal('modalDep');
-}
-
-async function depChoisir(sens) {
-    const date = sens === 'avant' ? depAvant : depApres;
-    if (!date) return;
-    const n = document.getElementById('depOrd').value;
-    const r = await ajax('deplacer_rdv', {n_ordon:n, nouvelle_date:date});
-    if (r.ok) {
-        toast('RDV déplacé → '+date+' 📅');
-        fermerModal('modalDep');
-        setTimeout(() => location.reload(), 800);
-    } else toast('Erreur', 'error');
-}
-
-async function depConfirmer() {
-    const n = document.getElementById('depOrd').value;
-    const r = await ajax('deplacer_rdv', {n_ordon:n, nouvelle_date:depDateCourante});
-    if (r.ok) { toast('Date conservée'); fermerModal('modalDep'); }
-    else toast('Erreur', 'error');
-}
-
-function depManuel() {
-    const d = prompt('Date (AAAA-MM-JJ) :', depDateCourante);
-    if (!d) return;
-    const n = document.getElementById('depOrd').value;
-    ajax('deplacer_rdv', {n_ordon:n, nouvelle_date:d}).then(r => {
-        if (r.ok) {
-            toast('RDV déplacé → '+d+' 📅');
-            fermerModal('modalDep');
-            setTimeout(() => location.reload(), 800);
-        } else toast('Erreur', 'error');
+// ── Compter patients dans une cellule (jour + créneau) ────────
+function compterCell(jour, cr, excludeOrd) {
+    const td = document.querySelector(`td[data-jour="${jour}"][data-cr="${cr}"]`);
+    if (!td) return 0;
+    let count = 0;
+    td.querySelectorAll('.pat-row').forEach(row => {
+        if (row.id !== 'grow-' + excludeOrd) count++;
     });
+    return count;
+}
+
+// ── Trouver le jour d'un patient ──────────────────────────────
+function trouverJour(ord) {
+    const row = document.getElementById('grow-' + ord);
+    if (!row) return null;
+    const td = row.closest('td[data-jour]');
+    return td ? td.dataset.jour : null;
+}
+
+// ── Mettre à jour la pastille d'une cellule ───────────────────
+function majPastille(jour, cr, nb) {
+    const dotId = 'dot-' + jour + '-' + cr.replace(':','');
+    const dot = document.getElementById(dotId);
+    if (!dot) return;
+    dot.className = 'cr-dot ' + (nb === 0 ? 'vert' : nb === 1 ? 'jaune' : 'rouge');
+}
+
+// ── Variables modale plein ────────────────────────────────────
+let _pleinOrd, _pleinJour, _pleinHeure;
+
+// ── Modifier heure ────────────────────────────────────────────
+async function gSetHeure(ord, heure) {
+    const sel = document.getElementById('gheure-' + ord);
+    const ancienneHeure = sel ? sel.getAttribute('data-old') || '' : '';
+    if (sel) sel.setAttribute('data-old', heure);
+
+    if (!heure) {
+        // Suppression de l'heure → on enregistre directement
+        await _enregistrerHeure(ord, '', ancienneHeure);
+        return;
+    }
+
+    const jour = trouverJour(ord);
+    if (!jour) return;
+
+    const nb = compterCell(jour, heure, ord);
+
+    if (nb < 2) {
+        // Créneau libre → on enregistre
+        await _enregistrerHeure(ord, heure, ancienneHeure);
+        return;
+    }
+
+    // Créneau plein → chercher prochain libre ce jour
+    const idx = CRENEAUX.indexOf(heure);
+    let prochainLibre = null;
+    for (let i = idx + 1; i < CRENEAUX.length; i++) {
+        if (compterCell(jour, CRENEAUX[i], ord) < 2) {
+            prochainLibre = CRENEAUX[i];
+            break;
+        }
+    }
+
+    if (prochainLibre) {
+        // Proposer le prochain créneau libre
+        if (confirm(`⚠ Créneau ${heure} complet.\nProchain créneau libre : ${prochainLibre}\nConfirmer ?`)) {
+            if (sel) sel.value = prochainLibre;
+            sel.setAttribute('data-old', prochainLibre);
+            await _enregistrerHeure(ord, prochainLibre, ancienneHeure);
+        } else {
+            if (sel) sel.value = ancienneHeure;
+        }
+    } else {
+        // Toute la journée est pleine → modale choix jour
+        _pleinOrd   = ord;
+        _pleinJour  = jour;
+        _pleinHeure = heure;
+        if (sel) sel.value = ancienneHeure;
+        document.getElementById('pleinMsg').textContent =
+            `Journée du ${jour} complète pour ${heure} et après.\nChoisir un autre jour :`;
+        ouvrirModal('modalPlein');
+    }
+}
+
+async function _enregistrerHeure(ord, heure, ancienneHeure) {
+    const r = await ajax('changer_heure', {n_ordon: ord, heure: heure});
+    if (r.ok) {
+        toast('Heure mise à jour : ' + (heure || '—') + ' ⏰');
+        setTimeout(() => location.reload(), 800);
+    } else {
+        toast('Erreur : ' + (r.err || 'inconnue'), 'error');
+        const sel = document.getElementById('gheure-' + ord);
+        if (sel) sel.value = ancienneHeure;
+    }
+}
+
+async function pleinChoisirJour(delta) {
+    // Calculer la nouvelle date (jour+ ou jour-)
+    const d = new Date(_pleinJour);
+    d.setDate(d.getDate() + delta);
+    // Sauter week-end
+    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + delta);
+    const nouvelleDate = d.toISOString().split('T')[0];
+    fermerModal('modalPlein');
+    const r = await ajax('deplacer_rdv', {n_ordon: _pleinOrd, nouvelle_date: nouvelleDate});
+    if (r.ok) {
+        toast('RDV déplacé → ' + nouvelleDate + ' 📅');
+        setTimeout(() => location.reload(), 800);
+    } else toast('Erreur déplacement', 'error');
+}
+
+function pleinAnnuler() {
+    fermerModal('modalPlein');
+}
+
+// ── Déplacer ──────────────────────────────────────────────────
+// ── Déplacer RDV — logique identique à dossier.php ───────────
+let _depOrd = null, _depDateBase = null;
+
+function gDeplacer(n, dateJour) {
+    _depOrd      = n;
+    _depDateBase = dateJour;
+    // Toujours montrer la modale avec choix
+    jfAfficherChoixDeplacement(dateJour, n);
+}
+
+function jfAfficherChoixDeplacement(dateBase, ord) {
+    jfFermer();
+    function jourOuvre(date, delta) {
+        const d = new Date(date + 'T12:00:00');
+        do { d.setDate(d.getDate() + delta); } while (d.getDay() === 0 || d.getDay() === 6);
+        return d.toISOString().split('T')[0];
+    }
+    const avant  = jourOuvre(dateBase, -1);
+    const apres  = jourOuvre(dateBase, +1);
+    const dow    = new Date(dateBase + 'T12:00:00').getDay(); // 1=lundi, 6=sam
+    const estLundiOuSam = (dow === 1 || dow === 6);
+    const base   = 'border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:bold;';
+    let btns =
+        `<button style="${base}background:#2e6da4;color:white;" onclick="jfChoisirDep('${avant}',${ord})">◀ ${dateEnFr(avant)}</button>`;
+    if (estLundiOuSam)
+        btns += `<button style="${base}background:#e67e22;color:white;" onclick="jfChoisirDep('${dateBase}',${ord})">Garder ce jour</button>`;
+    btns +=
+        `<button style="${base}background:#1a4a7a;color:white;" onclick="jfChoisirDep('${apres}',${ord})">${dateEnFr(apres)} ▶</button>` +
+        `<button style="${base}background:#555;color:white;"    onclick="jfChoisirDateDep(${ord})">📅 Choisir date</button>` +
+        `<button style="${base}background:#ddd;color:#444;"     onclick="jfFermer()">✕ Annuler</button>`;
+
+    document.body.insertAdjacentHTML('beforeend', `
+    <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
+         background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:10px;padding:24px 28px;
+                    max-width:500px;width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:14px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">📆 Déplacer le RDV</div>
+            <div style="font-size:12px;color:#666;margin-bottom:18px;">RDV actuel : ${dateEnFr(dateBase)} — Choisir une nouvelle date :</div>
+            <div id="jf-btns" style="display:flex;flex-wrap:wrap;gap:8px;">${btns}</div>
+            <div id="jf-datepicker" style="display:none;margin-top:14px;">
+                <input type="date" id="jf-input-date" value="${dateBase}"
+                       style="padding:5px 8px;border:1px solid #2e6da4;border-radius:4px;font-size:12px;">
+                <button style="${base}background:#1a4a7a;color:white;margin-left:8px;"
+                        onclick="jfConfirmerDateDep(${ord})">✔ Confirmer</button>
+            </div>
+        </div>
+    </div>`);
+}
+
+function jfChoisirDep(date, ord) {
+    jfFermer();
+    verifierEtAppliquerDate(date, function(dateValidee) {
+        ajax('deplacer_rdv', {n_ordon: ord, nouvelle_date: dateValidee}).then(r => {
+            if (r.ok) {
+                toast('RDV déplacé → ' + dateEnFr(dateValidee) + ' 📅');
+                setTimeout(() => location.reload(), 800);
+            } else toast('Erreur déplacement : ' + (r.err || ''), 'error');
+        });
+    });
+}
+
+function jfChoisirDateDep(ord) {
+    document.getElementById('jf-datepicker').style.display = 'block';
+    document.getElementById('jf-btns').style.display = 'none';
+}
+
+function jfConfirmerDateDep(ord) {
+    const d = document.getElementById('jf-input-date').value;
+    if (!d) return;
+    jfFermer();
+    jfChoisirDep(d, ord);
+}
+
+// ── Modale jour fermé/spécial (identique dossier.php) ────────
+function dateEnFr(d) {
+    if (!d) return '';
+    const [a,m,j] = d.split('-');
+    return j+'/'+m+'/'+a;
+}
+
+function jfFermer() {
+    const m = document.getElementById('modal-jour-ferme');
+    if (m) m.remove();
+}
+
+function jfAfficher(data, onChoix) {
+    jfFermer();
+    const estSamedi = data.est_samedi || false;
+    const estLundi  = data.est_lundi  || false;
+    let titre, sousTitre;
+    if (estLundi) {
+        titre     = '⚠️ Lundi — Habituellement non travaillé';
+        sousTitre = 'Le lundi est généralement réservé. Que souhaitez-vous faire ?';
+    } else if (estSamedi) {
+        titre     = '⚠️ Samedi — Demi-journée habituelle';
+        sousTitre = 'Le samedi est particulier. Que souhaitez-vous faire ?';
+    } else {
+        titre     = '⛔ ' + (data.raison || 'Jour fermé') + ' — Cabinet fermé';
+        sousTitre = 'Ce jour est fermé. Choisissez une alternative :';
+    }
+    const base = 'border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:bold;';
+    let btns = '';
+    if (data.date_avant)
+        btns += `<button style="${base}background:#2e6da4;color:white;" onclick="jfChoisir('${data.date_avant}')">◀ ${data.label_avant||dateEnFr(data.date_avant)}</button>`;
+    if ((estLundi || estSamedi) && data.date_cible) {
+        const lbl = estLundi ? 'Garder lundi' : 'Garder samedi';
+        btns += `<button style="${base}background:#e67e22;color:white;" onclick="jfChoisir('${data.date_cible}')">${lbl}</button>`;
+    }
+    if (data.date_apres)
+        btns += `<button style="${base}background:#1a4a7a;color:white;" onclick="jfChoisir('${data.date_apres}')">${data.label_apres||dateEnFr(data.date_apres)} ▶</button>`;
+    btns += `<button style="${base}background:#555;color:white;" onclick="jfChoisirDate()">📅 Choisir date</button>`;
+    btns += `<button style="${base}background:#ddd;color:#444;" onclick="jfFermer()">✕ Annuler</button>`;
+
+    document.body.insertAdjacentHTML('beforeend', `
+    <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
+         background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:10px;padding:24px 28px;
+                    max-width:500px;width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:14px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">${titre}</div>
+            <div style="font-size:12px;color:#666;margin-bottom:18px;">${sousTitre}</div>
+            <div id="jf-btns" style="display:flex;flex-wrap:wrap;gap:8px;">${btns}</div>
+            <div id="jf-datepicker" style="display:none;margin-top:14px;">
+                <input type="date" id="jf-input-date"
+                       style="padding:5px 8px;border:1px solid #2e6da4;border-radius:4px;font-size:12px;">
+                <button style="${base}background:#1a4a7a;color:white;margin-left:8px;" onclick="jfConfirmerDate()">✔ Confirmer</button>
+            </div>
+        </div>
+    </div>`);
+    window._jfCallback = onChoix;
+}
+
+function jfChoisir(date) {
+    jfFermer();
+    if (window._jfCallback) { window._jfCallback(date); window._jfCallback = null; }
+}
+function jfChoisirDate() {
+    document.getElementById('jf-datepicker').style.display = 'block';
+    document.getElementById('jf-btns').style.display = 'none';
+}
+function jfConfirmerDate() {
+    const d = document.getElementById('jf-input-date').value;
+    if (!d) return;
+    jfFermer();
+    if (window._jfCallback) { window._jfCallback(d); window._jfCallback = null; }
+}
+
+function verifierEtAppliquerDate(dateCible, callback) {
+    fetch('ajax_prochain_jour.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ date_cible: dateCible })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { alert('❌ ' + data.error); return; }
+        if (data.ok) {
+            callback(data.date_trouvee);
+        } else {
+            jfAfficher(
+                { ...data, date_cible: dateCible },
+                (dateChoisie) => verifierEtAppliquerDate(dateChoisie, callback)
+            );
+        }
+    })
+    .catch(() => alert('❌ Erreur réseau'));
 }
 
 // ── Modales ───────────────────────────────────────────────────
@@ -696,19 +984,102 @@ document.querySelectorAll('.modal-ov').forEach(m =>
 // ── Recherche ─────────────────────────────────────────────────
 function filtrerGrille(v) {
     v = v.toLowerCase().trim();
-    document.getElementById('btnClearSearch').style.display = v ? 'inline-block' : 'none';
-    let found = 0;
+    let first = null, found = 0;
     document.querySelectorAll('.pat-row[data-nom]').forEach(row => {
         const match = !v || row.dataset.nom.includes(v) || String(row.dataset.id).includes(v);
         row.classList.toggle('hidden-search', !match);
-        if (match && v) { row.classList.add('highlight'); found++; }
-        else row.classList.remove('highlight');
+        if (match && v) {
+            row.classList.add('highlight');
+            found++;
+            if (!first) first = row;
+        } else {
+            row.classList.remove('highlight');
+        }
     });
-    document.getElementById('searchInfo').textContent = v ? found+' résultat(s)' : '';
+    if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.style.outline = '2px solid #2e6da4';
+        setTimeout(() => first.style.outline = '', 1500);
+    }
+    const btnClear = document.getElementById('btnClearSearch');
+    const info     = document.getElementById('searchInfo');
+    if (btnClear) btnClear.style.display = v ? 'inline-block' : 'none';
+    if (info)     info.textContent = v ? found + ' résultat(s)' : '';
+
+    afficherBtnEtendu(v, found);
 }
+
 function clearSearch() {
     document.getElementById('searchInput').value = '';
     filtrerGrille('');
+    masquerEtendu();
+}
+
+// ── Recherche étendue sur période ─────────────────────────────
+function afficherBtnEtendu(v, found) {
+    let zone = document.getElementById('zone-etendue');
+    if (!v) { if (zone) zone.style.display = 'none'; return; }
+    if (!zone) {
+        zone = document.createElement('div');
+        zone.id = 'zone-etendue';
+        zone.style.cssText = 'position:fixed;top:36px;left:0;z-index:500;background:#1a4a7a;' +
+            'color:white;padding:6px 12px;display:flex;align-items:center;gap:8px;font-size:11px;' +
+            'border-bottom:2px solid #f39c12;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+        document.body.appendChild(zone);
+    }
+    zone.style.display = 'flex';
+    const msg = found > 0 ? `✅ ${found} sur cette semaine — Chercher aussi sur :` : `⚠ Pas trouvé sur cette semaine — Chercher sur :`;
+    zone.innerHTML = `<span>${msg}</span>
+        <button onclick="rechercheEtendue(1)"  style="${_btnStyle('#27ae60')}">± 1 mois</button>
+        <button onclick="rechercheEtendue(3)"  style="${_btnStyle('#f39c12')}">± 3 mois</button>
+        <button onclick="rechercheEtendue(6)"  style="${_btnStyle('#e74c3c')}">± 6 mois</button>
+        <div id="resultat-etendu" style="flex:1;"></div>`;
+}
+
+function masquerEtendu() {
+    const z = document.getElementById('zone-etendue');
+    if (z) z.style.display = 'none';
+}
+
+function _btnStyle(bg) {
+    return `background:${bg};color:white;border:none;border-radius:4px;` +
+           `padding:3px 10px;cursor:pointer;font-size:11px;font-weight:bold;`;
+}
+
+async function rechercheEtendue(mois) {
+    const v       = document.getElementById('searchInput').value.trim();
+    const dateRef = '<?= $lundiS ?>';
+    const res     = document.getElementById('resultat-etendu');
+    if (res) res.innerHTML = '<i>Recherche…</i>';
+
+    const r = await fetch('ajax_agenda.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({action:'rechercher_rdv_periode', q:v, mois, date_ref:dateRef})
+    });
+    const d = await r.json();
+    if (!d.ok || !d.rdvs.length) {
+        if (res) res.innerHTML = '<span style="color:#f39c12;">Aucun RDV trouvé sur ±'+mois+' mois</span>';
+        return;
+    }
+    let html = '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    d.rdvs.forEach(rdv => {
+        const [a,m,j] = (rdv.jour||'').split('-');
+        const dateFr  = rdv.jour ? j+'/'+m+'/'+a : '?';
+        const heure   = rdv.heure ? ' '+rdv.heure : '';
+        // Calculer le lundi de la semaine du RDV
+        const dt = new Date(rdv.jour+'T12:00:00');
+        const diff = (dt.getDay()+6)%7;
+        dt.setDate(dt.getDate()-diff);
+        const sem = dt.toISOString().split('T')[0];
+        html += `<a href="grille_semaine.php?sem=${sem}"
+                    style="background:rgba(255,255,255,0.15);color:white;text-decoration:none;
+                           border-radius:4px;padding:2px 8px;font-size:11px;white-space:nowrap;">
+                    📅 ${dateFr}${heure} — ${rdv.nom}
+                 </a>`;
+    });
+    html += '</div>';
+    if (res) res.innerHTML = html;
 }
 </script>
 </body>

@@ -322,9 +322,13 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 <!-- HEADER -->
 <script src="home.js"></script>
 <div class="header">
-    <!-- GAUCHE : recherche globale -->
-    <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
-           onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <!-- GAUCHE : recherche par date -->
+    <input class="search-hdr" type="text" id="searchInput" placeholder="🔍 Date ou jour (ex: 12/05, Lundi)..."
+           oninput="filtrerPlanning(this.value)">
+    <button id="btnClearSearch" onclick="clearSearch()"
+            style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
+                   border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
+    <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
     <!-- MILIEU : boutons fixes (planning = gris car page courante) -->
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
@@ -420,6 +424,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     ?>
     <a class="<?= $classes ?>"
        href="agenda.php?date=<?= $jour ?>"
+       data-date="<?= date('d/m/Y', strtotime($jour)) ?>"
+       data-nom="<?= strtolower($nomJour) ?>"
        style="<?= $fondStyle ?>">
 
         <div class="jour-top">
@@ -456,6 +462,32 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 </div>
 
 <script>
+// ── Recherche par date / jour ──────────────────────────────────
+function filtrerPlanning(v) {
+    v = v.toLowerCase().trim();
+    let first = null, found = 0;
+    document.querySelectorAll('.jour-card').forEach(c => {
+        const date = (c.dataset.date || '').toLowerCase();
+        const nom  = (c.dataset.nom  || '').toLowerCase();
+        const match = !v || date.includes(v) || nom.includes(v);
+        c.style.opacity = match ? '1' : '0.2';
+        c.style.pointerEvents = match ? '' : 'none';
+        if (match && v) { found++; if (!first) first = c; }
+    });
+    if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.style.outline = '3px solid #f39c12';
+        setTimeout(() => first.style.outline = '', 1500);
+    }
+    const btnClear = document.getElementById('btnClearSearch');
+    const info     = document.getElementById('searchInfo');
+    if (btnClear) btnClear.style.display = v ? 'inline-block' : 'none';
+    if (info)     info.textContent = v ? found + ' jour(s) trouvé(s)' : '';
+}
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    filtrerPlanning('');
+}
 // ── Horloge ────────────────────────────────────────────────────
 (function() {
     const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];

@@ -308,8 +308,12 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
 <script src="home.js"></script>
 <div class="header">
     <!-- GAUCHE : recherche locale (filtre les patients du jour) -->
-    <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+    <input class="search-hdr" type="text" id="searchInput" placeholder="🔍 Rechercher patient..."
            oninput="filtrerPatients(this.value)">
+    <button id="btnClearSearch" onclick="clearSearch()"
+            style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
+                   border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
+    <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
     <!-- MILIEU : boutons fixes (agenda = gris car page courante) -->
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
     <span                               class="btn-h grey"  >📅 Agenda</span>
@@ -425,6 +429,7 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
     <div class="pat-card <?= $cardCl ?>"
          id="card-<?= $pat['n_ordon'] ?>"
          data-nom="<?= strtolower(htmlspecialchars($pat['NOMPRENOM'] ?? '')) ?>"
+         data-id="<?= $pat['id'] ?>"
          data-heure="<?= $heure ?>">
 
         <div class="pat-line">
@@ -638,8 +643,93 @@ function scrollToCreneau(h) {
 // ── Filtrer ───────────────────────────────────────────
 function filtrerPatients(v) {
     v = v.toLowerCase().trim();
-    document.querySelectorAll('.pat-card').forEach(c =>
-        c.classList.toggle('hidden', !!v && !c.dataset.nom.includes(v)));
+    let first = null, found = 0;
+    document.querySelectorAll('.pat-card').forEach(c => {
+        const match = !v || c.dataset.nom.includes(v) || String(c.dataset.id).includes(v);
+        c.classList.toggle('hidden', !match);
+        if (match && v) { found++; if (!first) first = c; }
+    });
+    if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.style.outline = '2px solid #f39c12';
+        setTimeout(() => first.style.outline = '', 1500);
+    }
+    const btnClear = document.getElementById('btnClearSearch');
+    const info     = document.getElementById('searchInfo');
+    if (btnClear) btnClear.style.display = v ? 'inline-block' : 'none';
+    if (info)     info.textContent = v ? found + ' résultat(s)' : '';
+
+    // Si aucun résultat local → proposer recherche étendue
+    afficherBtnEtendu(v, found);
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    filtrerPatients('');
+    masquerEtendu();
+}
+
+// ── Recherche étendue sur période ─────────────────────────────
+function afficherBtnEtendu(v, found) {
+    let zone = document.getElementById('zone-etendue');
+    if (!v) { if (zone) zone.style.display = 'none'; return; }
+    if (!zone) {
+        zone = document.createElement('div');
+        zone.id = 'zone-etendue';
+        zone.style.cssText = 'position:fixed;top:36px;left:0;z-index:500;background:#1a4a7a;' +
+            'color:white;padding:6px 12px;display:flex;align-items:center;gap:8px;font-size:11px;' +
+            'border-bottom:2px solid #f39c12;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+        document.body.appendChild(zone);
+    }
+    zone.style.display = 'flex';
+    const msg = found > 0 ? `✅ ${found} sur cette page — Chercher aussi sur :` : `⚠ Pas trouvé sur cette page — Chercher sur :`;
+    zone.innerHTML = `<span>${msg}</span>
+        <button onclick="rechercheEtendue(1)"  style="${_btnStyle('#27ae60')}">± 1 mois</button>
+        <button onclick="rechercheEtendue(3)"  style="${_btnStyle('#f39c12')}">± 3 mois</button>
+        <button onclick="rechercheEtendue(6)"  style="${_btnStyle('#e74c3c')}">± 6 mois</button>
+        <div id="resultat-etendu" style="flex:1;"></div>`;
+}
+
+function masquerEtendu() {
+    const z = document.getElementById('zone-etendue');
+    if (z) z.style.display = 'none';
+}
+
+function _btnStyle(bg) {
+    return `background:${bg};color:white;border:none;border-radius:4px;` +
+           `padding:3px 10px;cursor:pointer;font-size:11px;font-weight:bold;`;
+}
+
+async function rechercheEtendue(mois) {
+    const v       = document.getElementById('searchInput').value.trim();
+    const dateRef = '<?= $dateAff ?>';
+    const res     = document.getElementById('resultat-etendu');
+    if (res) res.innerHTML = '<i>Recherche…</i>';
+
+    const r = await fetch('ajax_agenda.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({action:'rechercher_rdv_periode', q:v, mois, date_ref:dateRef})
+    });
+    const d = await r.json();
+    if (!d.ok || !d.rdvs.length) {
+        if (res) res.innerHTML = '<span style="color:#f39c12;">Aucun RDV trouvé sur ±'+mois+' mois</span>';
+        return;
+    }
+    // Afficher les résultats comme liste cliquable
+    let html = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;">';
+    d.rdvs.forEach(rdv => {
+        const [a,m,j] = (rdv.jour||'').split('-');
+        const dateFr  = rdv.jour ? j+'/'+m+'/'+a : '?';
+        const heure   = rdv.heure ? ' '+rdv.heure : '';
+        html += `<a href="agenda.php?date=${rdv.jour}"
+                    style="background:rgba(255,255,255,0.15);color:white;text-decoration:none;
+                           border-radius:4px;padding:2px 8px;font-size:11px;white-space:nowrap;">
+                    📅 ${dateFr}${heure} — ${rdv.nom}
+                 </a>`;
+    });
+    html += '</div>';
+    if (res) res.innerHTML = html;
 }
 
 // ── Ajax ──────────────────────────────────────────────
