@@ -66,7 +66,7 @@ for ($h = 9; $h <= 16; $h++) {
     if ($h < 16) $creneaux[] = sprintf('%02d:30', $h);
 }
 
-// Compter patients par créneau
+// Compter patients par créneau (inclut patients sans heure → comptés dans premier créneau)
 $patParCreneau = [];
 foreach ($patients as $pat) {
     $h = trim($pat['HeureRDV'] ?? '');
@@ -74,6 +74,12 @@ foreach ($patients as $pat) {
         $key = sprintf('%02d:%02d', $m[1], $m[2]);
         $patParCreneau[$key] = ($patParCreneau[$key] ?? 0) + 1;
     }
+}
+// Patients sans heure : signalés séparément dans la colonne créneaux
+$sansCreneau = 0;
+foreach ($patients as $pat) {
+    $h = trim($pat['HeureRDV'] ?? '');
+    if (!preg_match('/^(\d{1,2}):(\d{2})/', $h)) $sansCreneau++;
 }
 ?>
 <!DOCTYPE html>
@@ -289,13 +295,16 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
 <body>
 
 <!-- ── HEADER ── -->
+<script src="home.js"></script>
 <div class="header">
-    <a href="recherche.php" class="btn-h blue">◀ Accueil</a>
+    <button onclick="goHome()" class="btn-h green">🏠 Dossier</button>
+    <a href="recherche.php" class="btn-h blue">🔍 Recherche</a>
     <h1>📅 Agenda</h1>
     <button class="btn-h green"  onclick="ouvrirAjoutPatient()">➕ Ajouter</button>
     <button class="btn-h orange" onclick="modifierLimite()">⚙️ Max (<?= $nbrMax ?>)</button>
     <button class="btn-h grey"   onclick="voirSemaine()">📊 Semaine</button>
-    <a href="planning.php" class="btn-h blue">📅 Planning</a>
+    <a href="planning.php"       class="btn-h blue">📅 Planning</a>
+    <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
     <a href="jours_feries.php" class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
     <!-- Horloge widget identique à dossier.php -->
     <div style="margin-left:auto; background:rgba(255,255,255,0.12); border-radius:6px;
@@ -370,6 +379,13 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
             <?php if ($nb): ?><span class="cr-nb"><?= $nb ?></span><?php endif; ?>
         </div>
         <?php endforeach; ?>
+        <?php if ($sansCreneau > 0): ?>
+        <div class="cr-item" style="border-top:1px dashed #c0a0d0;margin-top:4px;">
+            <span class="cr-heure" style="font-size:9px;color:#8e44ad;">Sans<br>heure</span>
+            <span class="cr-dot rouge"></span>
+            <span class="cr-nb"><?= $sansCreneau ?></span>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- ── PATIENTS ── -->

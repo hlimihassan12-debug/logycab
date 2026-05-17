@@ -110,17 +110,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 </head>
 <body>
 
+<script src="home.js"></script>
 <div class="header">
-    <a href="recherche.php" class="btn-h green">🏠 Accueil</a>
-    <a href="agenda.php"    class="btn-h blue">📅 Agenda</a>
-    <a href="dossier.php"   class="btn-h blue">🩺 Dossier</a>
-    <a href="planning.php"  class="btn-h blue">📊 Planning</a>
-    <h1>📅 Jours Fériés &amp; Fermetures</h1>
-    <!-- Horloge -->
-    <div class="header-clock">
+    <!-- Horloge à GAUCHE -->
+    <div class="header-clock" style="margin-left:0;margin-right:4px;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <div style="width:1px;height:30px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
+    <button onclick="goHome()" class="btn-h green">🏠 Dossier</button>
+    <a href="recherche.php"      class="btn-h blue">🔍 Recherche</a>
+    <a href="agenda.php"         class="btn-h blue">📅 Agenda</a>
+    <a href="planning.php"       class="btn-h blue">📊 Planning</a>
+    <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
+    <h1 style="margin-left:auto;">📅 Jours Fériés &amp; Fermetures</h1>
 </div>
 
 <div class="container">

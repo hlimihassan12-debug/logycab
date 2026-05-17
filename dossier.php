@@ -1768,6 +1768,17 @@ function afficherModifierOrdonnance() {
     tick();
     setInterval(tick, 1000);
 })();
+
+// ── Mémoriser le dernier patient consulté (cookie 30 jours) ──
+(function() {
+    const id = <?= (int)$id ?>;
+    if (id > 0) {
+        const expire = new Date();
+        expire.setDate(expire.getDate() + 30);
+        document.cookie = 'dernier_patient=' + id +
+            '; expires=' + expire.toUTCString() + '; path=/';
+    }
+})();
 </script>
 </body>
 </html>

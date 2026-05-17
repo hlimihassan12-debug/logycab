@@ -309,16 +309,19 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 <body>
 
 <!-- HEADER -->
+<script src="home.js"></script>
 <div class="header">
-    <a href="recherche.php" class="btn-h blue">◀ Accueil</a>
-    <h1>📊 Planning</h1>
-    <a href="agenda.php"       class="btn-h green">📋 Agenda</a>
-    <a href="jours_feries.php" class="btn-h purple">📅 Fériés</a>
-
-    <div class="header-clock">
+    <div class="header-clock" style="margin-left:0;margin-right:4px;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <div style="width:1px;height:30px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
+    <button onclick="goHome()" class="btn-h green">🏠 Dossier</button>
+    <a href="recherche.php"      class="btn-h blue">🔍 Recherche</a>
+    <h1>📊 Planning</h1>
+    <a href="agenda.php"         class="btn-h green">📋 Agenda</a>
+    <a href="grille_semaine.php" class="btn-h green">📋 Grille</a>
+    <a href="jours_feries.php"   class="btn-h purple">📅 Fériés</a>
 </div>
 
 <!-- BARRE MODES -->
@@ -405,7 +408,9 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         <div class="jour-top">
             <span>
                 <span class="jour-nom"><?= $nomJour ?></span>
-                <span class="jour-num"><?= $numJour ?></span>
+                <span class="jour-num">
+                    <?= $weekend ? date('d/m/Y', strtotime($jour)) : $numJour ?>
+                </span>
             </span>
             <?php if ($isToday): ?>
                 <span class="badge-today">Aujourd'hui</span>
