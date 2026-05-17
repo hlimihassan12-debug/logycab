@@ -206,38 +206,29 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
     padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
     display: inline-flex; align-items: center; height: 24px; white-space: nowrap;
 }
-.btn-h.blue   { background: #2e6da4; }
 .btn-h.green  { background: #27ae60; }
+.btn-h.navy   { background: #1a4a7a; }
+.btn-h.blue   { background: #2e6da4; }
+.btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
-.btn-h:hover  { opacity: 0.85; }
+.btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
+.btn-h:not(.grey):hover { opacity: 0.85; }
+/* Barre recherche dans le header — filtre local */
+.search-hdr {
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 24px;
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+    color: white; outline: none; width: 200px; flex-shrink: 0;
+}
+.search-hdr::placeholder { color: rgba(255,255,255,0.5); }
+.search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 
-/* Horloge à GAUCHE — identique agenda.php */
+/* Horloge à DROITE */
 .hclock {
     background: rgba(255,255,255,0.12); border-radius: 6px;
     padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0;
 }
 .hclock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
 .hclock .cd { font-size: 9px; opacity: 0.75; }
-.vsep { width: 1px; height: 30px; background: rgba(255,255,255,0.2); flex-shrink: 0; }
-
-/* ══ BARRE RECHERCHE ══ */
-.search-bar {
-    background: #0f3460; padding: 5px 12px;
-    display: flex; align-items: center; gap: 10px;
-}
-.search-input {
-    padding: 4px 10px; border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.3);
-    background: rgba(255,255,255,0.12); color: white; font-size: 12px;
-    width: 280px; outline: none;
-}
-.search-input::placeholder { color: rgba(255,255,255,0.5); }
-.search-input:focus { border-color: rgba(255,255,255,0.6); }
-.search-info { font-size: 11px; color: rgba(255,255,255,0.6); }
-#btnClearSearch {
-    background: rgba(255,255,255,0.15); color: white; border: none;
-    padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; display: none;
-}
 
 /* ══ NAVIGATION SEMAINE ══ */
 .nav-sem {
@@ -392,30 +383,27 @@ td.col-ferie { background: #f3e5f5; }
 </head>
 <body>
 
-<!-- ══ HEADER : horloge à gauche ══ -->
+<!-- ══ HEADER : recherche à gauche, boutons au milieu, horloge à droite ══ -->
 <script src="home.js"></script>
 <div class="header">
-    <div class="hclock">
+    <!-- GAUCHE : recherche locale -->
+    <input class="search-hdr" type="text" id="searchInput"
+           placeholder="🔍 Rechercher patient..."
+           oninput="filtrerGrille(this.value)">
+    <!-- MILIEU : boutons fixes (grille = gris car page courante) -->
+    <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
+    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
+    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
+    <span                               class="btn-h grey"  >📋 Grille</span>
+    <a href="biologie.php" class="btn-h orange">🧪 Biologie</a>
+    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <!-- TITRE -->
+    <h1 style="margin-left:8px;">📋 Grille Semaine</h1>
+    <!-- DROITE : horloge -->
+    <div class="hclock" style="margin-left:auto;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
-    <div class="vsep"></div>
-    <button onclick="goHome()" class="btn-h green">🏠 Dossier</button>
-    <a href="recherche.php"    class="btn-h blue">🔍 Recherche</a>
-    <a href="agenda.php"       class="btn-h blue">📅 Agenda</a>
-    <a href="planning.php"     class="btn-h blue">📊 Planning</a>
-    <a href="jours_feries.php" class="btn-h purple">📅 Fériés</a>
-    <h1>📋 Grille Semaine</h1>
-</div>
-
-<!-- ══ BARRE RECHERCHE ══ -->
-<div class="search-bar">
-    <span style="color:rgba(255,255,255,0.7);font-size:11px;">🔍</span>
-    <input type="text" class="search-input" id="searchInput"
-           placeholder="Rechercher par nom ou N° patient..."
-           oninput="filtrerGrille(this.value)">
-    <button id="btnClearSearch" onclick="clearSearch()">✕ Effacer</button>
-    <span class="search-info" id="searchInfo"></span>
 </div>
 
 <!-- ══ NAVIGATION SEMAINE ══ -->

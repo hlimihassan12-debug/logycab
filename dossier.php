@@ -272,9 +272,32 @@ foreach ($actesSuggeres as $a) { $acteSugActuel[] = $a['acte']; }
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
-.header { background: #1a4a7a; color: white; padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.header a { color: white; text-decoration: none; background: #2e6da4; padding: 5px 12px; border-radius: 4px; font-size: 12px; }
-.header h1 { font-size: 15px; flex: 1; }
+.header { background: #1a4a7a; color: white; padding: 5px 12px; display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; }
+.header h1 { font-size: 14px; font-weight: 700; white-space: nowrap; }
+.btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
+         padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
+         display: inline-flex; align-items: center; height: 24px; white-space: nowrap; }
+.btn-h.green  { background: #27ae60; }
+.btn-h.navy   { background: #1a4a7a; border: 1px solid rgba(255,255,255,0.3); }
+.btn-h.blue   { background: #2e6da4; }
+.btn-h.orange { background: #e67e22; }
+.btn-h.purple { background: #8e44ad; }
+.btn-h.red    { background: #e74c3c; }
+.btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
+.btn-h:not(.grey):hover { opacity: 0.85; }
+/* Recherche avec suggestions */
+.search-hdr-wrap { position: relative; flex-shrink: 0; }
+.search-hdr {
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 24px;
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+    color: white; outline: none; width: 190px;
+}
+.search-hdr::placeholder { color: rgba(255,255,255,0.5); }
+.search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+.header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
+                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.header-clock .cd { font-size: 9px; opacity: 0.75; }
 .patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
 .patient-bar .info span { font-weight: bold; color: #FFD700; }
@@ -330,29 +353,39 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 
 <!-- HEADER -->
 <div class="header">
-    <a href="agenda.php">◀ Agenda</a>
-    <a href="recherche.php" style="background:#27ae60;">🏠 Home</a>
-    <div style="position:relative;display:inline-block;">
-        <input type="text" id="rech-patient" placeholder="🔍 Rechercher patient..." style="padding:5px 10px;border-radius:4px;border:none;font-size:12px;width:200px;">
-        <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:white;border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
+    <!-- GAUCHE : recherche globale avec suggestions -->
+    <div class="search-hdr-wrap">
+        <input class="search-hdr" type="text" id="rech-patient" placeholder="🔍 Rechercher patient...">
+        <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:white;
+             border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
+             z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
-    <h1>🩺 Dossier médical</h1>
-    <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;">
-        <a href="dossier.php?id=<?= $first_id ?>" title="Premier patient" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏮</a>
-        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent"       style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">◀</a>
-        <span style="color:white;font-size:12px;min-width:70px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
-        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant"         style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">▶</a>
-        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier patient" style="background:none;padding:2px 5px;font-size:16px;color:white;text-decoration:none;">⏭</a>
+    <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
+    <span                               class="btn-h grey"  >🏠 Dossier</span>
+    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
+    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
+    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
+    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <!-- Séparateur -->
+    <div style="width:1px;height:22px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
+    <!-- Navigation patient (spécifique dossier) -->
+    <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
+        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
+        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
+        <span style="color:white;font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
+        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
+        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
     </div>
-    <a href="bilan.php?id=<?= $id ?>">🧪 Bilans</a>
-    <a href="jours_feries.php" style="background:#8e44ad;">📅 Fériés</a>
-    <a href="logout.php" style="background:#e74c3c;">🚪 Déco</a>
-
-    <!-- Horloge temps réel -->
-    <div style="margin-left:auto;background:rgba(255,255,255,0.12);border-radius:6px;
-                padding:3px 10px;text-align:right;min-width:130px;">
-        <div id="clockTime" style="font-size:15px;font-weight:bold;letter-spacing:1px;color:#f0f4f8;">--:--:--</div>
-        <div id="clockDate" style="font-size:9px;opacity:0.75;">---</div>
+    <!-- Bilans + Déco (spécifiques dossier) -->
+    <a href="bilan.php?id=<?= $id ?>" class="btn-h blue">🧪 Bilans</a>
+    <a href="logout.php"              class="btn-h red" >🚪 Déco</a>
+    <!-- TITRE -->
+    <h1 style="margin-left:4px;">🩺 Dossier médical</h1>
+    <!-- DROITE : horloge -->
+    <div class="header-clock" style="margin-left:auto;">
+        <div id="clockTime" class="ct">--:--:--</div>
+        <div id="clockDate" class="cd">---</div>
     </div>
 </div>
 

@@ -101,11 +101,21 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
          padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 24px;
          white-space: nowrap; line-height: 1; }
-.btn-h.blue   { background: #2e6da4; }
 .btn-h.green  { background: #27ae60; }
+.btn-h.navy   { background: #1a4a7a; }
+.btn-h.blue   { background: #2e6da4; }
 .btn-h.orange { background: #e67e22; }
-.btn-h.grey   { background: #555; }
-.btn-h:hover  { opacity: 0.85; }
+.btn-h.purple { background: #8e44ad; }
+.btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
+.btn-h:not(.grey):hover { opacity: 0.85; }
+/* Barre recherche dans le header — filtre local sur agenda */
+.search-hdr {
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 24px;
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+    color: white; outline: none; width: 190px; flex-shrink: 0;
+}
+.search-hdr::placeholder { color: rgba(255,255,255,0.5); }
+.search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 
 /* ── Navigation date ── */
 .nav-date { background: #0f3460; color: white; padding: 5px 10px;
@@ -297,22 +307,27 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
 <!-- ── HEADER ── -->
 <script src="home.js"></script>
 <div class="header">
-    <button onclick="goHome()" class="btn-h green">🏠 Dossier</button>
-    <a href="recherche.php" class="btn-h blue">🔍 Recherche</a>
-    <h1>📅 Agenda</h1>
-    <button class="btn-h green"  onclick="ouvrirAjoutPatient()">➕ Ajouter</button>
+    <!-- GAUCHE : recherche locale (filtre les patients du jour) -->
+    <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           oninput="filtrerPatients(this.value)">
+    <!-- MILIEU : boutons fixes (agenda = gris car page courante) -->
+    <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
+    <span                               class="btn-h grey"  >📅 Agenda</span>
+    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
+    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
+    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <!-- Boutons propres à l'agenda -->
+    <button class="btn-h navy"  onclick="ouvrirAjoutPatient()">➕ Ajouter</button>
     <button class="btn-h orange" onclick="modifierLimite()">⚙️ Max (<?= $nbrMax ?>)</button>
-    <button class="btn-h grey"   onclick="voirSemaine()">📊 Semaine</button>
-    <a href="planning.php"       class="btn-h blue">📅 Planning</a>
-    <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
-    <a href="jours_feries.php" class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
-    <!-- Horloge widget identique à dossier.php -->
+    <!-- TITRE -->
+    <h1 style="margin-left:4px;">📅 Agenda</h1>
+    <!-- DROITE : horloge + WA liste -->
     <div style="margin-left:auto; background:rgba(255,255,255,0.12); border-radius:6px;
                 padding:3px 10px; text-align:center; min-width:130px; flex-shrink:0;">
         <div id="clockTime" style="font-size:15px;font-weight:bold;letter-spacing:1px;color:#f0f4f8;">--:--:--</div>
         <div id="clockDate" style="font-size:9px;opacity:0.75;">---</div>
     </div>
-    <!-- Icône WA liste tout à droite -->
     <button onclick="envoyerWaListe()" title="Envoyer WhatsApp à tous"
             style="background:#25D366; border:none; border-radius:8px;
                    width:34px; height:34px; cursor:pointer; padding:0; flex-shrink:0;
@@ -359,8 +374,6 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
         <span class="val"><?= number_format($totalVerse,0,',',' ') ?> DH</span>
         <span class="lbl">versé RDV</span>
     </div>
-    <input type="text" class="search-input" placeholder="🔍 Rechercher..."
-           oninput="filtrerPatients(this.value)">
 </div>
 
 <!-- ── LAYOUT ── -->

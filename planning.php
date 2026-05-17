@@ -155,11 +155,22 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 .btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
          padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 26px; white-space: nowrap; }
-.btn-h.blue   { background: #2e6da4; }
 .btn-h.green  { background: #27ae60; }
+.btn-h.navy   { background: #1a4a7a; }
+.btn-h.blue   { background: #2e6da4; }
+.btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
-.btn-h:hover  { opacity: 0.82; }
-.header-clock { margin-left: auto; background: rgba(255,255,255,0.12);
+.btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
+.btn-h:not(.grey):hover { opacity: 0.82; }
+/* Barre recherche intégrée dans le header */
+.search-hdr {
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 26px;
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+    color: white; outline: none; width: 170px; flex-shrink: 0;
+}
+.search-hdr::placeholder { color: rgba(255,255,255,0.5); }
+.search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+.header-clock { background: rgba(255,255,255,0.12);
                 border-radius: 6px; padding: 3px 10px; text-align: center;
                 min-width: 130px; flex-shrink: 0; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
@@ -311,17 +322,23 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 <!-- HEADER -->
 <script src="home.js"></script>
 <div class="header">
-    <div class="header-clock" style="margin-left:0;margin-right:4px;">
+    <!-- GAUCHE : recherche globale -->
+    <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <!-- MILIEU : boutons fixes (planning = gris car page courante) -->
+    <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
+    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
+    <span                               class="btn-h grey"  >📊 Planning</span>
+    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
+    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <!-- TITRE -->
+    <h1 style="margin-left:8px;">📊 Planning</h1>
+    <!-- DROITE : horloge -->
+    <div class="header-clock" style="margin-left:auto;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
-    <div style="width:1px;height:30px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
-    <button onclick="goHome()" class="btn-h green">🏠 Dossier</button>
-    <a href="recherche.php"      class="btn-h blue">🔍 Recherche</a>
-    <h1>📊 Planning</h1>
-    <a href="agenda.php"         class="btn-h green">📋 Agenda</a>
-    <a href="grille_semaine.php" class="btn-h green">📋 Grille</a>
-    <a href="jours_feries.php"   class="btn-h purple">📅 Fériés</a>
 </div>
 
 <!-- BARRE MODES -->
