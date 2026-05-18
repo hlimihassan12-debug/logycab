@@ -174,9 +174,8 @@ $factCourante = null; $idxFact = 0;
 foreach ($factures as $i => $f) { if ($f['n_facture'] == $nFact) { $factCourante = $f; $idxFact = $i; break; } }
 $factPremiere = $factures ? $factures[count($factures)-1]['n_facture'] : 0;
 $factDerniere = $factures ? $factures[0]['n_facture'] : 0;
-$factPrev = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
-$factNext = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
-
+$factNext = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
+$factPrev = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
 $detailActes = [];
 if ($nFact) {
     $stmtDA = $db->prepare("SELECT d.*, a.ACTE AS nom_acte FROM detail_acte d LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte WHERE d.N_fact = ?");
@@ -367,7 +366,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-    <!-- Séparateur -->
+	<!-- Séparateur -->
     <div style="width:1px;height:22px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
     <!-- Navigation patient (spécifique dossier) -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
@@ -582,7 +581,9 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         <br><span style="font-size:11px;font-weight:bold;color:<?= $delaiCouleur ?>;background:<?= $delaiCouleur ?>22;padding:1px 6px;border-radius:8px;">⏱ <?= $delaiVisite ?></span>
                         <?php endif; ?>
                     </td>
-                    <td class="col-rdv-futur" style="padding:4px;">
+                    <td class="col-rdv-futur" style="padding:4px;" id="td-rdv-prochain">
+                        
+                        <input type="hidden" id="rdv_futur"
                         <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
                         <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;align-items:center;">
@@ -657,6 +658,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                                 style="background:#8e44ad;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;margin-bottom:2px;"><?= $ba ?></button>
                             <?php endforeach; ?>
                         </div>
+						</div>
                     </td>
                 </tr>
             </tbody>
@@ -1811,6 +1813,22 @@ function afficherModifierOrdonnance() {
         document.cookie = 'dernier_patient=' + id +
             '; expires=' + expire.toUTCString() + '; path=/';
     }
+})();
+<script>
+// ── Vue Accueil / Consultation ─────────────────────────────────
+function setVue(vue) {
+    document.cookie = 'vue_dossier=' + vue + ';path=/;max-age=31536000';
+    var isAccueil = (vue === 'accueil');
+    document.getElementById('rdv-vide').style.display   = isAccueil ? 'flex' : 'none';
+    document.getElementById('rdv-module').style.display = isAccueil ? 'none' : 'block';
+    document.getElementById('btn-vue-accueil').style.opacity      = isAccueil ? '1' : '0.5';
+    document.getElementById('btn-vue-consultation').style.opacity = isAccueil ? '0.5' : '1';
+}
+// Lire cookie au chargement
+(function() {
+    var m = document.cookie.match(/vue_dossier=([^;]+)/);
+    var vue = m ? m[1] : 'accueil';
+    setVue(vue);
 })();
 </script>
 </body>
