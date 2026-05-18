@@ -44,7 +44,7 @@ if ((int)$dt->format('N') === 1) {
 }
 
 // ── 2. Jour férié ─────────────────────────────────────────────────────────
-$stmtF = $db->prepare("SELECT COUNT(*) FROM T_JoursFeries WHERE CAST(DateFerie AS DATE) = ?");
+$stmtF = $db->prepare("SELECT COUNT(*) FROM T_JourFeries WHERE CAST(DateFerie AS DATE) = ?");
 $stmtF->execute([$date]);
 if ((int)$stmtF->fetchColumn() > 0) {
     echo json_encode(['date_ok' => false, 'raison' => 'Ce jour est férié — cabinet fermé.']);
