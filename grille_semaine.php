@@ -452,13 +452,56 @@ td.col-ferie { background: #f3e5f5; }
     <span                               class="btn-h grey"  >📋 Grille</span>
     <a href="biologie.php"              class="btn-h orange">🧪 Biologie</a>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+	<button class="btn-h navy" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
     <!-- DROITE : horloge -->
     <div class="hclock" style="margin-left:auto;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
 </div>
-
+<!-- ══ PANNEAU ALLER À UNE DATE ══ -->
+<div id="goDatePanel" style="display:none; position:fixed; top:52px; left:50%; transform:translateX(-50%);
+     background:#1a4a7a; color:white; padding:10px 16px; border-radius:8px; z-index:9999;
+     box-shadow:0 4px 16px rgba(0,0,0,0.4); align-items:center; gap:8px; flex-wrap:wrap;">
+    <span style="font-size:12px; font-weight:bold;">Aller à :</span>
+    <input type="date" id="gdNatif" onchange="gdSyncTexte()"
+           style="border-radius:4px; border:none; padding:3px 6px; font-size:13px; cursor:pointer;">
+    <input type="text" id="gdTexte" placeholder="JJ/MM/AAAA" maxlength="10"
+           oninput="gdSyncNatif()" onkeydown="if(event.key==='Enter') gdAller()"
+           style="width:90px; border-radius:4px; border:none; padding:3px 6px; font-size:13px; text-align:center;">
+    <button onclick="gdAller()"
+            style="background:#27ae60; color:white; border:none; border-radius:4px;
+                   padding:4px 10px; cursor:pointer; font-size:13px;">Aller ▶</button>
+    <button onclick="toggleGoDate()"
+            style="background:rgba(255,255,255,0.2); color:white; border:none; border-radius:4px;
+                   padding:4px 8px; cursor:pointer; font-size:12px;">✕</button>
+</div>
+<script>
+function toggleGoDate() {
+    var p = document.getElementById('goDatePanel');
+    p.style.display = (p.style.display === 'none' || p.style.display === '') ? 'flex' : 'none';
+}
+function gdSyncTexte() {
+    var v = document.getElementById('gdNatif').value;
+    if (v) {
+        var parts = v.split('-');
+        document.getElementById('gdTexte').value = parts[2]+'/'+parts[1]+'/'+parts[0];
+    }
+}
+function gdSyncNatif() {
+    var v = document.getElementById('gdTexte').value;
+    var m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) document.getElementById('gdNatif').value = m[3]+'-'+m[2]+'-'+m[1];
+}
+function gdAller() {
+    var v = document.getElementById('gdNatif').value;
+    if (!v) { var t = document.getElementById('gdTexte').value;
+               var m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+               if (m) v = m[3]+'-'+m[2]+'-'+m[1]; }
+    if (v) window.location.href = 'grille_semaine.php?sem=' + v;
+    else alert('Entrez une date valide (JJ/MM/AAAA)');
+}
+</script>
 <!-- ══ NAVIGATION SEMAINE ══ -->
 <div class="nav-sem">
     <a href="grille_semaine.php?sem=<?= $semPrecS ?>" class="btn-nav">◀ Semaine préc.</a>
