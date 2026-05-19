@@ -174,8 +174,9 @@ $factCourante = null; $idxFact = 0;
 foreach ($factures as $i => $f) { if ($f['n_facture'] == $nFact) { $factCourante = $f; $idxFact = $i; break; } }
 $factPremiere = $factures ? $factures[count($factures)-1]['n_facture'] : 0;
 $factDerniere = $factures ? $factures[0]['n_facture'] : 0;
-$factNext = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
-$factPrev = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
+$factPrev = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
+$factNext = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
+
 $detailActes = [];
 if ($nFact) {
     $stmtDA = $db->prepare("SELECT d.*, a.ACTE AS nom_acte FROM detail_acte d LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte WHERE d.N_fact = ?");
@@ -301,6 +302,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
 .patient-bar .info span { font-weight: bold; color: #FFD700; }
 .main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
+body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .col-left { display: flex; flex-direction: column; gap: 8px; }
 .col-mid  { display: flex; flex-direction: column; gap: 8px; }
 .col-right{ display: flex; flex-direction: column; gap: 8px; }
@@ -346,6 +348,32 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .col-rdv-fixe { background: #e8f0fb; }
 .col-rdv-futur{ background: #f3eafb; }
 @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .row-bottom { grid-template-columns: 1fr; } }
+
+/* ── Vue bascule ── */
+.btn-vue { padding:3px 10px; border-radius:4px; border:none; cursor:pointer; font-size:11px; font-weight:bold; color:white; height:24px; }
+.btn-vue.actif  { background:#1a4a7a; opacity:1; }
+.btn-vue.inactif{ background:rgba(255,255,255,0.25); opacity:0.7; }
+.btn-vue.inactif:hover { opacity:1; }
+
+/* ── Tableau accueil ── */
+.tbl-acc { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; border-radius:6px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.12); }
+.tbl-acc th { padding:6px 8px; text-align:center; font-size:11px; }
+.tbl-acc td { padding:5px 7px; border-bottom:1px solid #e8e8e8; text-align:center; font-size:12px; }
+.tbl-acc td:first-child { background:#f0f4f8; font-size:11px; font-weight:bold; color:#1a4a7a; text-align:right; white-space:nowrap; }
+.tbl-acc tr:last-child td { border-bottom:none; }
+.cell-rdv-prochain { background:#f3eafb; cursor:pointer; transition:background 0.2s; }
+.cell-rdv-prochain:hover { background:#e8d5f5; }
+.cell-rdv-vide { color:#ccc; font-size:18px; }
+
+/* ── Popup RDV prochain ── */
+.popup-rdv-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; }
+.popup-rdv-ov.ouvert { display:flex !important; }
+.popup-rdv-box { background:white; border-radius:10px; padding:0; max-width:420px; width:96%;
+    box-shadow:0 10px 40px rgba(0,0,0,0.3); overflow:hidden; }
+.popup-rdv-header { background:#8e44ad; color:white; padding:12px 16px;
+    display:flex; justify-content:space-between; align-items:center; }
+.popup-rdv-body { padding:14px 16px; }
 </style>
 </head>
 <body>
@@ -366,7 +394,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-	<!-- Séparateur -->
+    <!-- Séparateur -->
     <div style="width:1px;height:22px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
     <!-- Navigation patient (spécifique dossier) -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
@@ -378,7 +406,12 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     </div>
     <!-- Bilans + Déco (spécifiques dossier) -->
     <a href="bilan.php?id=<?= $id ?>" class="btn-h blue">🧪 Bilans</a>
-    <a href="logout.php"              class="btn-h red" >🚪 Déco</a>
+    <!-- Bascule vue -->
+    <div style="display:inline-flex;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px;">
+        <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🏠 Accueil</button>
+        <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Consultation</button>
+    </div>
+    <a href="logout.php" class="btn-h red">🚪 Déco</a>
     <!-- TITRE -->
     <h1 style="margin-left:4px;">🩺 Dossier médical</h1>
     <!-- DROITE : horloge -->
@@ -528,11 +561,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 
         <?php if ($ordCourante): ?>
         <div id="vue-ordonnance">
-        <div id="ord-affichage" style="display:grid;grid-template-columns:1fr 380px;gap:8px;align-items:start;margin-bottom:8px;">
-
-        <!-- COL GAUCHE : TABLEAU RDV + MÉDICAMENTS -->
-        <div>
         <?php
+        // ══ CALCULS COMMUNS AUX DEUX VUES ══════════════════════
         $dv_dateOrd = '—'; $dv_heure = '—'; $dv_actes = '—';
         if ($ordPrecedente) {
             $ts = strtotime($ordPrecedente['date_ordon'] ?? '');
@@ -554,6 +584,236 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
         }
         $acteNouveauRDV = $ordCourante['acte1'] ?? '';
         ?>
+
+        <!-- ══════════════════════════════════════════════════
+             VUE ACCUEIL
+        ══════════════════════════════════════════════════ -->
+        <div id="section-accueil">
+        <?php
+        // ── Calculs spécifiques vue accueil ──────────────────
+        $rdvp_delai = '—';
+        if ($ordPrecedente && !empty($ordPrecedente['DATE REDEZ VOUS']) && !empty($ordPrecedente['date_ordon'])) {
+            $tsOrd = strtotime($ordPrecedente['date_ordon']);
+            $tsRdv = strtotime($ordPrecedente['DATE REDEZ VOUS']);
+            if ($tsOrd && $tsRdv && $tsRdv > 86400) {
+                $diff = (new DateTime(date('Y-m-d',$tsOrd)))->diff(new DateTime(date('Y-m-d',$tsRdv)));
+                $m = $diff->m + $diff->y*12; $j = $diff->d;
+                $rdvp_delai = $m > 0 ? $m.'M'.($j>0?' '.$j.'j':'') : $j.'j';
+            }
+        }
+        // Actes Dernière visite
+        $dv_acte_ecg  = in_array('ECG',  $dernActesFact) ? 'ECG'  : '—';
+        $dv_acte_edc  = in_array('EDC',  $dernActesFact) ? 'EDC'  : '—';
+        $dv_acte_dtsa = in_array('DTSA', $dernActesFact) ? 'DTSA' : '—';
+        // Actes RDV prévu
+        $rdvp_acte_str = $ordPrecedente['acte1'] ?? '';
+        $rdvp_ecg  = (strpos($rdvp_acte_str,'ECG')!==false)  ? 'ECG'  : '—';
+        $rdvp_edc  = (strpos($rdvp_acte_str,'EDC')!==false)  ? 'EDC'  : '—';
+        $rdvp_dtsa = (strpos($rdvp_acte_str,'DTSA')!==false) ? 'DTSA' : '—';
+        // Actes Actuel (suggérés)
+        $act_ecg  = in_array('ECG',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">ECG</span>'  : '<span style="color:#27ae60;">✓</span>';
+        $act_edc  = in_array('EDC',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">EDC</span>'  : '<span style="color:#27ae60;">✓</span>';
+        $act_dtsa = in_array('DTSA', $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">DTSA</span>' : '<span style="color:#27ae60;">✓</span>';
+        // Totaux historique
+        $tot_ecg  = count($histECG);
+        $tot_edc  = count($histEDC);
+        $tot_dtsa = count($histDTSA);
+        // RDV prochain existant
+        $rdvf_date  = $rdvFuturVal ? date('d/m/Y', strtotime($rdvFuturVal)) : '';
+        $rdvf_heure = !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '';
+        $rdvf_acte  = htmlspecialchars($ordCourante['acte1'] ?? '');
+        ?>
+
+        <!-- Info date ordonnance + recrutement -->
+        <div style="display:flex;gap:16px;font-size:11px;color:#555;margin-bottom:6px;flex-wrap:wrap;">
+            <span>📋 <strong>Ordonnance :</strong>
+                <?php
+                $tsOrdAff = $ordCourante ? strtotime($ordCourante['date_ordon'] ?? '') : 0;
+                echo ($tsOrdAff && $tsOrdAff>86400) ? date('d/m/Y',$tsOrdAff) : '—';
+                ?>
+            </span>
+            <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
+        </div>
+
+        <!-- Tableau principal accueil -->
+        <table class="tbl-acc">
+            <thead>
+                <tr>
+                    <th style="background:#1a4a7a;color:white;width:80px;"></th>
+                    <th style="background:#2e6da4;color:white;">🏥 Dernière visite</th>
+                    <th style="background:#5b7fa6;color:white;">📅 RDV prévu</th>
+                    <th style="background:#27ae60;color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
+                    <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV">
+                        📆 RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Ligne Date / Heure -->
+                <tr>
+                    <td>📅 Date<br>⏰ Heure</td>
+                    <td class="col-rdv-fixe">
+                        <strong style="color:#2e6da4;"><?= $dv_dateOrd ?></strong><br>
+                        <span style="color:#2e6da4;font-size:11px;"><?= $dv_heure ?></span>
+                    </td>
+                    <td style="background:#dce8f7;">
+                        <strong style="color:#5b7fa6;"><?= $rdvp_date ?></strong><br>
+                        <span style="color:#5b7fa6;font-size:11px;"><?= $rdvp_heure ?></span>
+                    </td>
+                    <td class="col-visite">
+                        <strong style="color:#27ae60;"><?= date('d/m/Y') ?></strong>
+                        <?php if ($delaiVisite): ?>
+                        <br><span style="font-size:10px;font-weight:bold;color:<?= $delaiCouleur ?>;">⏱ <?= $delaiVisite ?></span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-date">
+                        <?php if ($rdvf_date): ?>
+                            <strong style="color:#8e44ad;"><?= $rdvf_date ?></strong><br>
+                            <span style="color:#8e44ad;font-size:11px;"><?= $rdvf_heure ?></span>
+                        <?php else: ?>
+                            <span class="cell-rdv-vide">＋</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <!-- Ligne Délai -->
+                <tr>
+                    <td>⏱ Délai</td>
+                    <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
+                    <td style="background:#dce8f7;color:#5b7fa6;font-weight:bold;"><?= $rdvp_delai ?></td>
+                    <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-delai">
+                        <span style="color:#8e44ad;font-weight:bold;" id="acc-rdvp-delai-txt">—</span>
+                    </td>
+                </tr>
+                <!-- Ligne ECG -->
+                <tr>
+                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
+                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_ecg!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
+                    <td class="col-visite"><?= $act_ecg ?></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-ecg"><span style="color:#ccc;">—</span></td>
+                </tr>
+                <!-- Ligne EDC -->
+                <tr>
+                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
+                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_edc!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
+                    <td class="col-visite"><?= $act_edc ?></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edc"><span style="color:#ccc;">—</span></td>
+                </tr>
+                <!-- Ligne DTSA -->
+                <tr>
+                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
+                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_dtsa!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
+                    <td class="col-visite"><?= $act_dtsa ?></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-dtsa"><span style="color:#ccc;">—</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- MÉDICAMENTS (identique) -->
+        <div class="champ" style="margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+            </div>
+            <?php if (!empty($medicaments)): ?>
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
+                <span style="font-size:10px;color:#888;text-transform:uppercase;">Médicament</span>
+                <span style="font-size:10px;color:#888;text-transform:uppercase;">Posologie</span>
+                <span style="font-size:10px;color:#888;text-transform:uppercase;">Durée</span>
+            </div>
+            <?php foreach ($medicaments as $m): ?>
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
+                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+            </div>
+            <?php endforeach; ?>
+            <?php else: ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
+        </div>
+
+        <!-- FACTURATION ACCUEIL (sans colonne Prix) -->
+        <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:12px;font-weight:bold;color:#1a4a7a;">💰 Facturation</span>
+                <?php if ($factCourante): ?>
+                <?php $tsFA=strtotime($factCourante['date_facture']??''); $dfA=($tsFA&&$tsFA>86400)?date('d/m/Y',$tsFA):'—'; $estAujFA=($tsFA&&date('Y-m-d',$tsFA)===date('Y-m-d')); ?>
+                <span style="font-size:12px;font-weight:bold;color:<?=$estAujFA?'#e74c3c':'#1a4a7a'?>;background:<?=$estAujFA?'#fdecea':'#e8f0fb'?>;padding:2px 8px;border-radius:4px;border:1px solid <?=$estAujFA?'#e74c3c':'#2e6da4'?>;"><?= $dfA ?></span>
+                <?php endif; ?>
+            </div>
+            <?php if ($factCourante): ?>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <thead style="background:#1a4a7a;color:white;">
+                    <tr>
+                        <th style="padding:4px 6px;text-align:left;">Date acte</th>
+                        <th style="padding:4px 6px;text-align:left;">Acte</th>
+                        <th style="padding:4px 6px;text-align:right;">Versé</th>
+                        <th style="padding:4px 6px;text-align:right;">Reste</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($detailActes as $da): ?>
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:4px 6px;color:#555;font-size:11px;"><?= $da['date-H'] ? date('d/m/Y',strtotime($da['date-H'])) : '—' ?></td>
+                    <td style="padding:4px 6px;"><?= htmlspecialchars($da['nom_acte'] ?? 'Acte '.$da['ACTE']) ?></td>
+                    <td style="padding:4px 6px;text-align:right;"><?= number_format($da['Versé'],0,',',' ') ?></td>
+                    <td style="padding:4px 6px;text-align:right;color:<?=$da['dette']>0?'#e74c3c':'#27ae60'?>;"><?= number_format($da['dette'],0,',',' ') ?></td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot style="background:#f0f4f8;font-weight:bold;">
+                    <tr>
+                        <td colspan="2" style="padding:4px 6px;">Total</td>
+                        <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['verse_total'],0,',',' ') ?> DH</td>
+                        <td style="padding:4px 6px;text-align:right;color:<?=$factCourante['dette_total']>0?'#e74c3c':'#27ae60'?>;"><?= number_format($factCourante['dette_total'],0,',',' ') ?> DH</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;">
+                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
+                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
+                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+            </div>
+            <?php else: ?>
+            <p style="color:#999;font-size:12px;">Aucune facture</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- CERTIFICAT (bouton seulement, zone cachée) -->
+        <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+            <button type="button"
+                onclick="var z=document.getElementById('cert-zone-acc');z.style.display=z.style.display==='none'?'block':'none'"
+                style="background:white;color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
+                Certificat médical
+            </button>
+            <div id="cert-zone-acc" style="display:none;background:#f0f4f8;border-radius:6px;padding:8px;margin-top:8px;border:1px solid #dde3ea;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;">
+                    <span>du</span>
+                    <input type="date" id="cert_debut_acc" style="border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;" onchange="calcNbrJAcc()">
+                    <span>au</span>
+                    <input type="date" id="cert_fin_acc"   style="border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;" onchange="calcNbrJAcc()">
+                    <span>Nbr J</span>
+                    <input type="number" id="cert_nbrj_acc" style="width:55px;border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;text-align:center;" readonly>
+                    <button type="button" onclick="imprimerCertificatAcc()" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">🖨️ Imprimer</button>
+                </div>
+            </div>
+        </div>
+
+        </div><!-- FIN section-accueil -->
+
+        <!-- ══════════════════════════════════════════════════
+             VUE CONSULTATION (identique à l'original)
+        ══════════════════════════════════════════════════ -->
+        <div id="section-consultation" style="display:none;">
+        <div id="ord-affichage" style="display:grid;grid-template-columns:1fr 380px;gap:8px;align-items:start;margin-bottom:8px;">
+
+        <!-- COL GAUCHE : TABLEAU RDV + MÉDICAMENTS -->
+        <div>
         <table class="tableau-rdv">
             <thead>
                 <tr>
@@ -581,9 +841,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         <br><span style="font-size:11px;font-weight:bold;color:<?= $delaiCouleur ?>;background:<?= $delaiCouleur ?>22;padding:1px 6px;border-radius:8px;">⏱ <?= $delaiVisite ?></span>
                         <?php endif; ?>
                     </td>
-                    <td class="col-rdv-futur" style="padding:4px;" id="td-rdv-prochain">
-                        
-                        <input type="hidden" id="rdv_futur"
+                    <td class="col-rdv-futur" style="padding:4px;">
                         <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
                         <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;align-items:center;">
@@ -612,23 +870,23 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     </button>
 					   </div>
                         <div style="display:flex;gap:4px;margin-bottom:4px;">
-                            <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
+                            <input type="date" id="rdv_futur_visible_cons" value="<?= $rdvFuturVal ?>"
                                    onchange="rdvDateChange(this.value,'rdv')"
                                    ondblclick="if(this.value) window.location.href='agenda.php?date='+this.value"
                                    title="Double-clic → ouvrir l'agenda ce jour"
                                    style="flex:1;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;cursor:pointer;">
-                            <div id="rdv_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;white-space:nowrap;">
+                            <div id="rdv_heure_affichage_cons" style="background:#e8d5f5;color:#8e44ad;padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;white-space:nowrap;">
                                 <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
                             </div>
                         </div>
-                        <div class="jauge-jour" id="rdv_jauge" style="display:none;">
-                            <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;font-size:10px;"></span>
-                            <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill" style="width:0%"></div></div>
+                        <div class="jauge-jour" id="rdv_jauge_cons" style="display:none;">
+                            <span id="rdv_jauge_txt_cons" style="white-space:nowrap;color:#555;font-size:10px;"></span>
+                            <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill_cons" style="width:0%"></div></div>
                         </div>
                         <div class="creneaux-wrap">
-                            <div class="creneaux-loading" id="rdv_loading" style="display:none;">⏳ Chargement…</div>
-                            <div class="creneaux-msg"     id="rdv_msg"     style="display:none;"></div>
-                            <div class="creneaux-grille"  id="rdv_grille"></div>
+                            <div class="creneaux-loading" id="rdv_loading_cons" style="display:none;">⏳ Chargement…</div>
+                            <div class="creneaux-msg"     id="rdv_msg_cons"     style="display:none;"></div>
+                            <div class="creneaux-grille"  id="rdv_grille_cons"></div>
                         </div>
                     </td>
                 </tr>
@@ -649,7 +907,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         <?php if (empty($actesSuggeres)): ?><span style="color:#27ae60;font-size:11px;">✅ À jour</span><?php endif; ?>
                     </td>
                     <td class="col-rdv-futur" style="padding:4px;">
-                        <input type="text" id="acte_rdv_futur" value="<?= htmlspecialchars($acteNouveauRDV) ?>"
+                        <input type="text" id="acte_rdv_futur_cons" value="<?= htmlspecialchars($acteNouveauRDV) ?>"
                                oninput="syncActe(this.value,'rdv')"
                                style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;text-align:center;margin-bottom:3px;">
                         <div style="display:flex;gap:2px;flex-wrap:wrap;">
@@ -658,7 +916,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                                 style="background:#8e44ad;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;margin-bottom:2px;"><?= $ba ?></button>
                             <?php endforeach; ?>
                         </div>
-						</div>
                     </td>
                 </tr>
             </tbody>
@@ -738,7 +995,6 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <tr>
                         <th style="padding:4px 6px;text-align:left;">Date acte</th>
                         <th style="padding:4px 6px;text-align:left;">Acte</th>
-                        <th style="padding:4px 6px;text-align:right;">Prix</th>
                         <th style="padding:4px 6px;text-align:right;">Versé</th>
                         <th style="padding:4px 6px;text-align:right;">Reste</th>
                     </tr>
@@ -752,18 +1008,16 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                         style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:110px;">
                     </td>
                     <td style="padding:4px 6px;"><?= htmlspecialchars($da['nom_acte'] ?? 'Acte '.$da['ACTE']) ?></td>
-                    <td style="padding:4px 6px;text-align:right;"><?= number_format($da['prixU'], 0, ',', ' ') ?></td>
                     <td style="padding:4px 6px;text-align:right;"><?= number_format($da['Versé'], 0, ',', ' ') ?></td>
-                    <td style="padding:4px 6px;text-align:right;"><?= number_format($da['dette'], 0, ',', ' ') ?></td>
+                    <td style="padding:4px 6px;text-align:right;color:<?= $da['dette']>0?'#e74c3c':'#27ae60' ?>;"><?= number_format($da['dette'], 0, ',', ' ') ?></td>
                 </tr>
                 <?php endforeach; ?>
                 </tbody>
                 <tfoot style="background:#f0f4f8;font-weight:bold;">
                     <tr>
-                        <td style="padding:4px 6px;">Total</td><td></td>
-                        <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['total'], 0, ',', ' ') ?> DH</td>
+                        <td colspan="2" style="padding:4px 6px;">Total</td>
                         <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['verse_total'], 0, ',', ' ') ?> DH</td>
-                        <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['dette_total'], 0, ',', ' ') ?> DH</td>
+                        <td style="padding:4px 6px;text-align:right;color:<?= $factCourante['dette_total']>0?'#e74c3c':'#27ae60' ?>;"><?= number_format($factCourante['dette_total'], 0, ',', ' ') ?> DH</td>
                     </tr>
                 </tfoot>
             </table>
@@ -938,6 +1192,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 
         </div><!-- FIN vue-ordonnance -->
 
+        </div><!-- FIN section-consultation -->
+
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucune ordonnance</p>
             <div class="nav-ord-barre">
@@ -952,79 +1208,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 
     </div><!-- FIN card ordonnance -->
 </div><!-- FIN col-mid -->
-
-<!-- ══ POPUP NOUVELLE ORDONNANCE ══ -->
-<div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
-    <div style="background:white;border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #27ae60;">
-            <strong style="color:#27ae60;font-size:15px;">✚ Nouvelle ordonnance</strong>
-            <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-            <div>
-                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
-                <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;">
-            </div>
-            <div>
-                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
-                <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
-                       style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
-                <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                    <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
-                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-        <div style="margin-bottom:12px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
-            <label style="font-size:10px;color:#8e44ad;font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
-            <input type="hidden" id="no_rdv"   value="">
-            <input type="hidden" id="no_heure" value="">
-            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
-                <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
-                <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
-                <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
-                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
-                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
-                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-                <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
-                       style="flex:1;border:1px solid #8e44ad;border-radius:4px;padding:5px 8px;font-size:12px;">
-                <div id="no_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
-            </div>
-            <div class="jauge-jour" id="no_jauge" style="display:none;">
-                <span id="no_jauge_txt" style="white-space:nowrap;color:#555;font-size:11px;"></span>
-                <div class="jauge-bar"><div class="jauge-fill ok" id="no_jauge_fill" style="width:0%"></div></div>
-            </div>
-            <div class="creneaux-wrap">
-                <div class="creneaux-loading" id="no_loading"  style="display:none;">⏳ Chargement…</div>
-                <div class="creneaux-msg"     id="no_msg_rdv"  style="display:none;"></div>
-                <div class="creneaux-grille"  id="no_grille"></div>
-            </div>
-        </div>
-        <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin-bottom:8px;">💊 Médicaments :</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
-            <thead style="background:#1a4a7a;color:white;">
-                <tr>
-                    <th style="padding:6px 8px;text-align:left;">Médicament</th>
-                    <th style="padding:6px 8px;text-align:left;">Posologie</th>
-                    <th style="padding:6px 8px;text-align:left;">Durée</th>
-                    <th style="padding:6px 8px;width:30px;"></th>
-                </tr>
-            </thead>
-            <tbody id="no_lignes"></tbody>
-        </table>
-        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
-            <button type="button" onclick="noAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
-            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600;">💾 Enregistrer</button>
-            <span id="no_msg" style="font-size:12px;color:#27ae60;"></span>
-        </div>
-    </div>
-</div>
-
 <!-- ══ COLONNE DROITE : EXAMEN CLINIQUE ══ -->
-<div class="col-right">
+<div class="col-right" id="col-right-exam">
     <div class="card">
         <div class="card-title">🩺 Examen clinique</div>
         <?php if ($examen): ?>
@@ -1139,6 +1324,77 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     </div>
 	
 </div>
+
+</div><!-- FIN .main -->
+
+<!-- ══ POPUP NOUVELLE ORDONNANCE ══ -->
+<div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
+    <div style="background:white;border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #27ae60;">
+            <strong style="color:#27ae60;font-size:15px;">✚ Nouvelle ordonnance</strong>
+            <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
+                <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;">
+            </div>
+            <div>
+                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
+                <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
+                       style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
+                <div style="display:flex;gap:3px;flex-wrap:wrap;">
+                    <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
+                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <div style="margin-bottom:12px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
+            <label style="font-size:10px;color:#8e44ad;font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
+            <input type="hidden" id="no_rdv"   value="">
+            <input type="hidden" id="no_heure" value="">
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
+                <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
+                <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
+                <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
+                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
+                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
+                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
+                       style="flex:1;border:1px solid #8e44ad;border-radius:4px;padding:5px 8px;font-size:12px;">
+                <div id="no_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
+            </div>
+            <div class="jauge-jour" id="no_jauge" style="display:none;">
+                <span id="no_jauge_txt" style="white-space:nowrap;color:#555;font-size:11px;"></span>
+                <div class="jauge-bar"><div class="jauge-fill ok" id="no_jauge_fill" style="width:0%"></div></div>
+            </div>
+            <div class="creneaux-wrap">
+                <div class="creneaux-loading" id="no_loading"  style="display:none;">⏳ Chargement…</div>
+                <div class="creneaux-msg"     id="no_msg_rdv"  style="display:none;"></div>
+                <div class="creneaux-grille"  id="no_grille"></div>
+            </div>
+        </div>
+        <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin-bottom:8px;">💊 Médicaments :</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead style="background:#1a4a7a;color:white;">
+                <tr>
+                    <th style="padding:6px 8px;text-align:left;">Médicament</th>
+                    <th style="padding:6px 8px;text-align:left;">Posologie</th>
+                    <th style="padding:6px 8px;text-align:left;">Durée</th>
+                    <th style="padding:6px 8px;width:30px;"></th>
+                </tr>
+            </thead>
+            <tbody id="no_lignes"></tbody>
+        </table>
+        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
+            <button type="button" onclick="noAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
+            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600;">💾 Enregistrer</button>
+            <span id="no_msg" style="font-size:12px;color:#27ae60;"></span>
+        </div>
+    </div>
 
 </div><!-- FIN .main -->
 
@@ -1777,10 +2033,9 @@ function nfEnregistrer(patientId) {
     }).catch(()=>{document.getElementById('nf_msg').textContent='❌ Erreur réseau';document.getElementById('nf_msg').style.color='#e74c3c';});
 }
 
+// DOMContentLoaded : pas de chargement auto des créneaux (ils se chargent à l'ouverture de la popup)
 document.addEventListener('DOMContentLoaded', ()=>{
-    const dateInit=document.getElementById('rdv_futur')?.value;
-    if(dateInit && /^\d{4}-\d{2}-\d{2}$/.test(dateInit) && dateInit!=='1970-01-01')
-        rdvChargerCreneaux(dateInit,'rdv',false);
+    // La popup charge les créneaux quand elle s'ouvre via ouvrirPopupRdv()
 });
 function afficherModifierOrdonnance() {
     window.location.href = 'modifier_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>';
@@ -1814,22 +2069,171 @@ function afficherModifierOrdonnance() {
             '; expires=' + expire.toUTCString() + '; path=/';
     }
 })();
-<script>
-// ── Vue Accueil / Consultation ─────────────────────────────────
+
+// ════════════════════════════════════════════════════════════
+// BASCULE VUE ACCUEIL / CONSULTATION
+// ════════════════════════════════════════════════════════════
 function setVue(vue) {
     document.cookie = 'vue_dossier=' + vue + ';path=/;max-age=31536000';
-    var isAccueil = (vue === 'accueil');
-    document.getElementById('rdv-vide').style.display   = isAccueil ? 'flex' : 'none';
-    document.getElementById('rdv-module').style.display = isAccueil ? 'none' : 'block';
-    document.getElementById('btn-vue-accueil').style.opacity      = isAccueil ? '1' : '0.5';
-    document.getElementById('btn-vue-consultation').style.opacity = isAccueil ? '0.5' : '1';
+    const isAccueil = (vue === 'accueil');
+    // Classe sur body — CSS fait le reste
+    document.body.classList.toggle('vue-accueil', isAccueil);
+    document.getElementById('section-accueil').style.display      = isAccueil ? 'block' : 'none';
+    document.getElementById('section-consultation').style.display = isAccueil ? 'none'  : 'block';
+    document.getElementById('btn-vue-accueil').className      = 'btn-vue ' + (isAccueil ? 'actif' : 'inactif');
+    document.getElementById('btn-vue-consultation').className = 'btn-vue ' + (isAccueil ? 'inactif' : 'actif');
 }
-// Lire cookie au chargement
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var m = document.cookie.match(/vue_dossier=([^;]+)/);
-    var vue = m ? m[1] : 'accueil';
-    setVue(vue);
-})();
+    setVue(m ? m[1] : 'accueil');
+});
+
+// ════════════════════════════════════════════════════════════
+// POPUP RDV PROCHAIN (vue accueil)
+// ════════════════════════════════════════════════════════════
+function ouvrirPopupRdv() {
+    document.getElementById('popup-rdv-acc').classList.add('ouvert');
+    // Charger les créneaux si date déjà connue
+    const dateActuelle = document.getElementById('rdv_futur')?.value;
+    if (dateActuelle && /^\d{4}-\d{2}-\d{2}$/.test(dateActuelle) && dateActuelle !== '1970-01-01') {
+        rdvChargerCreneaux(dateActuelle, 'rdv', false);
+    }
+}
+function fermerPopupRdv() {
+    document.getElementById('popup-rdv-acc').classList.remove('ouvert');
+}
+
+// Mettre à jour la colonne RDV prochain dans le tableau accueil après confirmation
+function mettreAJourAccueilRdv(date, heure, acte) {
+    // Date
+    const cellDate = document.getElementById('acc-rdvp-date');
+    if (cellDate) {
+        const dateFr = date ? date.split('-').reverse().join('/') : '—';
+        cellDate.innerHTML = `<strong style="color:#8e44ad;">${dateFr}</strong>${heure ? '<br><span style="color:#8e44ad;font-size:11px;">'+heure+'</span>' : ''}`;
+    }
+    // Délai (calculé depuis aujourd'hui)
+    if (date) {
+        const now = new Date();
+        const rdv = new Date(date);
+        const diffMs = rdv - now;
+        const diffJ  = Math.round(diffMs / 86400000);
+        const mois   = Math.floor(diffJ / 30);
+        const jours  = diffJ % 30;
+        const delaiTxt = mois > 0 ? mois + 'M' + (jours > 0 ? ' ' + jours + 'j' : '') : diffJ + 'j';
+        const el = document.getElementById('acc-rdvp-delai-txt');
+        if (el) el.textContent = delaiTxt;
+    }
+    // Actes
+    ['ecg','edc','dtsa'].forEach(a => {
+        const el = document.getElementById('acc-rdvp-' + a);
+        if (!el) return;
+        const trouve = acte && acte.toUpperCase().indexOf(a.toUpperCase()) !== -1;
+        el.innerHTML = trouve
+            ? `<span style="color:#8e44ad;font-weight:bold;">${a.toUpperCase()}</span>`
+            : `<span style="color:#ccc;">—</span>`;
+    });
+}
+
+// Surcharge confirmerRdv pour mettre à jour la vue accueil aussi
+const _confirmerRdvOrig = confirmerRdv;
+function confirmerRdv(nOrdon) {
+    const dateRdv  = document.getElementById('rdv_futur')?.value;
+    const heureRdv = document.getElementById('heure_rdv_futur')?.value || '';
+    const acte     = document.getElementById('acte_rdv_futur')?.value || '';
+    if (!dateRdv) { alert('Veuillez choisir une date de RDV'); return; }
+    verifierEtAppliquerDate(dateRdv, 'rdv', (dateFin) => {
+        const dateFr = dateEnFr(dateFin);
+        fetch('ajax_maj_rdv.php', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ n_ordon:nOrdon, date_rdv:dateFin, heure_rdv:heureRdv })
+        })
+        .then(r=>r.json())
+        .then(data => {
+            if (data.success) {
+                // Mettre à jour vue accueil instantanément
+                mettreAJourAccueilRdv(dateFin, heureRdv, acte);
+                fermerPopupRdv();
+                alert('✅ RDV enregistré : ' + dateFr + (heureRdv ? ' à ' + heureRdv : ''));
+            } else alert('❌ Erreur : ' + data.error);
+        });
+    });
+}
+
+// Certificat vue accueil
+function calcNbrJAcc() {
+    const d1=document.getElementById('cert_debut_acc').value, d2=document.getElementById('cert_fin_acc').value;
+    if (d1&&d2) { const diff=Math.round((new Date(d2)-new Date(d1))/86400000); document.getElementById('cert_nbrj_acc').value=diff>=0?diff:0; }
+}
+function imprimerCertificatAcc() {
+    document.getElementById('cert_debut').value = document.getElementById('cert_debut_acc').value;
+    document.getElementById('cert_fin').value   = document.getElementById('cert_fin_acc').value;
+    document.getElementById('cert_nbrj').value  = document.getElementById('cert_nbrj_acc').value;
+    imprimerCertificat();
+}
 </script>
+
+<!-- POPUP RDV PROCHAIN (vue accueil) -->
+<div class="popup-rdv-ov" id="popup-rdv-acc">
+    <div class="popup-rdv-box">
+        <div class="popup-rdv-header">
+            <strong style="font-size:14px;">📆 RDV prochain</strong>
+            <button onclick="fermerPopupRdv()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;">✕</button>
+        </div>
+        <div class="popup-rdv-body">
+            <!-- Boutons délai -->
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+                <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
+                <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
+                <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
+                <button type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
+                <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
+                <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
+                <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
+                <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
+                        style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:bold;margin-left:auto;">
+                    📅 RDV
+                </button>
+            </div>
+            <!-- Date + heure -->
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+                <input type="date" id="rdv_futur_visible" value="<?= $rdvFuturVal ?>"
+                       onchange="rdvDateChange(this.value,'rdv')"
+                       ondblclick="if(this.value) window.location.href='agenda.php?date='+this.value"
+                       title="Double-clic → ouvrir l'agenda ce jour"
+                       style="flex:1;padding:5px 8px;border:1px solid #8e44ad;border-radius:4px;font-size:12px;cursor:pointer;">
+                <div id="rdv_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 10px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">
+                    <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
+                </div>
+            </div>
+            <!-- Jauge -->
+            <div class="jauge-jour" id="rdv_jauge" style="display:none;">
+                <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;font-size:10px;"></span>
+                <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill" style="width:0%"></div></div>
+            </div>
+            <!-- Grille créneaux -->
+            <div class="creneaux-wrap">
+                <div class="creneaux-loading" id="rdv_loading" style="display:none;">⏳ Chargement…</div>
+                <div class="creneaux-msg"     id="rdv_msg"     style="display:none;"></div>
+                <div class="creneaux-grille"  id="rdv_grille"></div>
+            </div>
+            <!-- Acte -->
+            <div style="margin-top:8px;">
+                <input type="text" id="acte_rdv_futur" value="<?= htmlspecialchars($ordCourante['acte1'] ?? '') ?>"
+                       oninput="syncActe(this.value,'rdv')"
+                       placeholder="Acte…"
+                       style="width:100%;padding:4px 8px;border:1px solid #8e44ad;border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
+                <div style="display:flex;gap:3px;flex-wrap:wrap;">
+                    <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
+                    <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
+                        style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
