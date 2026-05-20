@@ -589,6 +589,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
              VUE ACCUEIL
         ══════════════════════════════════════════════════ -->
         <div id="section-accueil">
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:10px;align-items:start;">
+        <div><!-- COL GAUCHE : tableau + médicaments -->
         <?php
         // ── Calculs spécifiques vue accueil ──────────────────
         $rdvp_delai = '—';
@@ -624,14 +626,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         $rdvf_acte  = htmlspecialchars($ordCourante['acte1'] ?? '');
         ?>
 
-        <!-- Info date ordonnance + recrutement -->
-        <div style="display:flex;gap:16px;font-size:11px;color:#555;margin-bottom:6px;flex-wrap:wrap;">
-            <span>📋 <strong>Ordonnance :</strong>
-                <?php
-                $tsOrdAff = $ordCourante ? strtotime($ordCourante['date_ordon'] ?? '') : 0;
-                echo ($tsOrdAff && $tsOrdAff>86400) ? date('d/m/Y',$tsOrdAff) : '—';
-                ?>
-            </span>
+        <!-- Recrutement accueil -->
+        <div style="font-size:11px;color:#555;margin-bottom:6px;">
             <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
         </div>
 
@@ -717,6 +713,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
                 <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
                 <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
             </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
@@ -733,6 +730,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <?php endforeach; ?>
             <?php else: ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
         </div>
+
+        </div><!-- FIN COL GAUCHE ACCUEIL -->
+        <div><!-- COL DROITE : facturation + certificat -->
 
         <!-- FACTURATION ACCUEIL (sans colonne Prix) -->
         <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
@@ -804,12 +804,20 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             </div>
         </div>
 
+        </div><!-- FIN COL DROITE ACCUEIL -->
+        </div><!-- FIN GRILLE ACCUEIL -->
         </div><!-- FIN section-accueil -->
 
         <!-- ══════════════════════════════════════════════════
              VUE CONSULTATION (identique à l'original)
         ══════════════════════════════════════════════════ -->
         <div id="section-consultation" style="display:none;">
+
+        <!-- Recrutement consultation -->
+        <div style="font-size:11px;color:#555;margin-bottom:6px;">
+            <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
+        </div>
+
         <div id="ord-affichage" style="display:grid;grid-template-columns:1fr 380px;gap:8px;align-items:start;margin-bottom:8px;">
 
         <!-- COL GAUCHE : TABLEAU RDV + MÉDICAMENTS -->
@@ -890,33 +898,37 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                         </div>
                     </td>
                 </tr>
+                <!-- Ligne Délai -->
                 <tr>
-                    <td>🏥 Acte</td>
-                    <td class="col-rdv-fixe" style="text-align:center;">
-                        <span style="background:#dce8f7;color:#1a4a7a;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;"><?= $dv_actes ?></span>
-                    </td>
-                    <td style="background:#dce8f7;text-align:center;">
-                        <span style="background:#b8d0ec;color:#1a4a7a;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold;"><?= $rdvp_acte ?></span>
-                    </td>
-                    <td class="col-visite" style="text-align:center;padding:4px;">
-                        <?php foreach ($actesSuggeres as $as): ?>
-                        <div style="border:2px solid #555;color:#333;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:2px;display:inline-block;background:#f9f9f9;">
-                            <?= $as['acte'] ?> <span style="font-size:9px;color:#888;"><?= $as['derniere'] ? date('d/m/y', strtotime($as['derniere'])) : 'jamais' ?></span>
-                        </div>
-                        <?php endforeach; ?>
-                        <?php if (empty($actesSuggeres)): ?><span style="color:#27ae60;font-size:11px;">✅ À jour</span><?php endif; ?>
-                    </td>
-                    <td class="col-rdv-futur" style="padding:4px;">
-                        <input type="text" id="acte_rdv_futur_cons" value="<?= htmlspecialchars($acteNouveauRDV) ?>"
-                               oninput="syncActe(this.value,'rdv')"
-                               style="width:100%;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;text-align:center;margin-bottom:3px;">
-                        <div style="display:flex;gap:2px;flex-wrap:wrap;">
-                            <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
-                            <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
-                                style="background:#8e44ad;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;margin-bottom:2px;"><?= $ba ?></button>
-                            <?php endforeach; ?>
-                        </div>
-                    </td>
+                    <td>⏱ Délai</td>
+                    <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
+                    <td style="background:#dce8f7;color:#5b7fa6;font-weight:bold;"><?= $rdvp_delai ?? '—' ?></td>
+                    <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
+                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                </tr>
+                <!-- Ligne ECG -->
+                <tr>
+                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
+                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_ecg!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
+                    <td class="col-visite"><?= $act_ecg ?></td>
+                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                </tr>
+                <!-- Ligne EDC -->
+                <tr>
+                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
+                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_edc!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
+                    <td class="col-visite"><?= $act_edc ?></td>
+                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                </tr>
+                <!-- Ligne DTSA -->
+                <tr>
+                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
+                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_dtsa!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
+                    <td class="col-visite"><?= $act_dtsa ?></td>
+                    <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
             </tbody>
         </table>
@@ -927,6 +939,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
                 <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
                 <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
                     $tsOrd2 = strtotime($ordCourante['date_ordon']);
@@ -1100,79 +1113,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </div>
                 </div>
 
-                <!-- DATE RECRUTEMENT -->
-                <div style="font-size:11px;color:#555;margin-bottom:8px;">
-                    🏥 <strong>Recrutement :</strong> <?= $datePVAff ?>
-                </div>
-
-                <!-- TABLEAU HISTORIQUE + ACTES SUGGÉRÉS (4 colonnes) -->
-                <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                    <thead>
-                        <tr style="background:#1a4a7a;color:white;">
-                            <th style="padding:5px 6px;text-align:left;">Acte</th>
-                            <th style="padding:5px 6px;text-align:center;">Historique</th>
-                            <th style="padding:5px 6px;text-align:center;">Dernière réal.</th>
-                            <th style="padding:5px 6px;text-align:center;">Acte suggéré</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php
-                    $actesTableau = [
-                        'ECG'  => ['hist' => $histECG,  'delai' => 30],
-                        'EDC'  => ['hist' => $histEDC,  'delai' => 335],
-                        'DTSA' => ['hist' => $histDTSA, 'delai' => 335],
-                    ];
-                    foreach ($actesTableau as $nomA => $cfg):
-                        $nb      = count($cfg['hist']);
-                        $datesJS = [];
-                        $dernDate = null;
-                        foreach ($cfg['hist'] as $row) {
-                            $d = dateActe($row);
-                            if ($d !== '—') { $datesJS[] = $d; if (!$dernDate) $dernDate = $row['dt']; }
-                        }
-                        $datesAttr = htmlspecialchars(json_encode($datesJS), ENT_QUOTES);
-                        $dernAff   = '—';
-                        if ($dernDate) { $ts = strtotime($dernDate); $dernAff = ($ts && $ts > 86400) ? date('d/m/Y', $ts) : '—'; }
-                        $suggAff   = '—';
-                        $suggStyle = 'color:#27ae60;font-weight:bold;';
-                        if (!$dernDate) {
-                            $suggAff = 'jamais fait'; $suggStyle = 'color:#e74c3c;font-weight:bold;';
-                        } else {
-                            $ts = strtotime($dernDate);
-                            if ($ts && $ts > 86400) {
-                                $dtSugg = new DateTime(date('Y-m-d', $ts));
-                                $dtSugg->modify('+' . $cfg['delai'] . ' days');
-                                $suggAff   = $dtSugg->format('d/m/Y');
-                                $suggStyle = ($dtSugg < new DateTime()) ? 'color:#e74c3c;font-weight:bold;' : 'color:#27ae60;font-weight:bold;';
-                            }
-                        }
-                    ?>
-                    <tr style="border-bottom:1px solid #eee;">
-                        <td style="padding:5px 6px;font-weight:bold;color:#1a4a7a;"><?= $nomA ?></td>
-                        <td style="padding:5px 6px;text-align:center;">
-                            <?php if ($nb > 0): ?>
-                            <span class="hist-acte-btn" data-acte="<?= $nomA ?>" data-dates="<?= $datesAttr ?>"
-                                  style="background:#e8f0fb;color:#1a4a7a;padding:1px 10px;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;border:1px solid #2e6da4;"
-                                  title="Cliquer pour voir les dates"><?= $nb ?></span>
-                            <?php else: ?><span style="color:#aaa;">—</span><?php endif; ?>
-                        </td>
-                        <td style="padding:5px 6px;text-align:center;font-size:11px;color:#555;"><?= $dernAff ?></td>
-                        <td style="padding:5px 6px;text-align:center;font-size:11px;<?= $suggStyle ?>"><?= $suggAff ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-
-                <!-- POPUP DATES ACTES -->
-                <div id="popup-dates-acte" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:8px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:9998;min-width:200px;max-width:300px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                        <strong id="popup-dates-titre" style="color:#1a4a7a;font-size:14px;"></strong>
-                        <button onclick="document.getElementById('popup-dates-acte').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888;">✕</button>
-                    </div>
-                    <div id="popup-dates-liste" style="font-size:12px;line-height:1.8;color:#333;"></div>
-                </div>
-
-            </div><!-- FIN section certificat + tableau actes -->
+            </div><!-- FIN section certificat -->
 
         </div><!-- FIN COL DROITE -->
 
