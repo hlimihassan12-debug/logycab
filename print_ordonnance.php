@@ -8,19 +8,16 @@ $nOrd = (int)($_GET['ord'] ?? 0);
 
 if ($id == 0 || $nOrd == 0) { die("❌ Paramètres manquants."); }
 
-// Patient
 $stmtPat = $db->prepare("SELECT * FROM ID WHERE [N°PAT] = ?");
 $stmtPat->execute([$id]);
 $patient = $stmtPat->fetch();
 if (!$patient) { die("❌ Patient introuvable."); }
 
-// Ordonnance
 $stmtOrd = $db->prepare("SELECT * FROM ORD WHERE n_ordon = ? AND id = ?");
 $stmtOrd->execute([$nOrd, $id]);
 $ord = $stmtOrd->fetch();
 if (!$ord) { die("❌ Ordonnance introuvable."); }
 
-// Médicaments
 $stmtMed = $db->prepare("
     SELECT p.posologie, p.DUREE, p.Ordre, pr.PRODUIT
     FROM PROD p
@@ -31,36 +28,30 @@ $stmtMed = $db->prepare("
 $stmtMed->execute([$nOrd]);
 $medicaments = $stmtMed->fetchAll();
 
-// Date ordonnance formatée
 $dateOrd = '—';
 if (!empty($ord['date_ordon'])) {
     $ts = strtotime($ord['date_ordon']);
     if ($ts && $ts > 86400) $dateOrd = date('d/m/Y', $ts);
 }
 
-// Date RDV formatée
-$dateRDV  = '';
-$heureRDV = '';
-$acteRDV  = '';
+$dateRDV = $heureRDV = $acteRDV = '';
 if (!empty($ord['DATE REDEZ VOUS'])) {
-    $ts = strtotime($ord['DATE REDEZ VOUS']);
+    // Nettoyer les millisecondes ".000" que SQL Server ajoute parfois
+    $dateNette = preg_replace('/\.\d+$/', '', trim($ord['DATE REDEZ VOUS']));
+    $ts = strtotime($dateNette);
     if ($ts && $ts > 86400) {
-        // Jour en français
         $jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
         $mois  = ['','janvier','février','mars','avril','mai','juin',
                   'juillet','août','septembre','octobre','novembre','décembre'];
-        $dateRDV = $jours[date('w',$ts)] . ' ' . date('j',$ts) . ' ' . $mois[(int)date('n',$ts)] . ' ' . date('Y',$ts);
+        $dateRDV = $jours[date('w',$ts)].' '.date('j',$ts).' '.$mois[(int)date('n',$ts)].' '.date('Y',$ts);
     }
 }
-if (!empty($ord['HeureRDV'])) {
-    $heureRDV = htmlspecialchars($ord['HeureRDV']);
-}
-if (!empty($ord['acte1'])) {
-    $acteRDV = htmlspecialchars($ord['acte1']);
-}
+if (!empty($ord['HeureRDV'])) $heureRDV = htmlspecialchars($ord['HeureRDV']);
+if (!empty($ord['acte1']))    $acteRDV  = htmlspecialchars($ord['acte1']);
 
 $nomPatient = htmlspecialchars(strtoupper($patient['NOMPRENOM'] ?? ''));
 $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
+$nOrdAff    = 'N° ' . $nOrd;
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -68,130 +59,113 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 <meta charset="UTF-8">
 <title>Ordonnance — <?= $nomPatient ?></title>
 <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-
-    @page {
-        size: 176mm 250mm;
-        margin: 0;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @page { size: 176mm 250mm; margin: 0; }
     body {
         font-family: Arial, sans-serif;
-        font-size: 13px;
-        color: #111;
-        background: white;
-        width: 176mm;
-        min-height: 250mm;
-        padding-top:    5cm;    /* en-tête physique */
-        padding-bottom: 2cm;    /* pied physique */
-        padding-left:   1cm;    /* marge gauche */
-        padding-right:  1cm;    /* marge droite */
+        font-size:   11pt;
+        color:       #111;
+        background:  white;
+        width:       176mm;
+        height:      250mm;
+        position:    relative;
     }
 
-    /* ══ EN-TÊTE : NOM à gauche, DATE+N° à droite ══ */
-    .entete-donnees {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 8mm;     /* NOM→ENTÊTE = 8mm */
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 4px;
-    }
+    /* left: 136pt = 79pt + 57pt (2cm supplémentaires vers droite) */
     .nom-patient {
-        font-size: 14px;
-        font-weight: bold;
-        flex: 1;
-        padding-right: 5cm;     /* NOM↔DATE = 5cm */
-        word-break: break-word;
-    }
-    .infos-droite {
-        text-align: right;
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
-    .infos-droite .date-ord {
-        font-size: 13px;
-        font-weight: bold;
-        margin-bottom: 3px;
-    }
-    .infos-droite .n-pat {
-        font-size: 15px;
-        font-weight: bold;
-        color: #111;
-    }
-    .infos-droite .n-ord {
-        font-size: 11px;
-        color: #aaa;
-        margin-top: 2px;
+        position:       absolute;
+        top:            175pt;
+        left:           136pt;
+        font-size:      13pt;
+        font-weight:    bold;
+        text-transform: uppercase;
     }
 
-    /* ══ MÉDICAMENTS ══ */
+    .infos-droite {
+        position:    absolute;
+        top:         175pt;
+        right:       57pt;        /* aussi décalé vers la gauche */
+        text-align:  right;
+        line-height: 1.6;
+    }
+    .date-ord { font-size: 11pt; font-weight: bold; }
+    .n-pat    { font-size: 12pt; font-weight: bold; }
+    .n-ord    { font-size:  9pt; color: #aaa; }
+
+    .separateur {
+        position:   absolute;
+        top:        193pt;
+        left:       136pt;
+        right:      57pt;
+        border-top: 1px solid #ccc;
+    }
+
     .liste-meds {
-        margin-top: 9mm;        /* NOM→1er médicament = 9mm */
+        position: absolute;
+        top:      207pt;
+        left:     136pt;
+        right:    57pt;
     }
-    .med-item {
-        margin-bottom: 4mm;     /* entre médicaments = 4mm */
-    }
+    .med-item            { margin-bottom: 18pt; }
+    .med-item:last-child { margin-bottom: 0; }
     .med-nom {
-        font-size: 13px;
-        font-weight: bold;
+        font-size:      11pt;
+        font-weight:    bold;
         text-transform: uppercase;
-        margin-bottom: 3mm;     /* NOM MED→posologie = 3mm */
-        white-space: nowrap;
     }
     .med-detail {
-        font-size: 12px;
-        color: #333;
-        display: flex;
-        gap: 0.5cm;             /* posologie↔durée = 5mm */
-        padding-left: 5px;
+        margin-top:   3pt;
+        font-size:    10pt;
+        color:        #333;
+        display:      flex;
+        align-items:  baseline;
+        padding-left: 5pt;
     }
     .med-poso  { white-space: nowrap; }
-    .med-duree { white-space: nowrap; color: #444; }
+    .med-duree { margin-left: 43pt; white-space: nowrap; color: #444; }
 
-    /* ══ RDV BAS DE PAGE ══ */
+    /* RDV remonté à 85pt du bas */
     .rdv-footer {
-        position: fixed;
-        bottom: 2cm;
-        left:  1cm;
-        right: 1cm;
-        border-top: 1px solid #ccc;
-        padding-top: 6px;
-        font-size: 12px;
+        position:    absolute;
+        bottom:      160pt;
+        left:        136pt;
+        right:       57pt;
+        border-top:  1pt solid #ccc;
+        padding-top: 4pt;
+        font-size:   10pt;
     }
     .rdv-ligne {
-        display: flex;
+        display:     flex;
         align-items: baseline;
-        gap: 8px;
-        flex-wrap: wrap;
+        gap:         6pt;
+        flex-wrap:   wrap;
     }
-    .rdv-label  { color: #555; white-space: nowrap; }
-    .rdv-val    { font-weight: bold; }
-    .rdv-heure  { font-weight: bold; margin-left: 4px; }
-    .rdv-acte-ligne { margin-top: 4px; }
+    .rdv-label { color: #555; white-space: nowrap; }
+    .rdv-val   { font-weight: bold; }
+    .rdv-heure { font-weight: bold; }
+    .rdv-pour  { margin-top: 3pt; }
 
     @media screen {
         body {
-            margin: 10px auto;
+            margin:     10px auto;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            border: 1px solid #ddd;
+            border:     1px solid #ddd;
         }
     }
 </style>
 </head>
 <body>
 
-<!-- ══ EN-TÊTE DONNÉES ══ -->
-<div class="entete-donnees">
-    <div class="nom-patient"><?= $nomPatient ?></div>
-    <div class="infos-droite">
-        <div class="date-ord"><?= $dateOrd ?></div>
-        <div class="n-pat"><?= $nPat ?></div>
-        <div class="n-ord"><?= $nOrd ?></div>
-    </div>
+<div class="nom-patient"><?= $nomPatient ?></div>
+
+<div class="infos-droite">
+    <div class="date-ord"><?= $dateOrd ?></div>
+    <div class="n-pat"><?= $nPat ?></div>
+    <div class="n-ord"><?= $nOrdAff ?></div>
 </div>
 
-<!-- ══ LISTE MÉDICAMENTS ══ -->
+<div class="separateur"></div>
+
 <div class="liste-meds">
 <?php if (!empty($medicaments)): ?>
     <?php foreach ($medicaments as $i => $m): ?>
@@ -206,38 +180,33 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     </div>
     <?php endforeach; ?>
 <?php else: ?>
-    <p style="color:#999;">Aucun médicament enregistré.</p>
+    <p style="color:#999;font-size:10pt;">Aucun médicament enregistré.</p>
 <?php endif; ?>
 </div>
 
-<!-- ══ RDV BAS DE PAGE ══ -->
 <?php if ($dateRDV): ?>
 <div class="rdv-footer">
     <div class="rdv-ligne">
-        <span class="rdv-label">date rendez-vous</span>
+        <span class="rdv-label">Rendez-vous le</span>
         <span class="rdv-val"><?= $dateRDV ?></span>
         <?php if ($heureRDV): ?>
-        <span class="rdv-label">A :</span>
+        <span class="rdv-label">à :</span>
         <span class="rdv-heure"><?= $heureRDV ?></span>
         <?php endif; ?>
     </div>
     <?php if ($acteRDV): ?>
-    <div class="rdv-acte-ligne">
-        <span class="rdv-label">pour</span>
-        <span style="font-weight:bold;margin-left:6px;"><?= $acteRDV ?></span>
+    <div class="rdv-pour">
+        <span class="rdv-label">Pour</span>
+        <span class="rdv-val" style="margin-left:6pt;"><?= $acteRDV ?></span>
     </div>
     <?php endif; ?>
 </div>
 <?php endif; ?>
 
 <script>
-    // Impression automatique à l'ouverture
     window.onload = function() {
         window.print();
-        // Fermer l'onglet automatiquement après impression
-        window.addEventListener('afterprint', function() {
-            window.close();
-        });
+        window.addEventListener('afterprint', function() { window.close(); });
     };
 </script>
 </body>
