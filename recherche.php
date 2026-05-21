@@ -47,6 +47,11 @@ a.lien-patient { color: #1a4a7a; text-decoration: none; font-weight: bold; }
 <body>
 <div class="header">
     <a href="agenda.php">◀ Agenda</a>
+	<div class="header">
+    <a href="agenda.php">◀ Agenda</a>
+    <a href="planning.php" style="background:#27ae60;">📊 Planning</a>
+    <h1>🔍 Recherche patient</h1>
+</div>
     <h1>🔍 Recherche patient</h1>
 </div>
 <div class="container">
