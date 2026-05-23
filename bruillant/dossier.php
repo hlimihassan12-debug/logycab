@@ -139,13 +139,9 @@ if ($nOrd) {
     $medicaments = $stmtMed->fetchAll();
 }
 
-$stmtEx = $db->prepare("SELECT * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC");
+$stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC");
 $stmtEx->execute([$id]);
-$examens = $stmtEx->fetchAll();
-$nExam = (int)($_GET['exam'] ?? ($examens ? $examens[0]['N1'] : 0));
-$examen = null; $idxExam = 0;
-foreach ($examens as $i => $e) { if ($e['N1'] == $nExam) { $examen = $e; $idxExam = $i; break; } }
-if (!$examen && $examens) { $examen = $examens[0]; }
+$examen = $stmtEx->fetch();
 
 $stmtECGs = $db->prepare("SELECT * FROM ecg WHERE [N-PAT]=? ORDER BY [Date ECG] DESC");
 $stmtECGs->execute([$id]);
@@ -358,7 +354,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .btn-vue.actif  { background:#1a4a7a; opacity:1; }
 .btn-vue.inactif{ background:rgba(255,255,255,0.25); opacity:0.7; }
 .btn-vue.inactif:hover { opacity:1; }
-#btn-vue-consultation { display: none; }
 
 /* ── Tableau accueil ── */
 .tbl-acc { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; border-radius:6px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.12); }
@@ -1184,6 +1179,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 <!-- ══ COLONNE DROITE : EXAMEN CLINIQUE ══ -->
 <div class="col-right" id="col-right-exam">
     <div class="card">
+        <div class="card-title">🩺 Examen clinique</div>
         <?php if ($examen): ?>
         <?php
             $dateExamRaw = $examen['DateExam'] ?? null;
@@ -1200,8 +1196,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 }
             }
         ?>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🩺 Examen clinique</span>
+        <div style="text-align:center;margin-bottom:8px;">
+            <span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date examen</span>
             <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
         </div>
         <?php
@@ -1220,25 +1216,23 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucun examen enregistré</p>
         <?php endif; ?>
-        <!-- Navigation Examen en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
-            <span class="nav-btn" style="background:#aaa;padding:1px 4px;font-size:10px;cursor:default;" title="À venir">✚</span>
-        </div>
 		<!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
-            <span>⚡ ECG</span>
-            <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
-            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
-            <?php endif; ?>
+            ⚡ ECG
+            <div class="nav-btns" style="gap:2px;">
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 3px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+                <a href="nouveau_ecg.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;">✚</a>
+            </div>
         </div>
         <?php if ($ecgCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date ECG</span>
+                <span style="font-size:11px;font-weight:bold;color:#1a4a7a;"><?= $ecgCourant['Date ECG'] ? date('d/m/Y', strtotime($ecgCourant['Date ECG'])) : '—' ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Fréquence</span>
                 <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['FREQUENCE'] ?? '—') ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Rythme</span>
@@ -1257,27 +1251,25 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun ECG enregistré</p>
         <?php endif; ?>
-        <!-- Navigation ECG en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
-            <span class="nav-btn" style="background:#aaa;padding:1px 4px;font-size:10px;cursor:default;" title="À venir">✚</span>
-        </div>
     </div>
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
-            <span>🫀 Echo-Doppler</span>
-            <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
-            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
-            <?php endif; ?>
+            🫀 Echo-Doppler
+            <div class="nav-btns" style="gap:2px;">
+                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 3px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
+                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+                <a href="nouveau_echo.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;">✚</a>
+            </div>
         </div>
         <?php if ($echoCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date Echo</span>
+                <span style="font-size:11px;font-weight:bold;color:#1a4a7a;"><?= $echoCourant['DATEchog'] ? date('d/m/Y', strtotime($echoCourant['DATEchog'])) : '—' ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">FEVG</span>
                 <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['FEVG'] ?? '—') ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">DTD-VG</span>
@@ -1296,15 +1288,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun Echo enregistré</p>
         <?php endif; ?>
-        <!-- Navigation Echo en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
-            <span class="nav-btn" style="background:#aaa;padding:1px 4px;font-size:10px;cursor:default;" title="À venir">✚</span>
-        </div>
     </div>
     </div>
 	
