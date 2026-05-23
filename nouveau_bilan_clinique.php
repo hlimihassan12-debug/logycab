@@ -19,8 +19,6 @@ if ($urlMsg === 'examen_ok') $msgs['examen'] = '✅ Examen enregistré';
 if ($urlMsg === 'ecg_ok')    $msgs['ecg']    = '✅ ECG enregistré';
 if ($urlMsg === 'echo_ok')   $msgs['echo']   = '✅ Echo-Doppler enregistré';
 
-// ── TRAITEMENT ──────────────────────────────────────────────────────
-// Convertit YYYY-MM-DD en format accepté par SQL Server datetime
 function toSqlDate($d) {
     if (!$d) return null;
     $ts = strtotime($d);
@@ -31,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $onglet = $_POST['onglet'] ?? '';
 
     if ($onglet === 'examen') {
-        $dEx = $_POST['DateExam'] ?? $_POST['Date de l\'examen'] ?? date('Y-m-d');
+        $dEx = $_POST['DateExam'] ?? date('Y-m-d');
         $db->prepare("INSERT INTO t_examen 
             (NPAT,DateExam,TAS,TAD,FC,POIDS,TAILLE,
              S_Fonctionnels,Auscult_Cardiaque,Auscult_Pulmonaire,
@@ -50,22 +48,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($onglet === 'ecg') {
-        $dEcg = $_POST['Date_ECG'] ?? $_POST['Date ECG'] ?? date('Y-m-d');
+        $dEcg = $_POST['Date_ECG'] ?? date('Y-m-d');
         $db->prepare("INSERT INTO ecg
-            ([N-PAT],[Date ECG],[trouble de rythme],
-             [RYTHME SUPRA VENTRICULAIRE],[RYTHME VENTRICULAIRE],
-             FREQUENCE,[LA CONDUCTION NODALE],QRS,
-             [LA CONDUCTION INFRANODALE],[LA REPOLARISATION],
-             [SEGMENT ST],TOPOGRAPHIE_ST,ONDE_T,TOPOGRAPHIE_T,
-             IDM,TOPOGRAPHIE_Q,[ONDE EPSILON],[ONDE U],
-             [AUTRES Signes ECG],[C/C])
-            VALUES (?,CONVERT(datetime,?,120),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+            ([N-PAT],[Date ECG],
+             FREQUENCE,
+             [RYTHME SUPRA VENTRICULAIRE],
+             [trouble de rythme],
+             [RYTHME VENTRICULAIRE],
+             [LA CONDUCTION NODALE],
+             QRS,
+             [LA CONDUCTION INFRANODALE],
+             [LA REPOLARISATION],
+             [SEGMENT ST],TOPOGRAPHIE_ST,
+             ONDE_T,TOPOGRAPHIE_T,
+             IDM,TOPOGRAPHIE_Q,
+             [C/C],
+             [AUTRES Signes ECG])
+            VALUES (?,CONVERT(datetime,?,120),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
         ->execute([$id,
             $dEcg.' 00:00:00',
-            $_POST['problème']?:null,
+            $_POST['FREQUENCE']?:null,
             $_POST['rythme_sv']?:null,
+            $_POST['trouble_rv']?:null,
             $_POST['rythme_v']?:null,
-            $_POST['FRÉQUENCE']?:null,
             $_POST['conduction_nodale']?:null,
             $_POST['QRS']?:null,
             $_POST['infrastructure_de_conduction']?:null,
@@ -76,15 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['TOPOGRAPHIE_T']?:null,
             $_POST['IDM']?:null,
             $_POST['TOPOGRAPHIE_Q']?:null,
-            isset($_POST['ONDE_EPSILON'])?1:0,
-            isset($_POST['ONDE_U'])?1:0,
-            $_POST['AUTRES_SIGNES']?:null,
-            $_POST['CC']?:null]);
+            $_POST['CC']?:null,
+            $_POST['AUTRES_SIGNES']?:null]);
         header("Location: ?id=$id&msg=ecg_ok"); exit;
     }
 
     if ($onglet === 'echo') {
-        $dEcho = $_POST['DATEchog'] ?? $_POST['Date Echo'] ?? $_POST['Date echo-doppler'] ?? date('Y-m-d');
+        $dEcho = $_POST['DATEchog'] ?? date('Y-m-d');
         $db->prepare("INSERT INTO echo
             ([N-PAT],DATEchog,ECHOGENICITE,[RACINE-AO],
              [DTD-VG],[DTS-VG],SIV,PP,FEVG,
@@ -136,7 +139,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     font-size: 12px; font-weight: bold; color: #1a4a7a;
     margin-bottom: 10px; padding-bottom: 6px;
     border-bottom: 2px solid #e0e8f0;
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; justify-content: space-between;
 }
 
 .msg { padding: 6px 10px; border-radius: 4px; margin-bottom: 10px;
@@ -147,27 +150,34 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 .champ { margin-bottom: 7px; }
 .champ label { font-size: 10px; color: #888; display: block; margin-bottom: 2px; }
-.champ input, .champ textarea {
+.champ input, .champ textarea, .champ select {
     width: 100%; padding: 4px 6px;
     border: 1px solid #ddd; border-radius: 3px;
     font-size: 11px; font-family: Arial, sans-serif;
 }
-.champ input:focus, .champ textarea:focus {
+.champ input:focus, .champ textarea:focus, .champ select:focus {
     outline: none; border-color: #2e6da4;
     box-shadow: 0 0 0 2px rgba(46,109,164,0.12);
 }
 .champ textarea { resize: vertical; min-height: 48px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
 .btn-save {
-    width: 100%; background: #27ae60; color: white;
-    border: none; border-radius: 4px; padding: 7px;
-    font-size: 12px; font-weight: bold; cursor: pointer;
-    margin-top: 10px;
+    background: #27ae60; color: white;
+    border: none; border-radius: 4px; padding: 3px 10px;
+    font-size: 11px; font-weight: bold; cursor: pointer;
+    white-space: nowrap;
 }
 .btn-save:hover { background: #1e8449; }
+
+.date-enreg {
+    display: flex; align-items: center; gap: 6px;
+}
+.date-enreg input[type=date] {
+    border: 1px solid #ddd; border-radius: 3px;
+    padding: 2px 5px; font-size: 11px; color: #1a4a7a;
+}
 </style>
 </head>
 <body>
@@ -182,228 +192,297 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 <div class="cols">
 
-    <!-- ══ COLONNE 1 : EXAMEN CLINIQUE ══ -->
-    <div class="col-card">
-        <form method="POST" id="form-examen">
-        <input type="hidden" name="onglet" value="examen">
-        <div class="col-title">🩺 Examen clinique
-            <span style="display:flex;align-items:center;gap:6px;">
-                <input type="date" name="DateExam" value="<?= $today ?>" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
-                <button type="submit" class="btn-save" style="margin:0;width:auto;padding:3px 10px;font-size:11px;">💾 Enregistrer</button>
-            </span>
+<!-- ══════════════════════════════════════════════
+     COLONNE 1 : EXAMEN CLINIQUE
+══════════════════════════════════════════════ -->
+<div class="col-card">
+    <form method="POST">
+    <input type="hidden" name="onglet" value="examen">
+    <div class="col-title">
+        🩺 Examen clinique
+        <div class="date-enreg">
+            <input type="date" name="DateExam" value="<?= $today ?>">
+            <button type="submit" class="btn-save">💾 Enregistrer</button>
         </div>
-        <?php if (!empty($msgs['examen'])): ?><div class="msg"><?= $msgs['examen'] ?></div><?php endif; ?>
-        <div class="sec">Mesures</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;">
-            <label style="font-size:10px;color:#888;white-space:nowrap;">TAS</label>
-            <input type="number" name="TAS" placeholder="120" style="width:52px;padding:4px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-            <label style="font-size:10px;color:#888;white-space:nowrap;">TAD</label>
-            <input type="number" name="TAD" placeholder="80" style="width:52px;padding:4px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-            <label style="font-size:10px;color:#888;white-space:nowrap;">FC</label>
-            <input type="number" name="FC" placeholder="70" style="width:52px;padding:4px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-            <label style="font-size:10px;color:#888;white-space:nowrap;">Poids</label>
-            <input type="number" step="0.1" name="POIDS" placeholder="70" style="width:52px;padding:4px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-            <label style="font-size:10px;color:#888;white-space:nowrap;">Taille</label>
-            <input type="number" name="TAILLE" placeholder="170" style="width:52px;padding:4px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-        </div>
-        <div class="sec">Clinique</div>
-        <div class="champ"><label>Signes fonctionnels</label><textarea name="S_Fonctionnels"></textarea></div>
-        <div class="champ"><label>Auscultation cardiaque</label><textarea name="Auscult_Cardiaque"></textarea></div>
-        <div class="champ"><label>Auscultation pulmonaire</label><textarea name="Auscult_Pulmonaire"></textarea></div>
-        <div class="champ"><label>Examen vasculaire</label><textarea name="Examen_Vasculaire"></textarea></div>
-        <div class="grid2">
-            <div class="champ"><label>Signes IVG</label><textarea name="Signes_IVG"></textarea></div>
-            <div class="champ"><label>Signes IVD</label><textarea name="Signes_IVD"></textarea></div>
-        </div>
-        <div class="champ"><label>Autres symptômes</label><textarea name="Autres_Symptomes"></textarea></div>
-        <div class="sec">Conclusion</div>
-        <div class="champ"><label>Conclusion</label><textarea name="Conclusion" style="min-height:60px;"></textarea></div>
-        <div class="champ"><label>Remarque</label><textarea name="REMARQUE"></textarea></div>
-        </form>
+    </div>
+    <?php if (!empty($msgs['examen'])): ?><div class="msg"><?= $msgs['examen'] ?></div><?php endif; ?>
+
+    <div class="sec">Mesures</div>
+    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+        <label style="font-size:10px;color:#888;">TAS</label>
+        <input type="number" name="TAS" placeholder="120" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
+        <label style="font-size:10px;color:#888;">TAD</label>
+        <input type="number" name="TAD" placeholder="80" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
+        <label style="font-size:10px;color:#888;">FC</label>
+        <input type="number" name="FC" placeholder="70" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
+        <label style="font-size:10px;color:#888;">Poids</label>
+        <input type="number" step="0.1" name="POIDS" placeholder="70" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
+        <label style="font-size:10px;color:#888;">Taille</label>
+        <input type="number" name="TAILLE" placeholder="170" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
     </div>
 
-    <!-- ══ COLONNE 2 : ECG ══ -->
-    <div class="col-card">
-        <form method="POST" id="form-ecg">
-        <input type="hidden" name="onglet" value="ecg">
-        <div class="col-title">⚡ ECG
-            <span style="display:flex;align-items:center;gap:6px;">
-                <input type="date" name="Date_ECG" value="<?= $today ?>" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
-                <button type="submit" class="btn-save" style="margin:0;width:auto;padding:3px 10px;font-size:11px;">💾 Enregistrer</button>
-            </span>
+    <div class="sec">Clinique</div>
+    <div class="champ"><label>Signes fonctionnels</label><textarea name="S_Fonctionnels"></textarea></div>
+    <div class="champ"><label>Auscultation cardiaque</label><textarea name="Auscult_Cardiaque"></textarea></div>
+    <div class="champ"><label>Auscultation pulmonaire</label><textarea name="Auscult_Pulmonaire"></textarea></div>
+    <div class="champ"><label>Examen vasculaire</label><textarea name="Examen_Vasculaire"></textarea></div>
+    <div class="grid2">
+        <div class="champ"><label>Signes IVG</label><textarea name="Signes_IVG"></textarea></div>
+        <div class="champ"><label>Signes IVD</label><textarea name="Signes_IVD"></textarea></div>
+    </div>
+    <div class="champ"><label>Autres symptômes</label><textarea name="Autres_Symptomes"></textarea></div>
+
+    <div class="sec">Conclusion</div>
+    <div class="champ"><label>Conclusion</label><textarea name="Conclusion" style="min-height:60px;"></textarea></div>
+    <div class="champ"><label>Remarque</label><textarea name="REMARQUE"></textarea></div>
+    </form>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     COLONNE 2 : ECG
+══════════════════════════════════════════════ -->
+<div class="col-card">
+    <form method="POST">
+    <input type="hidden" name="onglet" value="ecg">
+    <div class="col-title">
+        ⚡ ECG
+        <div class="date-enreg">
+            <input type="date" name="Date_ECG" value="<?= $today ?>">
+            <button type="submit" class="btn-save">💾 Enregistrer</button>
         </div>
-        <?php if (!empty($msgs['ecg'])): ?><div class="msg"><?= $msgs['ecg'] ?></div><?php endif; ?>
+    </div>
+    <?php if (!empty($msgs['ecg'])): ?><div class="msg"><?= $msgs['ecg'] ?></div><?php endif; ?>
 
-        <div class="champ"><label>Fréquence (bpm)</label><input type="number" name="FRÉQUENCE" placeholder="75"></div>
+    <!-- 1. Fréquence -->
+    <div class="champ"><label>Fréquence (bpm)</label>
+        <input type="number" name="FREQUENCE" placeholder="75" min="20" max="300">
+    </div>
 
-        <div class="champ"><label>Rythme supra-ventriculaire</label>
-            <select name="rythme_sv">
+    <!-- 2. Rythme supra-ventriculaire -->
+    <div class="champ"><label>Rythme supra-ventriculaire</label>
+        <select name="rythme_sv">
+            <option value="">—</option>
+            <?php foreach([
+                'sinusal',
+                'arythmie complete par fibrillation auriculaire',
+                'tachysystolie auriculaire',
+                'flutter auriculaire 1/1',
+                'flutter auriculaire 2/1',
+                'flutter auriculaire 3/1',
+                'tachyarythmie',
+                'bradyarythmie',
+                'bradycardie sinusale',
+                'tachycardie sinusale',
+                'rythme jonctionelle',
+                'rythme du sinus auriculaire',
+                'electro entraine'
+            ] as $v): ?>
+            <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- 3. Trouble de rythme ventriculaire (NOUVEAU) -->
+    <div class="champ"><label>Trouble de rythme ventriculaire</label>
+        <select name="trouble_rv">
+            <option value="">—</option>
+            <option>régulier</option>
+            <option>irrégulier</option>
+        </select>
+    </div>
+
+    <!-- 4. Rythme ventriculaire -->
+    <div class="champ"><label>Rythme ventriculaire</label>
+        <input type="text" name="rythme_v" placeholder="">
+    </div>
+
+    <!-- 5. Conduction nodale -->
+    <div class="champ"><label>Conduction nodale</label>
+        <select name="conduction_nodale">
+            <option value="">—</option>
+            <?php foreach([
+                'normale','BAV I','BAVII','BAVIII',
+                'MOBITZ I','MOBITZ II','Luciani Weckenbeg'
+            ] as $v): ?>
+            <option value="<?= $v ?>"><?= $v ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- 6. QRS -->
+    <div class="champ"><label>QRS</label>
+        <select name="QRS">
+            <option value="">—</option>
+            <?php foreach([
+                'normaux',
+                'bas voltage en derivations standarts'
+            ] as $v): ?>
+            <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- 7. Conduction infranodale -->
+    <div class="champ"><label>Conduction infranodale</label>
+        <select name="infrastructure_de_conduction">
+            <option value="">—</option>
+            <?php foreach([
+                'conductInfraN normale',
+                'Bloc incomplet gauche',
+                'Bloc incomplet droit',
+                'hemibloc anterieur gauche',
+                'hemibloc posterieur',
+                'bloc droit complet',
+                'Bloc incomplet gauche et Bloc incomplet droit',
+                'hemibloc incomplet gauche',
+                'syndrome de preexitation'
+            ] as $v): ?>
+            <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- 8. Repolarisation -->
+    <div class="champ"><label>Repolarisation</label>
+        <select name="REPOLARISATION">
+            <option value="">—</option>
+            <option>normale</option>
+            <option>anormale</option>
+        </select>
+    </div>
+
+    <!-- 9. Segment ST + Topographie ST -->
+    <div class="grid2">
+        <div class="champ"><label>Segment ST</label>
+            <select name="SEGMENT_ST">
                 <option value="">—</option>
-                <?php foreach(['sinusal','arythmie complete par fibrillation auriculaire','tachysystolie auriculaire','flutter auriculaire 1/1','flutter auriculaire 2/1','flutter auriculaire 3/1','tachyarythmie','bradyarythmie','bradycardie sinusale','tachycardie sinusale','rythme jonctionelle','rythme du sinus auriculaire','electro entraine'] as $v): ?>
+                <?php foreach([
+                    'normal','plat',
+                    'sous decalage ascendant',
+                    'sous decalage descendant'
+                ] as $v): ?>
                 <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
-
-        <div class="champ"><label>C/C</label><input type="text" name="CC"></div>
-
-        <!-- BOUTON BASCULE MODE DÉTAILLÉ -->
-        <div style="text-align:center;margin:8px 0;">
-            <button type="button" onclick="toggleECGDetail()" id="btn-ecg-detail"
-                style="background:#e8f0fb;color:#1a4a7a;border:1px solid #2e6da4;border-radius:4px;padding:4px 14px;font-size:11px;cursor:pointer;">
-                ▼ Mode détaillé
-            </button>
+        <div class="champ"><label>Topographie ST</label>
+            <select name="TOPOGRAPHIE_ST">
+                <option value="">—</option>
+                <?php foreach([
+                    'anterieur','anterieur etendu','antero-apical',
+                    'antero-lateral','antero-septal','antero-septo-apical',
+                    'apical','circonferonciel','inferieur','infero-lateral',
+                    'infero-septal','lateral','latero-septal','posterieur',
+                    'postero-apical','postero-lateral','postero-septal',
+                    'septal','septo-apical','septal profond'
+                ] as $v): ?>
+                <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
-
-        <div id="ecg-detail" style="display:none;">
-            <div class="champ"><label>Trouble de rythme ventriculaire</label><input type="text" name="problème"></div>
-            <div class="champ"><label>Rythme ventriculaire</label><input type="text" name="rythme_v"></div>
-
-            <div class="champ"><label>Conduction nodale</label>
-                <select name="conduction_nodale">
-                    <option value="">—</option>
-                    <?php foreach(['normale','BAV I','BAVII','BAVIII','MOBITZ I','MOBITZ II','Luciani Weckenbeg'] as $v): ?>
-                    <option value="<?= $v ?>"><?= $v ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="champ"><label>QRS</label>
-                <select name="QRS">
-                    <option value="">—</option>
-                    <?php foreach(['normaux','bas voltage en derivations standarts'] as $v): ?>
-                    <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="champ"><label>Conduction infranodale</label>
-                <select name="infrastructure_de_conduction">
-                    <option value="">—</option>
-                    <?php foreach(['conductInfraN normale','Bloc incomplet gauche','Bloc incomplet droit','hemibloc anterieur gauche','hemibloc posterieur','bloc droit complet','Bloc incomplet gauche et Bloc incomplet droit','hemibloc incomplet gauche','syndrome de preexitation'] as $v): ?>
-                    <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="champ"><label>Repolarisation</label>
-                <select name="REPOLARISATION">
-                    <option value="">—</option>
-                    <?php foreach(['normale','anormale'] as $v): ?>
-                    <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="grid2">
-                <div class="champ"><label>Segment ST</label>
-                    <select name="SEGMENT_ST">
-                        <option value="">—</option>
-                        <?php foreach(['normal','plat','sous decalage ascendant','sous decalage descendant'] as $v): ?>
-                        <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="champ"><label>Topographie ST</label>
-                    <select name="TOPOGRAPHIE_ST">
-                        <option value="">—</option>
-                        <?php foreach(['anterieur','anterieur etendu','antero-apical','antero-lateral','antero-septal','antero-septo-apical','apical','circonferonciel','inferieur','infero-lateral','infero-septal','lateral','latero-septal','posterieur','postero-apical','postero-lateral','postero-septal','septal','septo-apical','septal profond'] as $v): ?>
-                        <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid2">
-                <div class="champ"><label>Onde T</label>
-                    <select name="ONDE_T">
-                        <option value="">—</option>
-                        <?php foreach(['normale','plates','negatives','trouble diffus de repolarisation'] as $v): ?>
-                        <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="champ"><label>Topographie T</label>
-                    <select name="TOPOGRAPHIE_T">
-                        <option value="">—</option>
-                        <?php foreach(['anterieur','anterieur etendu','antero-apical','antero-lateral','antero-septal','antero-septo-apical','apical','circonferonciel','inferieur','infero-lateral','infero-septal','lateral','latero-septal','posterieur','postero-apical','postero-lateral','postero-septal','septal','septo-apical','septal profond'] as $v): ?>
-                        <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid2">
-                <div class="champ"><label>IDM</label>
-                    <select name="IDM">
-                        <option value="">—</option>
-                        <?php foreach(['absents','présents'] as $v): ?>
-                        <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="champ"><label>Topographie Q</label>
-                    <select name="TOPOGRAPHIE_Q">
-                        <option value="">—</option>
-                        <?php foreach(['anterieur','anterieur etendu','antero-apical','antero-lateral','antero-septal','antero-septo-apical','apical','circonferonciel','inferieur','infero-lateral','infero-septal','lateral','latero-septal','posterieur','postero-apical','postero-lateral','postero-septal','septal','septo-apical','septal profond'] as $v): ?>
-                        <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div style="display:flex;gap:16px;margin:6px 0;">
-                <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
-                    <input type="checkbox" name="ONDE_EPSILON"> Onde Epsilon
-                </label>
-                <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
-                    <input type="checkbox" name="ONDE_U"> Onde U
-                </label>
-            </div>
-
-            <div class="champ"><label>Autres signes ECG</label><input type="text" name="AUTRES_SIGNES"></div>
-        </div><!-- FIN ecg-detail -->
-
-        </form>
     </div>
 
-    <!-- ══ COLONNE 3 : ECHO-DOPPLER ══ -->
-    <div class="col-card">
-        <form method="POST" id="form-echo">
-        <input type="hidden" name="onglet" value="echo">
-        <div class="col-title">🫀 Echo-Doppler
-            <span style="display:flex;align-items:center;gap:6px;">
-                <input type="date" name="DATEchog" value="<?= $today ?>" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
-                <button type="submit" class="btn-save" style="margin:0;width:auto;padding:3px 10px;font-size:11px;">💾 Enregistrer</button>
-            </span>
+    <!-- 10. Onde T + Topographie T -->
+    <div class="grid2">
+        <div class="champ"><label>Onde T</label>
+            <select name="ONDE_T">
+                <option value="">—</option>
+                <?php foreach([
+                    'normale','plates','negatives',
+                    'trouble diffus de repolarisation'
+                ] as $v): ?>
+                <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
-        <?php if (!empty($msgs['echo'])): ?><div class="msg"><?= $msgs['echo'] ?></div><?php endif; ?>
-        <div class="grid2">
-            <div class="champ"><label>FEVG %</label><input type="text" name="FEVG"></div>
-            <div class="champ"><label>DTD-VG mm</label><input type="text" name="DTD_VG"></div>
-            <div class="champ"><label>DTS-VG mm</label><input type="text" name="DTS_VG"></div>
-            <div class="champ"><label>SIV mm</label><input type="text" name="SIV"></div>
-            <div class="champ"><label>PP mm</label><input type="text" name="PP"></div>
-            <div class="champ"><label>Racine Ao mm</label><input type="text" name="RACINE_AO"></div>
-            <div class="champ"><label>HTAP</label><input type="text" name="HTAP"></div>
-            <div class="champ"><label>Cinétique</label><input type="text" name="CINETIQUE"></div>
-            <div class="champ"><label>Échogénicité</label><input type="text" name="ECHOGENICITE"></div>
+        <div class="champ"><label>Topographie T</label>
+            <select name="TOPOGRAPHIE_T">
+                <option value="">—</option>
+                <?php foreach([
+                    'anterieur','anterieur etendu','antero-apical',
+                    'antero-lateral','antero-septal','antero-septo-apical',
+                    'apical','circonferonciel','inferieur','infero-lateral',
+                    'infero-septal','lateral','latero-septal','posterieur',
+                    'postero-apical','postero-lateral','postero-septal',
+                    'septal','septo-apical','septal profond'
+                ] as $v): ?>
+                <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
-        <div class="champ"><label>Doppler</label><textarea name="DOPPLER"></textarea></div>
-        <div class="champ"><label>DTSA</label><textarea name="DTSA"></textarea></div>
-        <div class="champ"><label>Conclusion</label><textarea name="CONCLUSION1" style="min-height:60px;"></textarea></div>
-        </form>
     </div>
+
+    <!-- 11. IDM + Topographie Q -->
+    <div class="grid2">
+        <div class="champ"><label>IDM (signes d'infarctus)</label>
+            <select name="IDM">
+                <option value="">—</option>
+                <option>absents</option>
+                <option>présents</option>
+            </select>
+        </div>
+        <div class="champ"><label>Topographie Q</label>
+            <select name="TOPOGRAPHIE_Q">
+                <option value="">—</option>
+                <?php foreach([
+                    'anterieur','anterieur etendu','antero-apical',
+                    'antero-lateral','antero-septal','antero-septo-apical',
+                    'apical','circonferonciel','inferieur','infero-lateral',
+                    'infero-septal','lateral','latero-septal','posterieur',
+                    'postero-apical','postero-lateral','postero-septal',
+                    'septal','septo-apical','septal profond'
+                ] as $v): ?>
+                <option value="<?= $v ?>"><?= ucfirst($v) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+
+    <!-- 12. C/C -->
+    <div class="champ"><label>C/C</label>
+        <input type="text" name="CC" placeholder="ex: ECG normal">
+    </div>
+
+    <!-- 13. Autres signes ECG (NOUVEAU) -->
+    <div class="champ"><label>Autres signes ECG</label>
+        <input type="text" name="AUTRES_SIGNES">
+    </div>
+
+    </form>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     COLONNE 3 : ECHO-DOPPLER
+══════════════════════════════════════════════ -->
+<div class="col-card">
+    <form method="POST">
+    <input type="hidden" name="onglet" value="echo">
+    <div class="col-title">
+        🫀 Echo-Doppler
+        <div class="date-enreg">
+            <input type="date" name="DATEchog" value="<?= $today ?>">
+            <button type="submit" class="btn-save">💾 Enregistrer</button>
+        </div>
+    </div>
+    <?php if (!empty($msgs['echo'])): ?><div class="msg"><?= $msgs['echo'] ?></div><?php endif; ?>
+
+    <div class="grid2">
+        <div class="champ"><label>FEVG %</label><input type="text" name="FEVG"></div>
+        <div class="champ"><label>DTD-VG mm</label><input type="text" name="DTD_VG"></div>
+        <div class="champ"><label>DTS-VG mm</label><input type="text" name="DTS_VG"></div>
+        <div class="champ"><label>SIV mm</label><input type="text" name="SIV"></div>
+        <div class="champ"><label>PP mm</label><input type="text" name="PP"></div>
+        <div class="champ"><label>Racine Ao mm</label><input type="text" name="RACINE_AO"></div>
+        <div class="champ"><label>HTAP</label><input type="text" name="HTAP"></div>
+        <div class="champ"><label>Cinétique</label><input type="text" name="CINETIQUE"></div>
+        <div class="champ"><label>Échogénicité</label><input type="text" name="ECHOGENICITE"></div>
+    </div>
+    <div class="champ"><label>Doppler</label><textarea name="DOPPLER"></textarea></div>
+    <div class="champ"><label>DTSA</label><textarea name="DTSA"></textarea></div>
+    <div class="champ"><label>Conclusion</label><textarea name="CONCLUSION1" style="min-height:60px;"></textarea></div>
+    </form>
+</div>
 
 </div><!-- FIN cols -->
-<script>
-function toggleECGDetail() {
-    const d = document.getElementById('ecg-detail');
-    const b = document.getElementById('btn-ecg-detail');
-    const visible = d.style.display !== 'none';
-    d.style.display = visible ? 'none' : 'block';
-    b.textContent  = visible ? '▼ Mode détaillé' : '▲ Mode simplifié';
-}
-</script>
 </body>
 </html>
