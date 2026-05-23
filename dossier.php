@@ -1227,7 +1227,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
-            <span class="nav-btn" style="background:#aaa;padding:1px 4px;font-size:10px;cursor:default;" title="À venir">✚</span>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
         </div>
 		<!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
@@ -1264,7 +1264,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
-            <span class="nav-btn" style="background:#aaa;padding:1px 4px;font-size:10px;cursor:default;" title="À venir">✚</span>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
         </div>
     </div>
 
@@ -1303,7 +1303,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
-            <span class="nav-btn" style="background:#aaa;padding:1px 4px;font-size:10px;cursor:default;" title="À venir">✚</span>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
         </div>
     </div>
     </div>
