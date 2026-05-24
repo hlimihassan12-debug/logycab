@@ -87,21 +87,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($onglet === 'echo') {
-        $dEcho = $_POST['DATEchog'] ?? date('Y-m-d');
+        $dEcho    = $_POST['DATEchog'] ?? date('Y-m-d');
+        $typeEcho = $_POST['TYPE_ECHO'] ?? 'TSD'; // 'TSD' ou 'TAD'
         $db->prepare("INSERT INTO echo
-            ([N-PAT],DATEchog,ECHOGENICITE,[RACINE-AO],
-             [DTD-VG],[DTS-VG],SIV,PP,FEVG,
-             CINETIQUE,HTAP,DOPPLER,CONCLUSION1,
-             [DOPPLER DES TRONCS SUPRA AORTIQUES])
-            VALUES (?,CONVERT(datetime,?,120),?,?,?,?,?,?,?,?,?,?,?,?)")
-        ->execute([$id,
-            $dEcho.' 00:00:00',$_POST['ECHOGENICITE']?:null,
-            $_POST['RACINE_AO']?:null,$_POST['DTD_VG']?:null,
-            $_POST['DTS_VG']?:null,$_POST['SIV']?:null,
-            $_POST['PP']?:null,$_POST['FEVG']?:null,
-            $_POST['CINETIQUE']?:null,$_POST['HTAP']?:null,
-            $_POST['DOPPLER']?:null,$_POST['CONCLUSION1']?:null,
-            $_POST['DTSA']?:null]);
+            ([N-PAT], DATEchog,
+             CINETIQUE, [DTD-VG], FEVG, PTDVG, HTAP,
+             SIV, PP, AO_ASC, PERICARDE, [S,OG],
+             GLOBAL_STRAIN, DOPPLER,
+             [DOPPLER DES TRONCS SUPRA AORTIQUES],
+             CONCLUSION1, TYPE_ECHO)
+            VALUES (?,CONVERT(datetime,?,120),
+             ?,?,?,?,?,
+             ?,?,?,?,?,
+             ?,?,
+             ?,
+             ?,?)")
+        ->execute([$id, $dEcho.' 00:00:00',
+            $_POST['CINETIQUE']     ?? null,
+            $_POST['DTD_VG']        ?? null,
+            $_POST['FEVG']          ?? null,
+            $_POST['PTDVG']         ?? null,
+            $_POST['HTAP']          ?? null,
+            $_POST['SIV']           ?? null,
+            $_POST['PP']            ?? null,
+            $_POST['AO_ASC']        ?? null,
+            $_POST['PERICARDE']     ?? null,
+            $_POST['S_OG']          ?? null,
+            $_POST['GLOBAL_STRAIN'] ?? null,
+            $_POST['DOPPLER']       ?? null,
+            $_POST['DTSA']          ?? null,
+            $_POST['CONCLUSION1']   ?? null,
+            $typeEcho]);
         header("Location: ?id=$id&msg=echo_ok"); exit;
     }
 }
@@ -131,7 +147,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     cursor: pointer; font-size: 11px; text-decoration: none;
 }
 
-.cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
+.cols { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 10px; padding: 10px; align-items: start; }
 
 .col-card { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 
@@ -454,35 +470,248 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 <!-- ══════════════════════════════════════════════
      COLONNE 3 : ECHO-DOPPLER
 ══════════════════════════════════════════════ -->
-<div class="col-card">
-    <form method="POST">
-    <input type="hidden" name="onglet" value="echo">
+<div class="col-card" style="grid-column: span 1;">
+    <?php if (!empty($msgs['echo'])): ?>
+        <div class="msg"><?= $msgs['echo'] ?></div>
+    <?php endif; ?>
+
+    <!-- En-tête avec date commune -->
     <div class="col-title">
-        🫀 Echo-Doppler
+        🫀 Echo / Echo-Doppler
         <div class="date-enreg">
-            <input type="date" name="DATEchog" value="<?= $today ?>">
-            <button type="submit" class="btn-save">💾 Enregistrer</button>
+            <input type="date" id="echo_date" value="<?= $today ?>">
+            <button type="button" onclick="remplirNormal()"
+                style="background:#2e6da4;color:white;border:none;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">
+                ✅ Normal
+            </button>
+            <button type="button" onclick="viderChamps()"
+                style="background:#e67e22;color:white;border:none;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">
+                ✏️ Anormal
+            </button>
+            <button type="button" onclick="enregistrerEcho()"
+                style="background:#27ae60;color:white;border:none;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">
+                💾 Enregistrer
+            </button>
         </div>
     </div>
-    <?php if (!empty($msgs['echo'])): ?><div class="msg"><?= $msgs['echo'] ?></div><?php endif; ?>
 
-    <div class="grid2">
-        <div class="champ"><label>FEVG %</label><input type="text" name="FEVG"></div>
-        <div class="champ"><label>DTD-VG mm</label><input type="text" name="DTD_VG"></div>
-        <div class="champ"><label>DTS-VG mm</label><input type="text" name="DTS_VG"></div>
-        <div class="champ"><label>SIV mm</label><input type="text" name="SIV"></div>
-        <div class="champ"><label>PP mm</label><input type="text" name="PP"></div>
-        <div class="champ"><label>Racine Ao mm</label><input type="text" name="RACINE_AO"></div>
-        <div class="champ"><label>HTAP</label><input type="text" name="HTAP"></div>
-        <div class="champ"><label>Cinétique</label><input type="text" name="CINETIQUE"></div>
-        <div class="champ"><label>Échogénicité</label><input type="text" name="ECHOGENICITE"></div>
-    </div>
-    <div class="champ"><label>Doppler</label><textarea name="DOPPLER"></textarea></div>
-    <div class="champ"><label>DTSA</label><textarea name="DTSA"></textarea></div>
-    <div class="champ"><label>Conclusion</label><textarea name="CONCLUSION1" style="min-height:60px;"></textarea></div>
-    </form>
-</div>
+    <!-- ZONE UNIQUE : TAD avec bouton TSD intégré dans le titre -->
+    <div style="background:#eafaf1;border:2px solid #27ae60;border-radius:6px;padding:10px;">
+
+        <!-- Titre avec bouton TSD à gauche -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <button type="button" onclick="soumettreEchoNormal()"
+                style="background:#2e6da4;color:white;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">
+                TSD
+            </button>
+            <span style="font-size:11px;font-weight:bold;color:#1e8449;text-transform:uppercase;letter-spacing:0.5px;">
+                Echographie Cardiaque
+            </span>
+        </div>
+
+        <!-- ── ZONE DROITE : TAD (examen anormal) ── -->
+        <div>
+            <form method="POST" id="form_tad">
+                <input type="hidden" name="onglet" value="echo">
+                <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="TAD">
+                <input type="hidden" name="DATEchog" id="tad_date">
+
+                <div class="grid2">
+                    <div class="champ">
+                        <label>DTD-VG (mm)</label>
+                        <input type="text" name="DTD_VG" id="tad_dtdvg" oninput="mettreAJourConclusion()" placeholder="ex: 55">
+                    </div>
+                    <div class="champ">
+                        <label>FEVG (%)</label>
+                        <input type="text" name="FEVG" id="tad_fevg" oninput="mettreAJourConclusion()" placeholder="ex: 60">
+                    </div>
+                    <div class="champ">
+                        <label>SIV (mm)</label>
+                        <input type="text" name="SIV" id="tad_siv" oninput="mettreAJourConclusion()" placeholder="ex: 10">
+                    </div>
+                    <div class="champ">
+                        <label>PP (mm)</label>
+                        <input type="text" name="PP" id="tad_pp" oninput="mettreAJourConclusion()" placeholder="ex: 10">
+                    </div>
+                    <div class="champ">
+                        <label>S,OG (cm²)</label>
+                        <input type="text" name="S_OG" id="tad_sog" oninput="mettreAJourConclusion()" placeholder="ex: 20">
+                    </div>
+                    <div class="champ">
+                        <label>AO Ascendante (mm)</label>
+                        <input type="text" name="AO_ASC" id="tad_aoasc" oninput="mettreAJourConclusion()" placeholder="ex: 35">
+                    </div>
+                    <div class="champ">
+                        <label>HTAP (mmHg)</label>
+                        <input type="text" name="HTAP" id="tad_htap" oninput="mettreAJourConclusion()" placeholder="ex: 35">
+                    </div>
+                    <div class="champ">
+                        <label>PTDVG</label>
+                        <input type="text" name="PTDVG" id="tad_ptdvg" oninput="mettreAJourConclusion()" placeholder="normale">
+                    </div>
+                    <div class="champ">
+                        <label>Global Strain (%)</label>
+                        <input type="text" name="GLOBAL_STRAIN" id="tad_gs" oninput="mettreAJourConclusion()" placeholder="ex: -18">
+                    </div>
+                    <div class="champ">
+                        <label>Péricarde</label>
+                        <input type="text" name="PERICARDE" id="tad_pericarde" oninput="mettreAJourConclusion()" placeholder="sec">
+                    </div>
+                </div>
+
+                <div class="champ">
+                    <label>Cinétique VG</label>
+                    <input type="text" name="CINETIQUE" id="tad_cinetique" oninput="mettreAJourConclusion()" placeholder="cinétique globale et régionale normale">
+                </div>
+                <div class="champ">
+                    <label>Doppler</label>
+                    <textarea name="DOPPLER" id="tad_doppler" oninput="mettreAJourConclusion()" style="min-height:40px;" placeholder="flux trans valvaires normal"></textarea>
+                </div>
+                <div class="champ">
+                    <label>DTSA</label>
+                    <textarea name="DTSA" id="tad_dtsa" oninput="mettreAJourConclusion()" style="min-height:36px;"></textarea>
+                </div>
+
+                <!-- CONCLUSION AUTO -->
+                <div class="champ" style="margin-top:6px;">
+                    <label style="font-weight:bold;color:#1e8449;">Conclusion (auto-générée)</label>
+                    <textarea name="CONCLUSION1" id="tad_conclusion" style="min-height:80px;background:#f0fff4;border-color:#27ae60;font-size:10px;" readonly></textarea>
+                </div>
+            </form>
+        </div><!-- fin zone TAD intérieure -->
+
+    </div><!-- fin zone verte -->
+</div><!-- fin col-card Echo -->
 
 </div><!-- FIN cols -->
+
+<script>
+function remplirNormal() {
+    document.getElementById('type_echo_val').value = 'TSD';
+    document.getElementById('tad_cinetique').value = 'cinétique globale et régionale normale';
+    document.getElementById('tad_dtdvg').value     = 'normal';
+    document.getElementById('tad_fevg').value      = '> 60%';
+    document.getElementById('tad_ptdvg').value     = 'normale';
+    document.getElementById('tad_htap').value      = "absence d'hypertension artérielle pulmonaire";
+    document.getElementById('tad_siv').value       = "absence d'hypertrophie septale";
+    document.getElementById('tad_pp').value        = "absence d'hypertrophie de la paroi postérieure";
+    document.getElementById('tad_aoasc').value     = 'non dilatée';
+    document.getElementById('tad_pericarde').value = 'sec';
+    document.getElementById('tad_sog').value       = 'non dilatée';
+    document.getElementById('tad_gs').value        = 'normal';
+    document.getElementById('tad_doppler').value   = 'flux trans valvaires intracardiaques normaux';
+    document.getElementById('tad_dtsa').value      = 'sans particularité';
+    mettreAJourConclusion();
+}
+
+function viderChamps() {
+    document.getElementById('type_echo_val').value  = 'TAD';
+    document.getElementById('tad_cinetique').value  = '';
+    document.getElementById('tad_dtdvg').value      = '';
+    document.getElementById('tad_fevg').value       = '';
+    document.getElementById('tad_ptdvg').value      = '';
+    document.getElementById('tad_htap').value       = '';
+    document.getElementById('tad_siv').value        = '';
+    document.getElementById('tad_pp').value         = '';
+    document.getElementById('tad_aoasc').value      = '';
+    document.getElementById('tad_pericarde').value  = '';
+    document.getElementById('tad_sog').value        = '';
+    document.getElementById('tad_gs').value         = '';
+    document.getElementById('tad_doppler').value    = '';
+    document.getElementById('tad_dtsa').value       = '';
+    document.getElementById('tad_conclusion').value = '';
+}
+
+function enregistrerEcho() {
+    document.getElementById('tad_date').value = document.getElementById('echo_date').value;
+    mettreAJourConclusion();
+    document.getElementById('form_tad').submit();
+}
+
+function mettreAJourConclusion() {
+    var dtdvg    = document.getElementById('tad_dtdvg').value.trim();
+    var fevg     = document.getElementById('tad_fevg').value.trim();
+    var cinetique= document.getElementById('tad_cinetique').value.trim() || 'cinétique globale et régionale normale';
+    var sog      = document.getElementById('tad_sog').value.trim();
+    var aoasc    = document.getElementById('tad_aoasc').value.trim();
+    var doppler  = document.getElementById('tad_doppler').value.trim();
+    var dtsa     = document.getElementById('tad_dtsa').value.trim();
+    var siv      = document.getElementById('tad_siv').value.trim();
+    var pp       = document.getElementById('tad_pp').value.trim();
+    var htap     = document.getElementById('tad_htap').value.trim();
+    var ptdvg    = document.getElementById('tad_ptdvg').value.trim();
+    var gs       = document.getElementById('tad_gs').value.trim();
+    var pericarde= document.getElementById('tad_pericarde').value.trim() || 'sec';
+
+    var texte = '';
+
+    // Ligne 1 : mesures VG principales
+    if (dtdvg || fevg) {
+        if (dtdvg) texte += 'DTD-VG: ' + dtdvg + ' mm';
+        if (dtdvg && fevg) texte += ', ';
+        if (fevg) texte += 'FEVG : ' + fevg + '%';
+        texte += ', cinétique VG : ' + cinetique;
+        texte += '\n';
+    }
+
+    // Ligne 2 : parois
+    if (siv || pp) {
+        texte += '-parois : SIV: ' + (siv||'—') + ' mm, PP: ' + (pp||'—') + ' mm';
+        texte += '\n';
+    }
+
+    // Ligne 3 : surface OG
+    if (sog) {
+        texte += '-surface du massif auriculaire : OG: ' + sog + ' cm²';
+        texte += '\n';
+    }
+
+    // Ligne 4 : aorte
+    if (aoasc) {
+        texte += '-diamètre de l\'aorte : Ao ascendante: ' + aoasc + ' mm';
+        texte += '\n';
+    }
+
+    // Ligne 5 : HTAP
+    if (htap) {
+        texte += '-HTAP : ' + htap + ' mmHg';
+        texte += '\n';
+    }
+
+    // Ligne 6 : PTDVG
+    if (ptdvg) {
+        texte += '-Pression de remplissage du VG : ' + ptdvg;
+        texte += '\n';
+    }
+
+    // Ligne 7 : Péricarde
+    texte += '-Péricarde : ' + pericarde;
+    texte += '\n';
+
+    // Ligne 8 : Global Strain
+    if (gs) {
+        texte += '-Global Strain : ' + gs + '%';
+        texte += '\n';
+    }
+
+    // Ligne 9 : Doppler
+    if (doppler) {
+        texte += '-Au doppler : ' + doppler;
+        texte += '\n';
+    }
+
+    // Ligne 10 : DTSA
+    if (dtsa) {
+        texte += '-Doppler des troncs supra-aortiques : ' + dtsa;
+        texte += '\n';
+    }
+
+    document.getElementById('tad_conclusion').value = texte.trim();
+}
+
+// Initialiser la conclusion au chargement
+mettreAJourConclusion();
+</script>
+
 </body>
 </html>
