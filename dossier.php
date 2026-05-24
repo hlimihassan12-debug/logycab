@@ -1222,11 +1222,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php endif; ?>
         <!-- Navigation Examen en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
         </div>
 		<!-- ══ ECG COMPACT ══ -->
@@ -1259,11 +1259,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php endif; ?>
         <!-- Navigation ECG en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
         </div>
     </div>
@@ -1298,11 +1298,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php endif; ?>
         <!-- Navigation Echo en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
         </div>
     </div>
