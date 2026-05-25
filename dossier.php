@@ -176,10 +176,10 @@ $factures = $stmtFact->fetchAll();
 $nFact = (int)($_GET['fact'] ?? ($factures ? $factures[0]['n_facture'] : 0));
 $factCourante = null; $idxFact = 0;
 foreach ($factures as $i => $f) { if ($f['n_facture'] == $nFact) { $factCourante = $f; $idxFact = $i; break; } }
-$factPremiere = $factures ? $factures[count($factures)-1]['n_facture'] : 0;
-$factDerniere = $factures ? $factures[0]['n_facture'] : 0;
-$factPrev = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
-$factNext = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
+$factPremiere = $factures ? $factures[0]['n_facture'] : 0;
+$factDerniere = $factures ? $factures[count($factures)-1]['n_facture'] : 0;
+$factPrev = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
+$factNext = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
 
 $detailActes = [];
 if ($nFact) {
