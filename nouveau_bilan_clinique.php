@@ -184,14 +184,6 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
-.btn-save {
-    background: #27ae60; color: white;
-    border: none; border-radius: 4px; padding: 3px 10px;
-    font-size: 11px; font-weight: bold; cursor: pointer;
-    white-space: nowrap;
-}
-.btn-save:hover { background: #1e8449; }
-
 .date-enreg {
     display: flex; align-items: center; gap: 6px;
 }
@@ -199,15 +191,21 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     border: 1px solid #ddd; border-radius: 3px;
     padding: 2px 5px; font-size: 11px; color: #1a4a7a;
 }
-/* Boutons Normal / Anormal */
-.btn-preset {
-    padding: 2px 8px; border-radius: 3px; border: none;
-    font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap;
+/* Boutons icônes ✅ ✏️ 💾 — transparents, taille fixe, centrés */
+.btn-preset, .btn-save {
+    width: 22px; height: 22px; padding: 0;
+    border: none; border-radius: 3px;
+    background: transparent;
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
 }
-.btn-normal  { background: #27ae60; color: white; }
-.btn-normal:hover  { background: #1e8449; }
-.btn-anormal { background: #e67e22; color: white; }
-.btn-anormal:hover { background: #d35400; }
+.btn-preset:hover, .btn-save:hover { background: rgba(0,0,0,0.07); }
+.btn-normal { color: #27ae60; }
+.btn-anormal { color: #e67e22; }
+.btn-save { color: #2e6da4; }
+
 
 /* Champs réduits */
 .champ textarea.court { min-height: 30px; height: 30px; }
@@ -266,13 +264,15 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
         <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🩺 Examen clinique</span>
-        <button type="button" class="btn-preset btn-normal" onclick="remplirExamenNormal()" title="Valeurs normales" style="padding:2px 5px;">✅</button>
-        <button type="button" class="btn-preset btn-anormal" onclick="viderExamen()" title="Vider les champs" style="padding:2px 5px;">✏️</button>
-        <button type="button" class="btn-save" onclick="enregistrerAjax('examen')" title="Enregistrer" style="padding:2px 5px;">💾</button>
+        <button type="button" class="btn-preset btn-normal" onclick="remplirExamenNormal()" title="Valeurs normales">✅</button>
+        <button type="button" class="btn-preset btn-anormal" onclick="viderExamen()" title="Vider les champs">✏️</button>
+        <button type="button" class="btn-save" onclick="enregistrerAjax('examen')" title="Enregistrer">💾</button>
         <span style="flex:1;"></span>
         <input type="date" name="DateExam" value="<?= $today ?>" id="date_examen" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
-    <div style="min-height:16px;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
+
+   <div style="min-height:16px;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
+      <div style="min-height:14px;margin-bottom:4px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('examen','first')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('examen','prev')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
@@ -296,7 +296,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <input type="number" name="TAILLE" placeholder="170" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
     </div>
 
-    <div class="sec">Clinique &nbsp;<small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
+    <div class="sec">Clinique  </div>
     <div class="champ" id="wrap_S_Fonctionnels">
         <label>Signes fonctionnels</label>
         <div class="excl-wrap">
@@ -386,9 +386,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
         <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">⚡ ECG</span>
-        <button type="button" class="btn-preset btn-normal" onclick="remplirECGNormal()" title="Valeurs normales" style="padding:2px 5px;">✅</button>
-        <button type="button" class="btn-preset btn-anormal" onclick="viderECG()" title="Vider les champs" style="padding:2px 5px;">✏️</button>
-        <button type="button" class="btn-save" onclick="enregistrerAjax('ecg')" title="Enregistrer" style="padding:2px 5px;">💾</button>
+        <button type="button" class="btn-preset btn-normal" onclick="remplirECGNormal()" title="Valeurs normales">✅</button>
+        <button type="button" class="btn-preset btn-anormal" onclick="viderECG()" title="Vider les champs">✏️</button>
+        <button type="button" class="btn-save" onclick="enregistrerAjax('ecg')" title="Enregistrer">💾</button>
         <span style="flex:1;"></span>
         <input type="date" name="Date_ECG" value="<?= $today ?>" id="date_ecg" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
@@ -623,9 +623,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
         <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🫀 Echo-Doppler</span>
-        <button type="button" class="btn-preset btn-normal" onclick="remplirEchoNormal()" title="Valeurs normales" style="padding:2px 5px;">✅</button>
-        <button type="button" class="btn-preset btn-anormal" onclick="viderEcho()" title="Vider les champs" style="padding:2px 5px;">✏️</button>
-        <button type="button" class="btn-save" onclick="enregistrerAjax('echo')" title="Enregistrer" style="padding:2px 5px;">💾</button>
+        <button type="button" class="btn-preset btn-normal" onclick="remplirEchoNormal()" title="Valeurs normales">✅</button>
+        <button type="button" class="btn-preset btn-anormal" onclick="viderEcho()" title="Vider les champs">✏️</button>
+        <button type="button" class="btn-save" onclick="enregistrerAjax('echo')" title="Enregistrer">💾</button>
         <span style="flex:1;"></span>
         <input type="date" name="DATEchog" value="<?= $today ?>" id="date_echo" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
