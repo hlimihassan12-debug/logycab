@@ -265,15 +265,22 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="onglet" value="examen">
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
-        🩺 Examen clinique
-        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-            <button type="button" class="btn-preset btn-normal" onclick="remplirExamenNormal()">✅ Normal</button>
-            <button type="button" class="btn-preset btn-anormal" onclick="viderExamen()">⚠️ Anormal</button>
-            <input type="date" name="DateExam" value="<?= $today ?>" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
-            <button type="button" class="btn-save" onclick="enregistrerAjax('examen')">💾 Enregistrer</button>
-        </div>
+        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🩺 Examen clinique</span>
+        <button type="button" class="btn-preset btn-normal" onclick="remplirExamenNormal()" title="Valeurs normales" style="padding:2px 5px;">✅</button>
+        <button type="button" class="btn-preset btn-anormal" onclick="viderExamen()" title="Vider les champs" style="padding:2px 5px;">✏️</button>
+        <button type="button" class="btn-save" onclick="enregistrerAjax('examen')" title="Enregistrer" style="padding:2px 5px;">💾</button>
+        <span style="flex:1;"></span>
+        <input type="date" name="DateExam" value="<?= $today ?>" id="date_examen" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
     <div style="min-height:16px;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
+    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="naviguerBilan('examen','first')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
+        <button type="button" onclick="naviguerBilan('examen','next')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('examen','last')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
 
     <div class="sec">Mesures</div>
     <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
@@ -378,17 +385,22 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="onglet" value="ecg">
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
-        ⚡ ECG
-        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-            <button type="button" class="btn-preset btn-normal" onclick="remplirECGNormal()">✅ Normal</button>
-            <button type="button" class="btn-preset btn-anormal" onclick="viderECG()">⚠️ Anormal</button>
-            <input type="date" name="Date_ECG" value="<?= $today ?>" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
-            <button type="button" class="btn-save" onclick="enregistrerAjax('ecg')">💾 Enregistrer</button>
-        </div>
+        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">⚡ ECG</span>
+        <button type="button" class="btn-preset btn-normal" onclick="remplirECGNormal()" title="Valeurs normales" style="padding:2px 5px;">✅</button>
+        <button type="button" class="btn-preset btn-anormal" onclick="viderECG()" title="Vider les champs" style="padding:2px 5px;">✏️</button>
+        <button type="button" class="btn-save" onclick="enregistrerAjax('ecg')" title="Enregistrer" style="padding:2px 5px;">💾</button>
+        <span style="flex:1;"></span>
+        <input type="date" name="Date_ECG" value="<?= $today ?>" id="date_ecg" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
     <div style="min-height:16px;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
-    <div style="min-height:14px;margin-bottom:4px;">
-        <small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small>
+    <div style="min-height:14px;margin-bottom:4px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
+    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="naviguerBilan('ecg','first')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
+        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('ecg','last')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
     <div class="champ"><label>Fréquence (bpm)</label>
         <input type="number" name="FREQUENCE" placeholder="75" oninput="majApercuECG()" min="20" max="300">
@@ -610,17 +622,22 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="onglet" value="echo">
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
-        🫀 Echo-Doppler
-        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-            <button type="button" class="btn-preset btn-normal" onclick="remplirEchoNormal()">✅ Normal</button>
-            <button type="button" class="btn-preset btn-anormal" onclick="viderEcho()">⚠️ Anormal</button>
-            <input type="date" name="DATEchog" value="<?= $today ?>" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
-            <button type="button" class="btn-save" onclick="enregistrerAjax('echo')">💾 Enregistrer</button>
-        </div>
+        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🫀 Echo-Doppler</span>
+        <button type="button" class="btn-preset btn-normal" onclick="remplirEchoNormal()" title="Valeurs normales" style="padding:2px 5px;">✅</button>
+        <button type="button" class="btn-preset btn-anormal" onclick="viderEcho()" title="Vider les champs" style="padding:2px 5px;">✏️</button>
+        <button type="button" class="btn-save" onclick="enregistrerAjax('echo')" title="Enregistrer" style="padding:2px 5px;">💾</button>
+        <span style="flex:1;"></span>
+        <input type="date" name="DATEchog" value="<?= $today ?>" id="date_echo" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
     <div style="min-height:16px;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
-    <div style="min-height:14px;margin-bottom:4px;">
-        <small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small>
+    <div style="min-height:14px;margin-bottom:4px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
+    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="naviguerBilan('echo','first')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
+        <button type="button" onclick="naviguerBilan('echo','next')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('echo','last')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
     <!-- TYPE_ECHO caché : mis à jour par Normal/Anormal -->
@@ -992,6 +1009,45 @@ function enregistrerTout() {
     .catch(function(err){
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
     });
+}
+/* ════ NAVIGATION BILANS ════ */
+var bilanRef = { examen: null, ecg: null, echo: null };
+function naviguerBilan(type, dir) {
+    var id=<?= $id ?>, ref=bilanRef[type];
+    var url='ajax_bilan_nav.php?id='+id+'&type='+type+'&dir='+dir;
+    if (ref && dir!=='first' && dir!=='last') url+='&ref='+ref;
+    fetch(url).then(function(r){return r.json();}).then(function(d){
+        if (d.vide){alert('Pas d\'autre bilan disponible.');return;}
+        if (d.erreur){alert(d.erreur);return;}
+        bilanRef[type]=d.date_fmt||null;
+        document.getElementById('navdate_'+type).textContent=d.date_affichage||'—';
+        var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
+        if(type==='examen'){
+            ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
+             'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
+             'Autres_Symptomes','Conclusion','REMARQUE','Conduite_ATenir']
+            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        }
+        if(type==='ecg'){
+            ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
+             'infrastructure_de_conduction','REPOLARISATION','SEGMENT_ST','TOPOGRAPHIE_ST',
+             'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES']
+            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        }
+        if(type==='echo'){
+            ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
+             'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1']
+            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        }
+    }).catch(function(e){alert('Erreur : '+e.message);});
+}
+function nouveauBilan(type) {
+    bilanRef[type]=null;
+    document.getElementById('navdate_'+type).textContent='— nouveau —';
+    var df=document.getElementById('date_'+type); if(df) df.value='<?= $today ?>';
+    if(type==='examen') viderExamen();
+    if(type==='ecg')    viderECG();
+    if(type==='echo')   viderEcho();
 }
 </script>
 
