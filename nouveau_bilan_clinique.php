@@ -128,6 +128,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $today = date('Y-m-d');
+
+// ── 3 derniers bilans biologiques avec leurs résultats anormaux ──────────
+$stmtBioNBC = $db->prepare("
+    SELECT TOP 3 n_bilan,
+           CONVERT(varchar(10), date_bilan, 103) AS date_fr
+    FROM LE_BILAN
+    WHERE id = ?
+    ORDER BY date_bilan DESC
+");
+$stmtBioNBC->execute([$id]);
+$bilansList3 = $stmtBioNBC->fetchAll();
+
+// Pour chaque bilan : charger ses anormaux et toutes ses lignes
+$bilansNBC = [];
+foreach ($bilansList3 as $b) {
+    $stmtTout = $db->prepare("
+        SELECT c.analyse AS nom,
+               c.rubrique,
+               ISNULL(a.résultat,'') AS resultat
+        FROM analyses a
+        LEFT JOIN C_ANALYSE c ON c.[N°TypeAnalyse] = a.bilan
+        WHERE a.N_bilan = ?
+        ORDER BY c.rubrique, c.analyse
+    ");
+    $stmtTout->execute([$b['n_bilan']]);
+    $lignes = $stmtTout->fetchAll();
+    $bilansNBC[] = [
+        'n_bilan' => $b['n_bilan'],
+        'date_fr' => $b['date_fr'],
+        'lignes'  => $lignes,
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -152,7 +184,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     cursor: pointer; font-size: 11px; text-decoration: none;
 }
 
-.cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
+.cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
 
 .col-card { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 
@@ -729,6 +761,79 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     </form>
 </div>
 
+<!-- ══════════════════════════════════════════════
+     COLONNE 4 : BIOLOGIE (lecture seule)
+══════════════════════════════════════════════ -->
+<div class="col-card" id="card-bio-nbc">
+    <div class="col-title">
+        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🧪 Biologie</span>
+        <a href="biologie.php?id=<?= $id ?>" target="_blank"
+           style="background:#e67e22;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:bold;text-decoration:none;white-space:nowrap;">✚ Saisir</a>
+    </div>
+
+    <?php if (empty($bilansNBC)): ?>
+        <p style="color:#999;font-size:11px;">Aucun bilan enregistré</p>
+    <?php else: ?>
+
+    <!-- Historique compact : date + anormaux en surbrillance -->
+    <div style="margin-bottom:10px;">
+        <div class="sec" style="margin-top:0;">Historique (3 derniers)</div>
+        <?php foreach ($bilansNBC as $bNBC):
+            $anormaux = array_filter($bNBC['lignes'], fn($l) => trim($l['resultat']) !== '' && strtoupper(trim($l['resultat'])) !== 'N');
+        ?>
+        <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
+            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
+            <?php if (!empty($anormaux)): ?>
+            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
+            <?php foreach ($anormaux as $an): ?>
+            <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
+                <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
+            </span>
+            <?php endforeach; ?>
+            <?php else: ?>
+            <span style="font-size:10px;color:#27ae60;margin-left:4px;">— Normal</span>
+            <?php endif; ?>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Détail du bilan sélectionné (navigation) -->
+    <div class="sec">Détail bilan</div>
+
+    <!-- Barre de navigation bilans -->
+    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">
+            <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
+        </span>
+        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+    </div>
+
+    <!-- Zone résultats du bilan sélectionné -->
+    <div id="bio-nbc-resultats" style="font-size:11px;">
+        <?php if ($bilansNBC): ?>
+        <?php foreach ($bilansNBC[0]['lignes'] as $lig):
+            $v = trim($lig['resultat']);
+            $an = ($v !== '' && strtoupper($v) !== 'N');
+        ?>
+        <div style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #f8f8f8;">
+            <span style="color:<?= $an ? '#c0392b' : '#aaa' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;">
+                <?= htmlspecialchars($lig['nom']) ?>
+            </span>
+            <span style="color:<?= $an ? '#c0392b' : '#bbb' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
+                <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
+            </span>
+        </div>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+
+    <?php endif; ?>
+</div>
+</div><!-- FIN card biologie -->
+
 </div><!-- FIN cols -->
 
 <script>
@@ -1085,6 +1190,48 @@ function nouveauBilan(type) {
     if(type==='examen') viderExamen();
     if(type==='ecg')    viderECG();
     if(type==='echo')   viderEcho();
+}
+/* ════ NAVIGATION BIOLOGIE (lecture seule) ════ */
+const bioNbcBilans = <?= json_encode(array_map(fn($b) => [
+    'n_bilan' => $b['n_bilan'],
+    'date_fr' => $b['date_fr'],
+], $bilansNBC)) ?>;
+let bioNbcIdx = 0;
+
+function bioNavNBC(dir) {
+    if (!bioNbcBilans.length) return;
+    if      (dir === 'first') bioNbcIdx = 0;
+    else if (dir === 'last')  bioNbcIdx = bioNbcBilans.length - 1;
+    else if (dir === 'prev')  bioNbcIdx = Math.max(0, bioNbcIdx - 1);
+    else if (dir === 'next')  bioNbcIdx = Math.min(bioNbcBilans.length - 1, bioNbcIdx + 1);
+    const b = bioNbcBilans[bioNbcIdx];
+    document.getElementById('bio-nbc-navdate').textContent = b.date_fr;
+    // Charger via AJAX
+    fetch('ajax_bio_dossier.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'get_detail', n_bilan: b.n_bilan})
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (!d.ok) return;
+        const zone = document.getElementById('bio-nbc-resultats');
+        if (!d.lignes.length) {
+            zone.innerHTML = '<span style="color:#999;font-size:11px;">Bilan vide</span>';
+            return;
+        }
+        zone.innerHTML = d.lignes.map(l => {
+            const v  = l.resultat || '';
+            const an = (v !== '' && v.toUpperCase() !== 'N');
+            const col = an ? '#c0392b' : '#aaa';
+            const fw  = an ? 'bold'   : 'normal';
+            const fs  = an ? '11px'   : '10px';
+            return `<div style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #f8f8f8;">
+                <span style="color:${col};font-weight:${fw};font-size:${fs};">${l.nom}</span>
+                <span style="color:${col};font-weight:${fw};font-size:${fs};margin-left:6px;white-space:nowrap;">${v || '—'}</span>
+            </div>`;
+        }).join('');
+    });
 }
 </script>
 

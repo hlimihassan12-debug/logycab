@@ -160,7 +160,40 @@ $echos = $stmtEchos->fetchAll();
 $nEcho = (int)($_GET['echo'] ?? ($echos ? $echos[0]['N°'] : 0));
 $echoCourant = null; $idxEcho = 0;
 foreach ($echos as $i => $e) { if ($e['N°'] == $nEcho) { $echoCourant = $e; $idxEcho = $i; break; } }
-
+// ── BILANS BIOLOGIE — liste pour navigation dossier ───────────────────
+$stmtBioListe = $db->prepare("
+    SELECT b.n_bilan,
+           CONVERT(varchar(10), b.date_bilan, 103) AS date_fr,
+           b.date_bilan,
+           ISNULL(b.observation,'') AS observation,
+           COUNT(a.N_analyse) AS nb_total,
+           SUM(CASE WHEN ISNULL(a.résultat,'') <> '' AND a.résultat <> 'N' THEN 1 ELSE 0 END) AS nb_anormal
+    FROM LE_BILAN b
+    LEFT JOIN analyses a ON a.N_bilan = b.n_bilan
+    WHERE b.id = ?
+    GROUP BY b.n_bilan, b.date_bilan, b.observation
+    ORDER BY b.date_bilan DESC
+");
+$stmtBioListe->execute([$id]);
+$bilansListe = $stmtBioListe->fetchAll();
+$bilanCourantData = $bilansListe ? $bilansListe[0] : null;
+ 
+// Charger le détail du premier bilan (le plus récent)
+$lignesBioActuel = [];
+if ($bilanCourantData) {
+    $stmtBioDetail = $db->prepare("
+        SELECT a.N_analyse,
+               c.analyse AS nom,
+               c.rubrique,
+               ISNULL(a.résultat,'') AS resultat
+        FROM analyses a
+        LEFT JOIN C_ANALYSE c ON c.[N°TypeAnalyse] = a.bilan
+        WHERE a.N_bilan = ?
+        ORDER BY c.rubrique, c.analyse
+    ");
+    $stmtBioDetail->execute([$bilanCourantData['n_bilan']]);
+    $lignesBioActuel = $stmtBioDetail->fetchAll();
+}
 $stmtFact = $db->prepare("
     SELECT f.n_facture, f.id, f.date_facture, f.montant,
            ISNULL(SUM(d.prixU),0) AS total,
@@ -1269,6 +1302,73 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
         </div>
+	 <!-- ══ BIOLOGIE COMPACT ══ -->
+        <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
+                <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🧪 Biologie</span>
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <span id="bio-nb-anormal" style="font-size:10px;font-weight:bold;color:#e74c3c;display:none;"></span>
+                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:#1a4a7a;">—</span>
+                    <button type="button" onclick="toggleApercu('apercu-bio-dossier',this)"
+                        id="bio-btn-apercu"
+                        style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;"
+                        title="Aperçu rapport">👁</button>
+                </div>
+            </div>
+ 
+            <!-- Zone résultats — remplie par PHP au chargement, puis par JS à la navigation -->
+            <div id="bio-resultats" style="font-size:11px;min-height:20px;">
+                <?php if ($bilanCourantData): ?>
+                <?php foreach ($lignesBioActuel as $bl):
+                    $v = trim($bl['resultat']);
+                    $anormal = ($v !== '' && strtoupper($v) !== 'N');
+                ?>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1px 0;border-bottom:1px solid #f5f5f5;">
+                    <span style="color:<?= $anormal ? '#e74c3c' : '#aaa' ?>;font-weight:<?= $anormal ? 'bold' : 'normal' ?>;font-size:<?= $anormal ? '11px' : '10px' ?>;">
+                        <?= htmlspecialchars($bl['nom']) ?>
+                    </span>
+                    <span style="color:<?= $anormal ? '#e74c3c' : '#bbb' ?>;font-weight:<?= $anormal ? 'bold' : 'normal' ?>;font-size:<?= $anormal ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
+                        <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
+                    </span>
+                </div>
+                <?php endforeach; ?>
+                <?php else: ?>
+                <span style="color:#999;font-size:11px;">Aucun bilan</span>
+                <?php endif; ?>
+            </div>
+ 
+            <!-- Aperçu rapport biologie (caché par défaut, bouton 👁) -->
+            <div id="apercu-bio-dossier" style="display:none;margin-top:6px;">
+                <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;" id="apercu-bio-texte">
+                    <?php
+                    $apercuBioLignes = [];
+                    foreach ($lignesBioActuel as $bl) {
+                        $v = trim($bl['resultat']);
+                        if ($v !== '' && strtoupper($v) !== 'N') {
+                            $apercuBioLignes[] = htmlspecialchars($bl['nom'])
+                                . ' : <strong style="color:#e74c3c;">'
+                                . htmlspecialchars($v) . '</strong>';
+                        }
+                    }
+                    echo $apercuBioLignes
+                        ? implode('<br>', $apercuBioLignes)
+                        : '<span style="color:#999;">Aucun résultat anormal</span>';
+                    ?>
+                </div>
+            </div>
+ 
+            <!-- Navigation entre bilans -->
+            <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
+                <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</button>
+                <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent">◀</button>
+                <span id="bio-nav-pos" style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;">
+                    <?= $bilansListe ? '1 / '.count($bilansListe) : '0' ?>
+                </span>
+                <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant">▶</button>
+                <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</button>
+                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:10px;" title="Ouvrir module Biologie">✚</a>
+            </div>
+        </div><!-- FIN card biologie -->	
 		<!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
@@ -2211,7 +2311,97 @@ function confirmerRdv(nOrdon) {
         });
     });
 }
-
+// ════════════════════════════════════════════════════════════
+// NAVIGATION BIOLOGIE (dossier)
+// ════════════════════════════════════════════════════════════
+const bioBilans = <?= json_encode(array_map(fn($b) => [
+    'n_bilan'    => $b['n_bilan'],
+    'date_fr'    => $b['date_fr'],
+    'nb_anormal' => (int)$b['nb_anormal'],
+    'nb_total'   => (int)$b['nb_total'],
+], $bilansListe)) ?>;
+let bioIdx = 0; // 0 = bilan le plus récent
+ 
+function bioNav(dir) {
+    if (!bioBilans.length) return;
+    if      (dir === 'first') bioIdx = 0;
+    else if (dir === 'last')  bioIdx = bioBilans.length - 1;
+    else if (dir === 'prev')  bioIdx = Math.max(0, bioIdx - 1);
+    else if (dir === 'next')  bioIdx = Math.min(bioBilans.length - 1, bioIdx + 1);
+    bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
+}
+ 
+async function bioCharger(n_bilan, idx) {
+    const res = await fetch('ajax_bio_dossier.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'get_detail', n_bilan})
+    }).then(r => r.json());
+ 
+    if (!res.ok) return;
+ 
+    // Mettre à jour compteur position
+    document.getElementById('bio-nav-pos').textContent = (idx + 1) + ' / ' + bioBilans.length;
+ 
+    // Mettre à jour la date affichée
+    document.getElementById('bio-date-affich').textContent = res.bilan?.date_fr || '—';
+ 
+    // Compter et afficher le nombre de résultats anormaux
+    const anormaux = res.lignes.filter(l => l.resultat !== '' && l.resultat.toUpperCase() !== 'N');
+    const elNb = document.getElementById('bio-nb-anormal');
+    if (anormaux.length > 0) {
+        elNb.textContent = anormaux.length + ' ⚠️';
+        elNb.style.display = '';
+    } else {
+        elNb.style.display = 'none';
+    }
+ 
+    // Afficher toutes les lignes (anormaux en rouge, normaux en gris)
+    const zone = document.getElementById('bio-resultats');
+    if (!res.lignes.length) {
+        zone.innerHTML = '<span style="color:#999;font-size:11px;">Bilan vide</span>';
+    } else {
+        zone.innerHTML = res.lignes.map(l => {
+            const v  = l.resultat || '';
+            const an = (v !== '' && v.toUpperCase() !== 'N');
+            const col = an ? '#e74c3c' : '#aaa';
+            const fw  = an ? 'bold'   : 'normal';
+            const fs  = an ? '11px'   : '10px';
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:1px 0;border-bottom:1px solid #f5f5f5;">
+                <span style="color:${col};font-weight:${fw};font-size:${fs};">${l.nom}</span>
+                <span style="color:${col};font-weight:${fw};font-size:${fs};margin-left:6px;white-space:nowrap;">${v || '—'}</span>
+            </div>`;
+        }).join('');
+    }
+ 
+    // Mettre à jour l'aperçu rapport (anormaux seulement)
+    const apercuTexte = document.getElementById('apercu-bio-texte');
+    if (apercuTexte) {
+        const lignesAn = res.lignes.filter(l => l.resultat && l.resultat.toUpperCase() !== 'N');
+        apercuTexte.innerHTML = lignesAn.length
+            ? lignesAn.map(l => `${l.nom} : <strong style="color:#e74c3c;">${l.resultat}</strong>`).join('<br>')
+            : '<span style="color:#999;">Aucun résultat anormal</span>';
+    }
+ 
+    // Afficher bouton aperçu 👁 si le bilan a des lignes
+    document.getElementById('bio-btn-apercu').style.display = res.lignes.length ? '' : 'none';
+}
+ 
+// Initialiser l'affichage au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    if (!bioBilans.length) return;
+    const elNb = document.getElementById('bio-nb-anormal');
+    const nbAn = bioBilans[0]?.nb_anormal || 0;
+    if (nbAn > 0) {
+        elNb.textContent = nbAn + ' ⚠️';
+        elNb.style.display = '';
+    }
+    document.getElementById('bio-date-affich').textContent = bioBilans[0]?.date_fr || '—';
+    if (bioBilans[0]?.nb_total > 0) {
+        document.getElementById('bio-btn-apercu').style.display = '';
+    }
+});
+ 
 // Certificat vue accueil
 function calcNbrJAcc() {
     const d1=document.getElementById('cert_debut_acc').value, d2=document.getElementById('cert_fin_acc').value;
