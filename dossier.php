@@ -1181,7 +1181,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
     </div><!-- FIN card ordonnance -->
 </div><!-- FIN col-mid -->
-<!-- ══ COLONNE DROITE : EXAMEN CLINIQUE ══ -->
+<!-- ══ COLONNE DROITE : EXAMEN title="Valeurs normales">✅</button> ══ -->
 <div class="col-right" id="col-right-exam">
     <div class="card">
         <?php if ($examen): ?>
@@ -1201,8 +1201,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             }
         ?>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🩺 Examen clinique</span>
-            <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
+            <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🩺 Examen</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <?php if ($examen): ?><button type="button" onclick="toggleApercu('apercu-examen-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
+                <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
+            </div>
         </div>
         <?php
         $tas = (int)($examen['TAS'] ?? 0); $tad = (int)($examen['TAD'] ?? 0);
@@ -1217,6 +1220,43 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <div class="champ"><label>Poids</label><span><?= htmlspecialchars($examen['POIDS'] ?? '—') ?> kg</span></div>
             <div class="champ"><label>Taille</label><span><?= htmlspecialchars($examen['TAILLE'] ?? '—') ?> cm</span></div>
         </div>
+        <?php if (!empty($examen['Conclusion'])): ?>
+        <div class="champ" style="margin-top:4px;">
+            <label>Conclusion</label>
+            <span style="font-size:11px;color:#1a4a7a;"><?= htmlspecialchars($examen['Conclusion']) ?></span>
+        </div>
+        <?php endif; ?>
+        <?php if (!empty($examen['REMARQUE'])): ?>
+        <div class="champ" style="margin-top:2px;">
+            <label>Remarque</label>
+            <span style="font-size:11px;color:#555;"><?= htmlspecialchars($examen['REMARQUE']) ?></span>
+        </div>
+        <?php endif; ?>
+        <?php
+        // Aperçu rapport Examen — même logique que print_rapport.php
+        $apercuExamen = '';
+        if ($examen) {
+            $parts = array_filter([
+                $examen['S_Fonctionnels']     ?? '',
+                $examen['Auscult_Cardiaque']  ?? '',
+                $examen['Auscult_Pulmonaire'] ?? '',
+                $examen['Examen_Vasculaire']  ?? '',
+                (!empty($examen['Signes_IVG']) && $examen['Signes_IVG'] !== 'Absents') ? 'Signes IVG : '.$examen['Signes_IVG'] : '',
+                (!empty($examen['Signes_IVD']) && $examen['Signes_IVD'] !== 'Absents') ? 'Signes IVD : '.$examen['Signes_IVD'] : '',
+                $examen['Autres_Symptomes']   ?? '',
+                $examen['Conclusion']         ?? '',
+                $examen['REMARQUE']           ?? '',
+            ], fn($v) => trim((string)$v) !== '');
+            $apercuExamen = implode(' ; ', $parts);
+        }
+        ?>
+        <?php if ($apercuExamen): ?>
+        <div id="apercu-examen-dossier" style="display:none;margin-top:6px;">
+            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
+                <?= htmlspecialchars($apercuExamen) ?>
+            </div>
+        </div>
+        <?php endif; ?>
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucun examen enregistré</p>
         <?php endif; ?>
@@ -1227,15 +1267,18 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
         </div>
 		<!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
             <span>⚡ ECG</span>
-            <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
-            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
-            <?php endif; ?>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <?php if ($ecgCourant): ?><button type="button" onclick="toggleApercu('apercu-ecg-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
+                <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
+                <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
+                <?php endif; ?>
+            </div>
         </div>
         <?php if ($ecgCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
@@ -1257,6 +1300,39 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun ECG enregistré</p>
         <?php endif; ?>
+        <?php
+        // Aperçu rapport ECG
+        $apercuECG = '';
+        if ($ecgCourant) {
+            $p = [];
+            $rsv  = $ecgCourant['RYTHME SUPRA VENTRICULAIRE'] ?? '';
+            $trv  = $ecgCourant['trouble de rythme'] ?? '';
+            $freq = $ecgCourant['FREQUENCE'] ?? '';
+            $r = '';
+            if ($rsv) $r .= 'Rythme : '.$rsv;
+            if ($trv) $r .= ($r ? ', ' : '').$trv;
+            if ($freq) $r .= ($r ? ', ' : '').'FC : '.$freq.' bat/min';
+            if ($r) $p[] = $r;
+            $cn = $ecgCourant['LA CONDUCTION NODALE'] ?? '';
+            if ($cn) $p[] = 'Conduction AV : '.$cn;
+            $qrs = $ecgCourant['QRS'] ?? '';
+            if ($qrs) $p[] = 'QRS : '.$qrs;
+            $inf = $ecgCourant['LA CONDUCTION INFRANODALE'] ?? '';
+            if ($inf) $p[] = $inf;
+            $rep = $ecgCourant['LA REPOLARISATION'] ?? '';
+            if ($rep) $p[] = 'Repolarisation : '.$rep;
+            $cc  = $ecgCourant['C/C'] ?? '';
+            if ($cc) $p[] = $cc;
+            $apercuECG = implode(' ; ', $p);
+        }
+        ?>
+        <?php if ($apercuECG): ?>
+        <div id="apercu-ecg-dossier" style="display:none;margin-top:6px;">
+            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
+                <?= htmlspecialchars($apercuECG) ?>
+            </div>
+        </div>
+        <?php endif; ?>
         <!-- Navigation ECG en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
@@ -1264,7 +1340,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
         </div>
     </div>
 
@@ -1272,9 +1348,12 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
             <span>🫀 Echo-Doppler</span>
-            <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
-            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
-            <?php endif; ?>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <?php if ($echoCourant): ?><button type="button" onclick="toggleApercu('apercu-echo-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
+                <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
+                <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
+                <?php endif; ?>
+            </div>
         </div>
         <?php if ($echoCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
@@ -1296,6 +1375,16 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun Echo enregistré</p>
         <?php endif; ?>
+        <?php
+        $apercuEcho = htmlspecialchars(trim($echoCourant['CONCLUSION1'] ?? ''));
+        ?>
+        <?php if ($apercuEcho): ?>
+        <div id="apercu-echo-dossier" style="display:none;margin-top:6px;">
+            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
+                <?= $apercuEcho ?>
+            </div>
+        </div>
+        <?php endif; ?>
         <!-- Navigation Echo en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
@@ -1303,7 +1392,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&amp;onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
         </div>
     </div>
     </div>
@@ -1515,6 +1604,15 @@ function reportTraitement(mois, patientId) {
 // ════════════════════════════════════════════════════════════
 // UTILITAIRE date
 // ════════════════════════════════════════════════════════════
+function toggleApercu(id, btn) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var visible = el.style.display !== 'none';
+    el.style.display = visible ? 'none' : 'block';
+    btn.style.background = visible ? 'none' : '#2e6da4';
+    btn.style.color = visible ? '#2e6da4' : 'white';
+}
+
 function dateEnFr(d) {
     if (!d) return '';
     const [a,m,j] = d.split('-');

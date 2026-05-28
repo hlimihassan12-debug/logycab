@@ -349,9 +349,29 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
     </div>
 
-    <div class="sec">Conclusion</div>
-    <div class="champ"><label>Conclusion</label><textarea name="Conclusion" class="court"></textarea></div>
-    <div class="champ"><label>Remarque</label><textarea name="REMARQUE" class="court"></textarea></div>
+    <div class="sec">Conclusion &amp; Remarque</div>
+    <div class="champ" id="wrap_Conclusion">
+        <div class="label-excl">
+            <label>Conclusion</label>
+            <button type="button" class="btn-excl" onclick="toggleExcl('Conclusion')" title="Exclure du rapport">−</button>
+        </div>
+        <div class="excl-wrap">
+            <textarea name="Conclusion" class="court" oninput="majApercuExamen()"></textarea>
+            <button type="button" onclick="setConclusionECVN()" title="Examen Cardio-Vasculaire Normal"
+                style="flex-shrink:0;height:20px;padding:0 5px;border:1px solid #27ae60;border-radius:3px;background:#27ae60;color:white;font-size:9px;font-weight:bold;cursor:pointer;white-space:nowrap;">ECVN</button>
+        </div>
+    </div>
+    <div class="champ" id="wrap_REMARQUE">
+        <div class="label-excl">
+            <label>Remarque</label>
+            <button type="button" class="btn-excl" onclick="toggleExcl('REMARQUE')" title="Exclure du rapport">−</button>
+        </div>
+        <div class="excl-wrap">
+            <textarea name="REMARQUE" class="court" oninput="majApercuExamen()"></textarea>
+            <button type="button" onclick="viderConclusionRemarque()" title="Vider pour saisie libre"
+                style="flex-shrink:0;height:20px;padding:0 5px;border:1px solid #e67e22;border-radius:3px;background:#e67e22;color:white;font-size:9px;font-weight:bold;cursor:pointer;white-space:nowrap;">ECVAN</button>
+        </div>
+    </div>
 
     <!-- Champs cachés pour l'exclusion de concaténation -->
     <input type="hidden" id="excl_S_Fonctionnels"     name="excl_S_Fonctionnels">
@@ -361,6 +381,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" id="excl_Signes_IVG"         name="excl_Signes_IVG">
     <input type="hidden" id="excl_Signes_IVD"         name="excl_Signes_IVD">
     <input type="hidden" id="excl_Autres_Symptomes"   name="excl_Autres_Symptomes">
+    <input type="hidden" id="excl_Conclusion"          name="excl_Conclusion">
+    <input type="hidden" id="excl_REMARQUE"            name="excl_REMARQUE">
 
     <!-- Zone prévisualisation concaténation Examen -->
     <div class="champ" style="margin-top:6px;">
@@ -719,7 +741,8 @@ var echoMode       = 'normal'; // 'normal' ou 'anormal'
 
 // Listes des champs par colonne (pour les labels "exclu")
 var champsExamen = ['S_Fonctionnels','Auscult_Cardiaque','Auscult_Pulmonaire',
-                    'Examen_Vasculaire','Signes_IVG','Signes_IVD','Autres_Symptomes'];
+                    'Examen_Vasculaire','Signes_IVG','Signes_IVD','Autres_Symptomes',
+                    'Conclusion','REMARQUE'];
 var champsECG    = ['rythme_sv','trouble_rv','conduction_nodale','QRS',
                     'infrastructure_de_conduction','REPOLARISATION','CC'];
 var champsEcho   = ['DOPPLER','DTSA','CONCLUSION1'];
@@ -793,7 +816,8 @@ function majApercuExamen() {
     var ap = document.getElementById('apercu_examen');
     if (!ap) return;
     var noms = ['S_Fonctionnels','Auscult_Cardiaque','Auscult_Pulmonaire',
-                'Examen_Vasculaire','Signes_IVG','Signes_IVD','Autres_Symptomes'];
+                'Examen_Vasculaire','Signes_IVG','Signes_IVD','Autres_Symptomes',
+                'Conclusion','REMARQUE'];
     var parties = [];
     noms.forEach(function(n) {
         if (exclusions[n]) return;
@@ -883,6 +907,19 @@ function viderExamen() {
     ['S_Fonctionnels','Auscult_Cardiaque','Auscult_Pulmonaire','Examen_Vasculaire',
      'Signes_IVG','Signes_IVD','Autres_Symptomes','Conduite_ATenir']
     .forEach(function(n){ var e=document.querySelector('[name='+n+']'); if(e) e.value=''; });
+    majApercuExamen();
+}
+
+/* ── Conclusion : ECVN / ECVAN ── */
+function setConclusionECVN() {
+    var c = document.querySelector('[name=Conclusion]');
+    if (c) { c.value = 'EXAMEN CLINIQUE NORMAL'; majApercuExamen(); }
+}
+function viderConclusionRemarque() {
+    var c = document.querySelector('[name=Conclusion]');
+    var r = document.querySelector('[name=REMARQUE]');
+    if (c) c.value = '';
+    if (r) r.value = '';
     majApercuExamen();
 }
 
