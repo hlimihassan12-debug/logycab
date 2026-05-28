@@ -31,7 +31,6 @@ $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY Dat
 $stmtEx->execute([$id]);
 $examen = $stmtEx->fetch();
 
-// Concaténation de l'examen (champs non vides, séparés par " — ")
 function concat_champs(array $vals): string {
     $parts = array_filter($vals, fn($v) => trim((string)$v) !== '');
     return implode("\n", $parts);
@@ -39,22 +38,24 @@ function concat_champs(array $vals): string {
 
 $texteExamen = '';
 if ($examen) {
-    $texteExamen = concat_champs([
+    $texteExamen = trim(concat_champs([
         $examen['S_Fonctionnels']     ?? '',
         $examen['Auscult_Cardiaque']  ?? '',
         $examen['Auscult_Pulmonaire'] ?? '',
         $examen['Examen_Vasculaire']  ?? '',
-        (!empty($examen['Signes_IVG']) && $examen['Signes_IVG'] !== 'Absents')
+        (!empty($examen['Signes_IVG']) && trim($examen['Signes_IVG']) !== 'Absents')
             ? 'Signes IVG : ' . $examen['Signes_IVG'] : '',
-        (!empty($examen['Signes_IVD']) && $examen['Signes_IVD'] !== 'Absents')
+        (!empty($examen['Signes_IVD']) && trim($examen['Signes_IVD']) !== 'Absents')
             ? 'Signes IVD : ' . $examen['Signes_IVD'] : '',
         $examen['Autres_Symptomes']   ?? '',
-    ]);
+        $examen['Conclusion']         ?? '',
+        $examen['REMARQUE']           ?? '',
+    ]));
 }
-$conduiteATenir = htmlspecialchars($examen['Conduite_ATenir'] ?? '');
+$conduiteATenir = htmlspecialchars(trim($examen['Conduite_ATenir'] ?? ''));
 
 // ── Dernier ECG ───────────────────────────────────────────────────────────
-$stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE [N-PAT] = ? ORDER BY [Date ECG] DESC");
+$stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
 $stmtECG->execute([$id]);
 $ecg = $stmtECG->fetch();
 
@@ -63,21 +64,18 @@ if ($ecg) {
     $freq = $ecg['FREQUENCE'] ?? '';
     $parties = [];
 
-    // Rythme
     $rythme = '';
     if (!empty($ecg['RYTHME SUPRA VENTRICULAIRE'])) $rythme .= 'rythme : ' . $ecg['RYTHME SUPRA VENTRICULAIRE'];
     if (!empty($ecg['trouble de rythme']))           $rythme .= ', rythme ventriculaire : ' . $ecg['trouble de rythme'];
     if ($freq)                                        $rythme .= ($rythme ? ', ' : '') . 'fréquence cardiaque : ' . $freq . ' bat/min';
     if ($rythme) $parties[] = '-' . $rythme;
 
-    // Conduction
     $cond = '';
-    if (!empty($ecg['LA CONDUCTION NODALE']))    $cond .= 'conduction auriculo-ventriculaire : ' . $ecg['LA CONDUCTION NODALE'];
-    if (!empty($ecg['QRS']))                     $cond .= ($cond ? ', QRS : ' : 'QRS : ') . $ecg['QRS'];
+    if (!empty($ecg['LA CONDUCTION NODALE']))      $cond .= 'conduction auriculo-ventriculaire : ' . $ecg['LA CONDUCTION NODALE'];
+    if (!empty($ecg['QRS']))                       $cond .= ($cond ? ', QRS : ' : 'QRS : ') . $ecg['QRS'];
     if (!empty($ecg['LA CONDUCTION INFRANODALE'])) $cond .= ', conduction intra-ventriculaire : ' . $ecg['LA CONDUCTION INFRANODALE'];
     if ($cond) $parties[] = '-' . $cond;
 
-    // Repolarisation
     $repol = '';
     if (!empty($ecg['LA REPOLARISATION'])) $repol .= 'Repolarisation : ' . $ecg['LA REPOLARISATION'];
     if (!empty($ecg['SEGMENT ST'])) {
@@ -92,15 +90,13 @@ if ($ecg) {
     }
     if ($repol) $parties[] = '-' . $repol;
 
-    // IDM
     if (!empty($ecg['IDM']) && $ecg['IDM'] !== 'absents') {
         $q = 'Signes d\'infarctus : ' . $ecg['IDM'];
         if (!empty($ecg['TOPOGRAPHIE_Q'])) $q .= ' (' . $ecg['TOPOGRAPHIE_Q'] . ')';
         $parties[] = '-' . $q;
     }
 
-    // C/C et Autres
-    if (!empty($ecg['C/C']))              $parties[] = $ecg['C/C'];
+    if (!empty($ecg['C/C']))               $parties[] = $ecg['C/C'];
     if (!empty($ecg['AUTRES Signes ECG'])) $parties[] = $ecg['AUTRES Signes ECG'];
 
     $texteECG = implode("\n", $parties);
@@ -111,20 +107,58 @@ $stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DA
 $stmtEcho->execute([$id]);
 $echo = $stmtEcho->fetch();
 
-$texteEcho     = '';
-$titreEcho     = 'ECHO-DOPPLER CARDIAQUE';
+$texteEcho = '';
+$titreEcho = 'Echographie cardiaque';
 if ($echo) {
-    // Titre selon TYPE_ECHO (si le champ existe)
     if (!empty($echo['TYPE_ECHO'])) {
-        $titreEcho = strtoupper($echo['TYPE_ECHO']);
+        $titreEcho = ucfirst(strtolower($echo['TYPE_ECHO']));
     }
     $texteEcho = htmlspecialchars(trim($echo['CONCLUSION1'] ?? ''));
 }
 
-// ── Date du jour en français ──────────────────────────────────────────────
-$moisFr = ['','janvier','février','mars','avril','mai','juin',
-            'juillet','août','septembre','octobre','novembre','décembre'];
-$dateAuj = date('j') . ' ' . $moisFr[(int)date('n')] . ' ' . date('Y');
+// ── 3 dernières DATES de bilans biologie (groupées par date) ─────────────
+$stmtBio3 = $db->prepare("
+    SELECT TOP 3 CONVERT(varchar(10), date_bilan, 103) AS date_fr,
+                 CONVERT(varchar(10), date_bilan, 112) AS date_tri
+    FROM LE_BILAN
+    WHERE id = ?
+    GROUP BY CONVERT(varchar(10), date_bilan, 103),
+             CONVERT(varchar(10), date_bilan, 112)
+    ORDER BY date_tri DESC
+");
+$stmtBio3->execute([$id]);
+$dernieresDatesBio = $stmtBio3->fetchAll();
+
+$bilansRapport = [];
+foreach ($dernieresDatesBio as $d) {
+    $stmtIds = $db->prepare("
+        SELECT n_bilan FROM LE_BILAN
+        WHERE id = ?
+          AND CONVERT(varchar(10), date_bilan, 103) = ?
+    ");
+    $stmtIds->execute([$id, $d['date_fr']]);
+    $ids = $stmtIds->fetchAll(PDO::FETCH_COLUMN);
+    if (empty($ids)) continue;
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmtAn = $db->prepare("
+        SELECT c.analyse AS nom,
+               ISNULL(a.résultat,'') AS resultat
+        FROM analyses a
+        LEFT JOIN C_ANALYSE c ON c.[N°TypeAnalyse] = a.bilan
+        WHERE a.N_bilan IN ($placeholders)
+          AND ISNULL(a.résultat,'') <> ''
+          AND a.résultat <> 'N'
+        ORDER BY c.rubrique, c.analyse
+    ");
+    $stmtAn->execute($ids);
+    $anormaux = $stmtAn->fetchAll();
+    if (!empty($anormaux)) {
+        $bilansRapport[] = ['date_fr' => $d['date_fr'], 'anormaux' => $anormaux];
+    }
+}
+
+// ── Date du jour ──────────────────────────────────────────────────────────
 $dateAujNum = date('d/m/Y');
 ?>
 <!DOCTYPE html>
@@ -135,10 +169,7 @@ $dateAujNum = date('d/m/Y');
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 
-@page {
-    size: A4;
-    margin: 0;
-}
+@page { size: A4; margin: 0; }
 
 body {
     font-family: Arial, sans-serif;
@@ -147,25 +178,19 @@ body {
     background: white;
     width: 210mm;
     min-height: 297mm;
-    padding-top:    4cm;    /* réservé à l'en-tête physique imprimé */
+    padding-top:    4cm;
     padding-bottom: 2cm;
     padding-left:   1.5cm;
     padding-right:  1.5cm;
-    position: relative;
 }
 
-/* ── Bouton imprimer (écran uniquement) ── */
+/* ── Barre bouton imprimer ── */
 .btn-print-bar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: #1a4a7a;
-    color: white;
+    position: fixed; top:0; left:0; right:0;
+    background: #1a4a7a; color: white;
     padding: 6px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 999;
-    font-size: 12px;
+    display: flex; align-items: center; gap: 12px;
+    z-index: 999; font-size: 12px;
 }
 .btn-print {
     background: #27ae60; color: white;
@@ -183,116 +208,103 @@ body {
 
 /* ── Date + ville ── */
 .ligne-date {
-    display: flex;
-    justify-content: flex-end;
-    gap: 40px;
-    font-size: 12px;
-    margin-bottom: 10mm;
+    display: flex; justify-content: flex-end; gap: 40px;
+    font-size: 12px; margin-bottom: 10mm;
 }
 
 /* ── Titre encadré rouge ── */
 .titre-rapport {
-    border: 2px solid #cc0000;
-    padding: 5px 12px;
-    margin-bottom: 8mm;
-    text-align: center;
+    border: 2px solid #cc0000; padding: 5px 12px;
+    margin-bottom: 8mm; text-align: center;
 }
 .titre-rapport span {
-    font-size: 14px;
-    font-weight: bold;
-    color: #cc0000;
-    letter-spacing: 0.5px;
+    font-size: 14px; font-weight: bold;
+    color: #cc0000; letter-spacing: 0.5px;
 }
 
 /* ── Bandeau patient ── */
 .bandeau-patient {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-left: 4px solid #1a4a7a;
-    padding-left: 8px;
-    margin-bottom: 6mm;
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-left: 4px solid #1a4a7a; padding-left: 8px;
+    margin-bottom: 4mm;
 }
-.bandeau-patient .nom {
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-.bandeau-patient .ddn {
-    font-size: 12px;
-}
+.bandeau-patient .nom { font-size: 14px; font-weight: bold; text-transform: uppercase; }
+.bandeau-patient .ddn { font-size: 12px; }
 
-/* ── Sections ── */
-.section {
-    margin-bottom: 5mm;
+/* ══════════════════════════════════════════════
+   BLOC UNIFORME : même espacement partout
+   - .bloc       : conteneur (margin-top = espace après texte précédent)
+   - .bloc-titre : titre souligné gras + ":"
+   - .bloc-corps : texte avec barre gauche grise
+   ══════════════════════════════════════════════ */
+.bloc {
+    margin-top: 3mm;
 }
-.section-label {
-    font-size: 11px;
+.bloc-titre {
+    font-size: 12px;
+    font-weight: bold;
     text-decoration: underline;
-    font-weight: normal;
-    margin-bottom: 2mm;
+    margin-bottom: 0;
     color: #111;
+    line-height: 1.2;
 }
-.section-corps {
+.bloc-corps {
     border-left: 3px solid #ccc;
     padding-left: 8px;
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.2;
     white-space: pre-wrap;
     word-wrap: break-word;
-}
-.section-inline {
-    display: flex;
-    gap: 20mm;
-    margin-bottom: 5mm;
-}
-.section-inline .col {
-    flex: 1;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
-/* ── Titres de sections majeurs ── */
-.titre-section {
+/* ── Biologie : tableau date | résultats ── */
+.bio-table {
+    display: table;
+    border-left: 3px solid #ccc;
+    padding-left: 8px;
+    width: 100%;
+}
+.bio-ligne {
+    display: table-row;
+}
+.bio-date {
+    display: table-cell;
+    white-space: nowrap;
+    padding-right: 10px;
+    vertical-align: top;
+    font-size: 12px;
+    line-height: 1.2;
+}
+.bio-valeurs {
+    display: table-cell;
+    font-size: 12px;
+    line-height: 1.2;
+    vertical-align: top;
+}
+
+/* ── Au total (barre bleue) ── */
+.au-total-titre {
     font-size: 12px;
     font-weight: bold;
-    text-transform: uppercase;
     text-decoration: underline;
-    margin-bottom: 3mm;
-    margin-top: 4mm;
+    margin-top: 3mm;
+    margin-bottom: 0;
     color: #111;
-}
-
-/* ── Au total ── */
-.au-total-label {
-    font-size: 12px;
-    text-decoration: underline;
-    margin-top: 5mm;
-    margin-bottom: 2mm;
-    color: #111;
+    line-height: 1.2;
 }
 .au-total-corps {
     border-left: 3px solid #1a4a7a;
     padding-left: 8px;
     font-size: 12px;
-    line-height: 1.7;
+    line-height: 1.2;
     white-space: pre-wrap;
     word-wrap: break-word;
-    min-height: 20mm;
-}
-
-/* ── FDR badges ── */
-.fdr-liste {
-    border-left: 3px solid #ccc;
-    padding-left: 8px;
-    font-size: 12px;
-    line-height: 1.7;
 }
 
 @media screen {
-    body {
-        margin: 36px auto 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        border: 1px solid #ddd;
-    }
+    body { margin: 36px auto 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border: 1px solid #ddd; }
 }
 @media print {
     .btn-print-bar { display: none !important; }
@@ -302,7 +314,7 @@ body {
 </head>
 <body>
 
-<!-- ── Barre bouton imprimer (visible uniquement à l'écran) ── -->
+<!-- ── Barre bouton imprimer ── -->
 <div class="btn-print-bar">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
     <span><?= htmlspecialchars($nomPatient) ?> — N° <?= $id ?></span>
@@ -326,55 +338,68 @@ body {
     <span class="ddn">DDN : &nbsp;&nbsp;&nbsp; <?= $ddn ?: '—' ?></span>
 </div>
 
-<!-- ── Motif + Antécédents (côte à côte) ── -->
-<div class="section-inline">
-    <div class="col">
-        <div class="section-label">Motif de consultation :</div>
-        <div class="section-corps"><?= $motif ?: '—' ?></div>
-    </div>
-    <div class="col">
-        <div class="section-label">Antécédents :</div>
-        <div class="section-corps"><?= $atcd ?: '—' ?></div>
-    </div>
+<!-- ── Motif de consultation ── -->
+<div class="bloc" style="margin-top:0;">
+    <div class="bloc-titre">Motif de consultation :</div>
+    <div class="bloc-corps"><?= $motif ?: '—' ?></div>
 </div>
 
-<!-- ── FDR ── -->
-<div class="section">
-    <div class="section-label">FDR :</div>
-    <div class="fdr-liste">
-        <?php if (!empty($fdrListe)):
-            $chunks = array_chunk($fdrListe, 3);
-            foreach ($chunks as $chunk): ?>
-        - <?= implode('- ', array_map('htmlspecialchars', $chunk)) ?><br>
-        <?php endforeach;
-        else: ?>
-        —
-        <?php endif; ?>
+<!-- ── Antécédents ── -->
+<div class="bloc">
+    <div class="bloc-titre">Antécédents :</div>
+    <div class="bloc-corps"><?= $atcd ?: '—' ?></div>
+</div>
+
+<!-- ── Facteurs de risque ── -->
+<div class="bloc">
+    <div class="bloc-titre">Facteurs de risque :</div>
+    <div class="bloc-corps"><?php if (!empty($fdrListe)): ?><?= implode(' ; ', array_map('htmlspecialchars', $fdrListe)) ?><?php else: ?>—<?php endif; ?></div>
+</div>
+
+<!-- ── L'examen ── -->
+<div class="bloc">
+    <div class="bloc-titre">L'examen :</div>
+    <div class="bloc-corps"><?= $texteExamen ? htmlspecialchars($texteExamen) : '—' ?></div>
+</div>
+
+<!-- ── Electrocardiogramme ── -->
+<div class="bloc">
+    <div class="bloc-titre">Electrocardiogramme :</div>
+    <div class="bloc-corps"><?= $texteECG ? htmlspecialchars($texteECG) : '—' ?></div>
+</div>
+
+<!-- ── Echographie cardiaque ── -->
+<div class="bloc">
+    <div class="bloc-titre"><?= htmlspecialchars($titreEcho) ?> :</div>
+    <div class="bloc-corps"><?= $texteEcho ?: '—' ?></div>
+</div>
+
+<!-- ── Bilan biologique ── -->
+<?php if (!empty($bilansRapport)): ?>
+<div class="bloc">
+    <div class="bloc-titre">Bilan biologique :</div>
+    <div class="bio-table">
+    <?php foreach ($bilansRapport as $bilan):
+        $parties = [];
+        foreach ($bilan['anormaux'] as $bl) {
+            $parties[] = htmlspecialchars($bl['nom']) . ' <strong>' . htmlspecialchars($bl['resultat']) . '</strong>';
+        }
+    ?>
+        <div class="bio-ligne">
+            <span class="bio-date"><?= htmlspecialchars($bilan['date_fr']) ?> :</span>
+            <span class="bio-valeurs"><?= implode(' &nbsp;·&nbsp; ', $parties) ?></span>
+        </div>
+    <?php endforeach; ?>
     </div>
 </div>
-
-<!-- ── L'Examen ── -->
-<div class="section">
-    <div class="section-label">L'examen :</div>
-    <div class="section-corps"><?= $texteExamen ? htmlspecialchars($texteExamen) : '—' ?></div>
-</div>
-
-<!-- ── ECG ── -->
-<div class="titre-section">Electro Cardiogramme</div>
-<div class="section-corps" style="margin-bottom:5mm;"><?= $texteECG ? htmlspecialchars($texteECG) : '—' ?></div>
-
-<!-- ── Echo-Doppler ── -->
-<div class="titre-section"><?= htmlspecialchars($titreEcho) ?></div>
-<div class="section-corps" style="margin-bottom:5mm;"><?= $texteEcho ?: '—' ?></div>
+<?php endif; ?>
 
 <!-- ── Au total ── -->
-<div class="au-total-label">Au total :</div>
+<div class="au-total-titre">Au total :</div>
 <div class="au-total-corps"><?= $conduiteATenir ?: '' ?></div>
 
 <script>
-window.addEventListener('afterprint', function() {
-    window.close();
-});
+window.addEventListener('afterprint', function() { window.close(); });
 </script>
 </body>
 </html>
