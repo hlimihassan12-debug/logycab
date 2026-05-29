@@ -826,11 +826,51 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
             </div>
             <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucune facture</p>
+            <div style="display:flex;justify-content:center;margin-top:8px;">
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
+            </div>
             <?php endif; ?>
+
+            <!-- FORMULAIRE NOUVELLE FACTURE — vue Accueil -->
+            <div id="formNouvelleFacture_acc" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
+                    <button type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:11px;font-weight:600;">Date facture :</label>
+                    <input type="date" id="nf_date_acc" value="<?= date('Y-m-d') ?>" style="margin-left:8px;border:1px solid #cdd5de;border-radius:3px;padding:3px 6px;font-size:12px;">
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead style="background:#1a4a7a;color:white;">
+                        <tr>
+                            <th style="padding:4px 6px;text-align:left;">Date acte</th>
+                            <th style="padding:4px 6px;text-align:left;">Acte</th>
+                            <th style="padding:4px 6px;text-align:right;">Versé</th>
+                            <th style="padding:4px 6px;text-align:right;">Reste</th>
+                            <th style="padding:4px 6px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="nf_lignes_acc"></tbody>
+                    <tfoot>
+                        <tr style="background:#f0f4f8;font-weight:bold;font-size:11px;">
+                            <td colspan="3" style="padding:4px 6px;">Total</td>
+                            <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse_acc">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette_acc">0 DH</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button type="button" onclick="nfAjouterLigne('acc')" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <span id="nf_msg_acc" style="font-size:11px;color:#27ae60;align-self:center;"></span>
+                </div>
+            </div>
         </div>
 
         <!-- CERTIFICAT (bouton seulement, zone cachée) -->
@@ -2080,66 +2120,84 @@ function noEnregistrer(patientId) {
 
 const nfActes = <?= json_encode(array_map(fn($a)=>['n_acte'=>$a['n_acte'],'ACTE'=>$a['ACTE'],'cout'=>(float)$a['cout']],$listeActes)) ?>;
 let nfIdx=0;
-function toggleNouvelleFacture() {
-    const form=document.getElementById('formNouvelleFacture'), aff=document.getElementById('fact-affichage');
-    const visible=form.style.display!=='none';
-    form.style.display=visible?'none':'block';
-    if(aff) aff.style.display=visible?'block':'none';
-    if(!visible&&document.getElementById('nf_lignes').children.length===0) nfAjouterLigne();
+/* ── Facture : suffixe 'acc' pour vue Accueil ── */
+function toggleNouvelleFacture(sfx) {
+    sfx = sfx || 'acc';
+    const formId = 'formNouvelleFacture_' + sfx;
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const visible = form.style.display !== 'none';
+    form.style.display = visible ? 'none' : 'block';
+    if (!visible && document.getElementById('nf_lignes_' + sfx).children.length === 0)
+        nfAjouterLigne(sfx);
 }
-function nfAjouterLigne() {
-    const i=nfIdx++; const today=document.getElementById('nf_date').value;
-    let opts='<option value="">— Acte —</option>';
-    nfActes.forEach(a=>{opts+=`<option value="${a.n_acte}" data-cout="${a.cout}">${a.ACTE}</option>`;});
-    const tr=document.createElement('tr'); tr.style.borderBottom='1px solid #eee';
-    tr.innerHTML=`<td style="padding:3px 4px;"><input type="date" id="nf_dateacte_${i}" value="${today}" style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:105px;"></td>
-        <td style="padding:3px 4px;"><select id="nf_acte_${i}" onchange="nfRemplirPrix(${i})" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;">${opts}</select></td>
-        <td style="padding:3px 4px;"><input type="number" id="nf_prix_${i}" min="0" step="0.01" placeholder="0" oninput="nfRecalculer(${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
-        <td style="padding:3px 4px;"><input type="number" id="nf_verse_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer(${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
-        <td style="padding:3px 4px;text-align:right;font-weight:600;color:#c0392b;" id="nf_dette_${i}">0</td>
-        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
-    document.getElementById('nf_lignes').appendChild(tr);
+function nfAjouterLigne(sfx) {
+    sfx = sfx || 'acc';
+    const i = nfIdx++;
+    const today = document.getElementById('nf_date_' + sfx).value;
+    let opts = '<option value="">— Acte —</option>';
+    nfActes.forEach(a => { opts += `<option value="${a.n_acte}" data-cout="${a.cout}">${a.ACTE}</option>`; });
+    const tr = document.createElement('tr'); tr.style.borderBottom = '1px solid #eee';
+    tr.dataset.sfx = sfx;
+    tr.innerHTML = `<td style="padding:3px 4px;"><input type="date" id="nf_dateacte_${sfx}_${i}" value="${today}" style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:105px;"></td>
+        <td style="padding:3px 4px;"><select id="nf_acte_${sfx}_${i}" onchange="nfRemplirPrix('${sfx}',${i})" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;">${opts}</select></td>
+        <input type="hidden" id="nf_prix_${sfx}_${i}" value="">
+        <td style="padding:3px 4px;"><input type="number" id="nf_verse_${sfx}_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer('${sfx}',${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
+        <td style="padding:3px 4px;text-align:right;font-weight:600;color:#c0392b;" id="nf_dette_${sfx}_${i}">0</td>
+        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux('${sfx}')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
+    document.getElementById('nf_lignes_' + sfx).appendChild(tr);
 }
-function nfRemplirPrix(i) {
-    const sel=document.getElementById(`nf_acte_${i}`);
-    document.getElementById(`nf_prix_${i}`).value=sel.options[sel.selectedIndex]?.getAttribute('data-cout')||'';
-    nfRecalculer(i);
+function nfRemplirPrix(sfx, i) {
+    sfx = sfx || 'acc';
+    const sel = document.getElementById(`nf_acte_${sfx}_${i}`);
+    document.getElementById(`nf_prix_${sfx}_${i}`).value = sel.options[sel.selectedIndex]?.getAttribute('data-cout') || '';
+    nfRecalculer(sfx, i);
 }
-function nfRecalculer(i) {
-    const prix=parseFloat(document.getElementById(`nf_prix_${i}`)?.value)||0;
-    const verse=parseFloat(document.getElementById(`nf_verse_${i}`)?.value)||0;
-    const el=document.getElementById(`nf_dette_${i}`); if(el) el.textContent=(prix-verse).toLocaleString('fr-FR')+' DH';
-    nfMajTotaux();
+function nfRecalculer(sfx, i) {
+    sfx = sfx || 'acc';
+    const prix  = parseFloat(document.getElementById(`nf_prix_${sfx}_${i}`)?.value) || 0;
+    const verse = parseFloat(document.getElementById(`nf_verse_${sfx}_${i}`)?.value) || 0;
+    const el = document.getElementById(`nf_dette_${sfx}_${i}`);
+    if (el) el.textContent = (prix - verse).toLocaleString('fr-FR') + ' DH';
+    nfMajTotaux(sfx);
 }
-function nfMajTotaux() {
-    let tp=0,tv=0,td=0;
-    document.querySelectorAll('#nf_lignes tr').forEach(tr=>{
-        const idx=tr.querySelector('select')?.id?.replace('nf_acte_',''); if(!idx) return;
-        const p=parseFloat(document.getElementById(`nf_prix_${idx}`)?.value)||0;
-        const v=parseFloat(document.getElementById(`nf_verse_${idx}`)?.value)||0;
-        tp+=p;tv+=v;td+=(p-v);
+function nfMajTotaux(sfx) {
+    sfx = sfx || 'acc';
+    let tp = 0, tv = 0, td = 0;
+    document.querySelectorAll(`#nf_lignes_${sfx} tr`).forEach(tr => {
+        const sel = tr.querySelector('select');
+        if (!sel) return;
+        const idx = sel.id.replace(`nf_acte_${sfx}_`, '');
+        const p = parseFloat(document.getElementById(`nf_prix_${sfx}_${idx}`)?.value) || 0;
+        const v = parseFloat(document.getElementById(`nf_verse_${sfx}_${idx}`)?.value) || 0;
+        tp += p; tv += v; td += (p - v);
     });
-    document.getElementById('nf_totalPrix').textContent=tp.toLocaleString('fr-FR')+' DH';
-    document.getElementById('nf_totalVerse').textContent=tv.toLocaleString('fr-FR')+' DH';
-    document.getElementById('nf_totalDette').textContent=td.toLocaleString('fr-FR')+' DH';
+    document.getElementById(`nf_totalPrix_${sfx}`).textContent  = tp.toLocaleString('fr-FR') + ' DH';
+    document.getElementById(`nf_totalVerse_${sfx}`).textContent = tv.toLocaleString('fr-FR') + ' DH';
+    document.getElementById(`nf_totalDette_${sfx}`).textContent = td.toLocaleString('fr-FR') + ' DH';
 }
-function nfEnregistrer(patientId) {
-    const date_facture=document.getElementById('nf_date').value; const lignes=[];
-    document.querySelectorAll('#nf_lignes tr').forEach(tr=>{
-        const idx=tr.querySelector('select')?.id?.replace('nf_acte_',''); if(!idx) return;
-        const acte=document.getElementById(`nf_acte_${idx}`)?.value;
-        const prix=parseFloat(document.getElementById(`nf_prix_${idx}`)?.value)||0;
-        const verse=parseFloat(document.getElementById(`nf_verse_${idx}`)?.value)||0;
-        const dateA=document.getElementById(`nf_dateacte_${idx}`)?.value;
-        if(acte) lignes.push({acte,prix,verse,date_acte:dateA});
+function nfEnregistrer(patientId, sfx) {
+    sfx = sfx || 'acc';
+    const date_facture = document.getElementById(`nf_date_${sfx}`).value;
+    const lignes = [];
+    document.querySelectorAll(`#nf_lignes_${sfx} tr`).forEach(tr => {
+        const sel = tr.querySelector('select');
+        if (!sel) return;
+        const idx   = sel.id.replace(`nf_acte_${sfx}_`, '');
+        const acte  = document.getElementById(`nf_acte_${sfx}_${idx}`)?.value;
+        const prix  = parseFloat(document.getElementById(`nf_prix_${sfx}_${idx}`)?.value) || 0;
+        const verse = parseFloat(document.getElementById(`nf_verse_${sfx}_${idx}`)?.value) || 0;
+        const dateA = document.getElementById(`nf_dateacte_${sfx}_${idx}`)?.value;
+        if (acte) lignes.push({acte, prix, verse, date_acte: dateA});
     });
-    if(lignes.length===0){document.getElementById('nf_msg').textContent='⚠ Ajoutez au moins un acte.';document.getElementById('nf_msg').style.color='#e74c3c';return;}
-    document.getElementById('nf_msg').textContent='Enregistrement…';document.getElementById('nf_msg').style.color='#999';
-    fetch('ajax_nouvelle_facture.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:patientId,date_facture,lignes})})
-    .then(r=>r.json()).then(data=>{
-        if(data.success) window.location.href=`dossier.php?id=${patientId}&fact=${data.n_facture}`;
-        else{document.getElementById('nf_msg').textContent='❌ '+data.error;document.getElementById('nf_msg').style.color='#e74c3c';}
-    }).catch(()=>{document.getElementById('nf_msg').textContent='❌ Erreur réseau';document.getElementById('nf_msg').style.color='#e74c3c';});
+    const msgEl = document.getElementById(`nf_msg_${sfx}`);
+    if (lignes.length === 0) { msgEl.textContent = '⚠ Ajoutez au moins un acte.'; msgEl.style.color = '#e74c3c'; return; }
+    msgEl.textContent = 'Enregistrement…'; msgEl.style.color = '#999';
+    fetch('ajax_nouvelle_facture.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id: patientId, date_facture, lignes})})
+    .then(r => r.json()).then(data => {
+        if (data.success) window.location.href = `dossier.php?id=${patientId}&fact=${data.n_facture}`;
+        else { msgEl.textContent = '❌ ' + data.error; msgEl.style.color = '#e74c3c'; }
+    }).catch(() => { msgEl.textContent = '❌ Erreur réseau'; msgEl.style.color = '#e74c3c'; });
 }
 
 // DOMContentLoaded : pas de chargement auto des créneaux (ils se chargent à l'ouverture de la popup)
