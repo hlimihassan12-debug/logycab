@@ -6,6 +6,16 @@ $db = getDB();
 $id = (int)($_GET['id'] ?? 0);
 if ($id == 0) { die("❌ Patient introuvable."); }
 
+// ── Paramètres dates / exclusions passés par la modale ────────────────────
+$date_ex   = preg_replace('/[^0-9]/', '', $_GET['date_ex']   ?? '');
+$date_ecg  = preg_replace('/[^0-9]/', '', $_GET['date_ecg']  ?? '');
+$date_echo = preg_replace('/[^0-9]/', '', $_GET['date_echo'] ?? '');
+$excl_examen = !empty($_GET['excl_examen']);
+$excl_ecg    = !empty($_GET['excl_ecg']);
+$excl_echo   = !empty($_GET['excl_echo']);
+
+
+
 // ── Patient ──────────────────────────────────────────────────────────────────
 $stmt = $db->prepare("SELECT * FROM ID WHERE [N°PAT] = ?");
 $stmt->execute([$id]);
@@ -26,10 +36,18 @@ $stmtFDR = $db->prepare("SELECT FDR FROM patient_fdr WHERE id = ? ORDER BY N");
 $stmtFDR->execute([$id]);
 $fdrListe = $stmtFDR->fetchAll(PDO::FETCH_COLUMN);
 
-// ── Dernier examen clinique ────────────────────────────────────────────────
-$stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC, N1 DESC");
-$stmtEx->execute([$id]);
-$examen = $stmtEx->fetch();
+// ── Dernier examen clinique (ou date choisie) ────────────────────────────
+$examen = null;
+if (!$excl_examen) {
+    if ($date_ex) {
+        $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? AND CONVERT(varchar(8), DateExam, 112) = ? ORDER BY N1 DESC");
+        $stmtEx->execute([$id, $date_ex]);
+    } else {
+        $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC, N1 DESC");
+        $stmtEx->execute([$id]);
+    }
+    $examen = $stmtEx->fetch();
+}
 
 function concat_champs(array $vals): string {
     $parts = array_filter($vals, fn($v) => trim((string)$v) !== '');
@@ -54,10 +72,18 @@ if ($examen) {
 }
 $conduiteATenir = htmlspecialchars(trim($examen['Conduite_ATenir'] ?? ''));
 
-// ── Dernier ECG ───────────────────────────────────────────────────────────
-$stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
-$stmtECG->execute([$id]);
-$ecg = $stmtECG->fetch();
+// ── Dernier ECG (ou date choisie) ────────────────────────────────────────
+$ecg = null;
+if (!$excl_ecg) {
+    if ($date_ecg) {
+        $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? AND CONVERT(varchar(8), [Date ECG], 112) = ? ORDER BY [N°] DESC");
+        $stmtECG->execute([$id, $date_ecg]);
+    } else {
+        $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
+        $stmtECG->execute([$id]);
+    }
+    $ecg = $stmtECG->fetch();
+}
 
 $texteECG = '';
 if ($ecg) {
@@ -102,10 +128,18 @@ if ($ecg) {
     $texteECG = implode("\n", $parties);
 }
 
-// ── Dernier Echo ──────────────────────────────────────────────────────────
-$stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC");
-$stmtEcho->execute([$id]);
-$echo = $stmtEcho->fetch();
+// ── Dernier Echo (ou date choisie) ───────────────────────────────────────
+$echo = null;
+if (!$excl_echo) {
+    if ($date_echo) {
+        $stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? AND CONVERT(varchar(8), DATEchog, 112) = ? ORDER BY DATEchog DESC");
+        $stmtEcho->execute([$id, $date_echo]);
+    } else {
+        $stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC");
+        $stmtEcho->execute([$id]);
+    }
+    $echo = $stmtEcho->fetch();
+}
 
 $texteEcho = '';
 $titreEcho = 'Echographie cardiaque';
