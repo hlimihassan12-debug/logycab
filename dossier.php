@@ -2150,8 +2150,12 @@ function nfAjouterLigne(sfx) {
 }
 function nfRemplirPrix(sfx, i) {
     sfx = sfx || 'acc';
-    const sel = document.getElementById(`nf_acte_${sfx}_${i}`);
-    document.getElementById(`nf_prix_${sfx}_${i}`).value = sel.options[sel.selectedIndex]?.getAttribute('data-cout') || '';
+    const sel  = document.getElementById(`nf_acte_${sfx}_${i}`);
+    const cout = sel.options[sel.selectedIndex]?.getAttribute('data-cout') || '';
+    document.getElementById(`nf_prix_${sfx}_${i}`).value = cout;
+    // Auto-remplir Versé avec le prix (paiement immédiat)
+    const verseEl = document.getElementById(`nf_verse_${sfx}_${i}`);
+    if (verseEl) verseEl.value = cout;
     nfRecalculer(sfx, i);
 }
 function nfRecalculer(sfx, i) {
@@ -2173,9 +2177,13 @@ function nfMajTotaux(sfx) {
         const v = parseFloat(document.getElementById(`nf_verse_${sfx}_${idx}`)?.value) || 0;
         tp += p; tv += v; td += (p - v);
     });
-    document.getElementById(`nf_totalPrix_${sfx}`).textContent  = tp.toLocaleString('fr-FR') + ' DH';
-    document.getElementById(`nf_totalVerse_${sfx}`).textContent = tv.toLocaleString('fr-FR') + ' DH';
-    document.getElementById(`nf_totalDette_${sfx}`).textContent = td.toLocaleString('fr-FR') + ' DH';
+    // nf_totalPrix peut ne pas exister (vue Accueil sans colonne Prix)
+    const elPrix = document.getElementById(`nf_totalPrix_${sfx}`);
+    if (elPrix) elPrix.textContent = tp.toLocaleString('fr-FR') + ' DH';
+    const elVerse = document.getElementById(`nf_totalVerse_${sfx}`);
+    if (elVerse) elVerse.textContent = tv.toLocaleString('fr-FR') + ' DH';
+    const elDette = document.getElementById(`nf_totalDette_${sfx}`);
+    if (elDette) elDette.textContent = td.toLocaleString('fr-FR') + ' DH';
 }
 function nfEnregistrer(patientId, sfx) {
     sfx = sfx || 'acc';

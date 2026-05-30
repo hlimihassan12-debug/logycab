@@ -141,19 +141,19 @@ $dateAuj = date('d/m/Y');
 <title>CMLM — <?= htmlspecialchars($nomPatient) ?></title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-@page { size: A4; margin: 0; }
+@page { size: B5; margin: 0; }
 
 body {
     font-family: Arial, sans-serif;
     font-size: 12px;
     color: #111;
     background: white;
-    width: 210mm;
-    min-height: 297mm;
-    padding-top: 4cm;
-    padding-bottom: 2cm;
-    padding-left: 1.8cm;
-    padding-right: 1.8cm;
+    width: 176mm;
+    min-height: 250mm;
+    padding-top: 2.5cm;
+    padding-bottom: 1.2cm;
+    padding-left: 1.5cm;
+    padding-right: 1.5cm;
 }
 
 /* ── Barre boutons ── */
@@ -169,24 +169,24 @@ body {
 .btn-close { background:#e74c3c; color:white; border:none; border-radius:4px; padding:5px 12px; font-size:12px; cursor:pointer; margin-left:auto; }
 
 /* ── Titre ── */
-.titre-cmlm { border:2px solid #1a4a7a; padding:5px 12px; margin-bottom:6mm; text-align:center; }
+.titre-cmlm { border:2px solid #1a4a7a; padding:3px 12px; margin-bottom:3mm; text-align:center; }
 .titre-cmlm span { font-size:14px; font-weight:bold; color:#1a4a7a; letter-spacing:0.5px; }
 
 /* ── Date ── */
-.ligne-date { display:flex; justify-content:flex-end; margin-bottom:8mm; font-size:12px; }
+.ligne-date { display:flex; justify-content:flex-end; margin-bottom:4mm; font-size:12px; }
 
 /* ── Intro ── */
-.intro { font-size:12px; line-height:1.6; margin-bottom:5mm; }
+.intro { font-size:12px; line-height:1.5; margin-bottom:3mm; }
 
 /* ── Section ── */
-.section { margin-top:4mm; }
+.section { margin-top:2mm; }
 .section-titre {
     font-size:12px; font-weight:bold; text-decoration:underline;
-    color:#1a4a7a; margin-bottom:1mm; line-height:1.3;
+    color:#1a4a7a; margin-bottom:1mm; line-height:1.2;
 }
 .section-corps {
     border-left:3px solid #ccc; padding-left:8px;
-    font-size:12px; line-height:1.4;
+    font-size:12px; line-height:1.3;
 }
 
 /* ── Textarea éditable (écran seulement) ── */
@@ -199,7 +199,7 @@ body {
 .editable:focus { outline:none; border-color:#2e6da4; background:#f0f7ff; }
 
 /* ── Ordonnances navigation ── */
-.ord-nav { display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
+.ord-nav { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
 .ord-nav-btn {
     background:#1a4a7a; color:white; border:none; border-radius:3px;
     padding:2px 8px; font-size:11px; cursor:pointer;
@@ -221,10 +221,10 @@ body {
 .btn-ald.deja { background:#95a5a6; cursor:default; }
 
 /* ── Traitement retenu ── */
-.traitement-retenu { list-style:none; padding:0; margin:4px 0; }
+.traitement-retenu { list-style:none; padding:0; margin:2px 0; }
 .traitement-retenu li {
     display:flex; align-items:center; gap:6px;
-    padding:2px 0; font-size:12px;
+    padding:1px 0; font-size:12px;
 }
 .btn-retirer {
     background:#e74c3c; color:white; border:none; border-radius:50%;
@@ -234,8 +234,8 @@ body {
 }
 
 /* ── Surveillance ── */
-.surv-ligne { display:flex; align-items:center; gap:6px; margin:3px 0; font-size:12px; }
-.surv-freq { color:#555; font-size:11px; font-style:italic; }
+.surv-ligne { display:flex; align-items:center; gap:6px; margin:1px 0; font-size:12px; }
+.surv-freq { color:#555; font-size:11px; }
 
 /* ── Spécialistes ── */
 .spec-grille { display:flex; flex-wrap:wrap; gap:8px 16px; margin:4px 0; }
@@ -253,7 +253,7 @@ body {
 }
 
 /* ── Bas de page ── */
-.attestation { margin-top:8mm; font-size:12px; font-style:italic; border-top:1px solid #ccc; padding-top:4mm; }
+.attestation { margin-top:4mm; font-size:12px; font-style:italic; border-top:1px solid #ccc; padding-top:2mm; }
 
 /* ── IMPRESSION ── */
 @media screen {
@@ -266,6 +266,9 @@ body {
     .editable {
         border:none !important; background:transparent !important;
         padding:0 !important; resize:none !important;
+        overflow:visible !important;
+        height:auto !important;
+        min-height:0 !important;
     }
 
     /* Traitement retenu : puces propres */
@@ -305,8 +308,7 @@ body {
 
 <!-- ── Intro ── -->
 <div class="intro">
-    Je soussigné, <strong>Dr Hassan Hlimi</strong>, certifie que<br>
-    <strong><?= htmlspecialchars($nomPatient) ?></strong><?php if ($ddn): ?>, né(e) le <strong><?= $ddn ?></strong><?php endif; ?>
+    Je soussigné, <strong>Dr Hassan Hlimi</strong>, certifie que <strong><?= htmlspecialchars($nomPatient) ?></strong><?php if ($ddn): ?>, né(e) le <strong><?= $ddn ?></strong><?php endif; ?>
 </div>
 
 <!-- ══ 1. AFFECTION ══════════════════════════════════════════════════════ -->
@@ -322,30 +324,28 @@ body {
     <div class="section-titre">Diagnostic :</div>
     <div class="section-corps">
 
-        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:3px;">
-            <span style="width:110px;flex-shrink:0;font-size:11px;color:#555;">Clinique :</span>
+        <div style="margin-bottom:3px;">
+            <div style="font-size:11px;color:#555;margin-bottom:1px;">Examen clinique :</div>
             <textarea class="editable" id="txt_clinique" rows="2"><?= htmlspecialchars($texteExamen ?: '—') ?></textarea>
         </div>
 
-        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:3px;">
-            <span style="width:110px;flex-shrink:0;font-size:11px;color:#555;">Électrocardiographique :</span>
+        <div style="margin-bottom:3px;">
+            <div style="font-size:11px;color:#555;margin-bottom:1px;">Examen ECG :</div>
             <textarea class="editable" id="txt_ecg" rows="2"><?= htmlspecialchars($texteECG ?: '—') ?></textarea>
         </div>
 
-        <div style="display:flex;align-items:baseline;gap:6px;">
-            <span style="width:110px;flex-shrink:0;font-size:11px;color:#555;">Échographique :</span>
+        <div style="margin-bottom:3px;">
+            <div style="font-size:11px;color:#555;margin-bottom:1px;">Examen Echo-doppler :</div>
             <textarea class="editable" id="txt_echo" rows="2"><?= htmlspecialchars($texteEcho ?: '—') ?></textarea>
         </div>
 
-        </div>
-
-        <div style="display:flex;align-items:baseline;gap:6px;">
-            <span style="width:110px;flex-shrink:0;font-size:11px;color:#555;">Biologique :</span>
+        <div style="margin-bottom:2px;">
+            <div style="font-size:11px;color:#555;margin-bottom:1px;">Examen biologique :</div>
             <textarea class="editable" id="txt_bio" rows="2"><?= htmlspecialchars($bioTexte ?: '—') ?></textarea>
         </div>
 
-    </div>
-</div>
+    </div><!-- fin section-corps diagnostic -->
+</div><!-- fin section diagnostic -->
 
 <!-- ══ 3. TRAITEMENT ══════════════════════════════════════════════════════ -->
 <div class="section">
@@ -395,55 +395,59 @@ body {
     </div>
 </div>
 
-<!-- ══ 4. SURVEILLANCE ════════════════════════════════════════════════════ -->
+<!-- ══ 4+5. NÉCESSITE PAR AILLEURS ════════════════════════════════════════ -->
 <div class="section">
-    <div class="section-titre">Nécessite par ailleurs une surveillance régulière :</div>
+    <div class="section-titre">Nécessite par ailleurs :</div>
     <div class="section-corps">
 
-        <div class="surv-ligne">
-            <input type="checkbox" id="surv_clin" checked>
-            <label for="surv_clin">Clinique</label>
-            <span class="surv-freq">(trimestrielle)</span>
-        </div>
-        <div class="surv-ligne">
-            <input type="checkbox" id="surv_ecg" checked>
-            <label for="surv_ecg">Électrocardiographique</label>
-            <span class="surv-freq">(trimestrielle)</span>
-        </div>
-        <div class="surv-ligne">
-            <input type="checkbox" id="surv_echo" checked>
-            <label for="surv_echo">Échographique</label>
-            <span class="surv-freq">(annuelle)</span>
-        </div>
-        <div class="surv-ligne">
-            <input type="checkbox" id="surv_bio" checked>
-            <label for="surv_bio">Biologique</label>
-            <span class="surv-freq"><?= htmlspecialchars('(en fonction du diagnostic'.$bioSurveillanceHint.')') ?></span>
-        </div>
-
-    </div>
-</div>
-
-<!-- ══ 5. AVIS SPÉCIALISTE ════════════════════════════════════════════════ -->
-<div class="section">
-    <div class="section-titre">Avis spécialiste :</div>
-    <div class="section-corps">
-
-        <div class="spec-grille" id="spec_grille">
-        <?php foreach ($specialites as $sp): ?>
-            <div class="spec-case">
-                <input type="checkbox" id="spec_<?= $sp['id_spec'] ?>" value="<?= htmlspecialchars($sp['libelle']) ?>">
-                <label for="spec_<?= $sp['id_spec'] ?>"><?= htmlspecialchars($sp['libelle']) ?></label>
+        <!-- Surveillance régulière -->
+        <div style="margin-bottom:2px;">
+            <div style="font-size:12px;font-weight:bold;margin-bottom:1px;padding-left:16px;">une surveillance régulière :</div>
+            <div style="padding-left:32px;">
+                <div class="surv-ligne">
+                    <input type="checkbox" id="surv_clin" checked>
+                    <label for="surv_clin">Clinique</label>
+                    <span class="surv-freq">(trimestrielle)</span>
+                </div>
+                <div class="surv-ligne">
+                    <input type="checkbox" id="surv_ecg" checked>
+                    <label for="surv_ecg">Électrocardiographique</label>
+                    <span class="surv-freq">(trimestrielle)</span>
+                </div>
+                <div class="surv-ligne">
+                    <input type="checkbox" id="surv_echo" checked>
+                    <label for="surv_echo">Échographique</label>
+                    <span class="surv-freq">(annuelle)</span>
+                </div>
+                <div class="surv-ligne">
+                    <input type="checkbox" id="surv_bio" checked>
+                    <label for="surv_bio">Biologique</label>
+                    <span class="surv-freq"><?= htmlspecialchars('(en fonction du diagnostic'.$bioSurveillanceHint.')') ?></span>
+                </div>
             </div>
-        <?php endforeach; ?>
         </div>
 
-        <!-- Ajouter spécialité -->
-        <div class="autre-spec no-print">
-            <span style="font-size:11px;color:#555;">Autre :</span>
-            <input type="text" id="autre_spec_input" placeholder="Spécialité…">
-            <button class="btn-ajouter-spec" onclick="ajouterSpecialite()">+ Ajouter</button>
-            <span id="spec_msg" style="font-size:11px;color:#27ae60;"></span>
+        <!-- Avis spécialiste -->
+        <div style="margin-top:3px;">
+            <div style="font-size:12px;font-weight:bold;margin-bottom:1px;padding-left:16px;">Avis spécialiste :</div>
+            <div style="padding-left:32px;">
+                <div class="spec-grille" id="spec_grille">
+                <?php foreach ($specialites as $sp): ?>
+                    <div class="spec-case">
+                        <input type="checkbox" id="spec_<?= $sp['id_spec'] ?>" value="<?= htmlspecialchars($sp['libelle']) ?>">
+                        <label for="spec_<?= $sp['id_spec'] ?>"><?= htmlspecialchars($sp['libelle']) ?></label>
+                    </div>
+                <?php endforeach; ?>
+                </div>
+
+                <!-- Ajouter spécialité -->
+                <div class="autre-spec no-print">
+                    <span style="font-size:11px;color:#555;">Autre :</span>
+                    <input type="text" id="autre_spec_input" placeholder="Spécialité…">
+                    <button class="btn-ajouter-spec" onclick="ajouterSpecialite()">+ Ajouter</button>
+                    <span id="spec_msg" style="font-size:11px;color:#27ae60;"></span>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -555,6 +559,17 @@ document.getElementById('autre_spec_input').addEventListener('keydown', function
 
 /* ── Fermer après impression ── */
 window.addEventListener('afterprint', function() { window.close(); });
+
+/* ── Auto-hauteur textarea avant impression ── */
+function ajusterHauteurTextareas() {
+    document.querySelectorAll('textarea.editable').forEach(function(ta) {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+    });
+}
+// Ajuster à l'ouverture et avant impression
+ajusterHauteurTextareas();
+window.addEventListener('beforeprint', ajusterHauteurTextareas);
 
 
 </script>
