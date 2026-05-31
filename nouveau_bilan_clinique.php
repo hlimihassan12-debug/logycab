@@ -286,6 +286,10 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             💾 TOUT
         </button>
         <span id="msg_tout" style="font-size:11px;color:#2ecc71;font-weight:bold;display:none;"></span>
+        <button type="button" onclick="restaurerTout()" title="Remettre toutes les options visibles et tout décocher"
+            style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+            ↺ Restaurer
+        </button>
         <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
            style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
            📄 Rapport
@@ -458,8 +462,11 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 <button type="button" onclick="appliquerMultiple('sub_phlebite')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
-        <button type="button" onclick="genererConclusion()" style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer conclusion</button>
+        <button type="button" onclick="genererConclusion(); document.getElementById('panel_sympto').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='inline';" style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer conclusion</button>
     </div>
+    <span id="lien_modifier_sympto" style="display:none;font-size:10px;">
+        <a href="#" onclick="document.getElementById('panel_sympto').style.display=''; document.getElementById('lien_modifier_sympto').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
+    </span>
     <div class="champ" id="wrap_Conclusion">
         <div class="label-excl">
             <label>Conclusion</label>
@@ -498,7 +505,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport Examen</label>
         <textarea id="apercu_examen" readonly
-            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
+            style="min-height:45px;background:#fff8f0;border:1px solid #e67e22;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
     </div>
 
     <div class="sec">Au total — Conduite à tenir</div>
@@ -856,8 +863,11 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </div>
 
         </div>
-        <button type="button" onclick="genererCC()" style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer C/C</button>
+        <button type="button" onclick="genererCC(); document.getElementById('panel_ecg_cases').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='inline';" style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer C/C</button>
     </div>
+    <span id="lien_modifier_ecg" style="display:none;font-size:10px;">
+        <a href="#" onclick="document.getElementById('panel_ecg_cases').style.display=''; document.getElementById('lien_modifier_ecg').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
+    </span>
     <!-- 12. C/C -->
     <div class="champ" id="wrap_CC"><div class="label-excl"><label>C/C</label><button type="button" class="btn-excl" onclick="toggleExcl('CC')" title="Exclure du rapport">−</button></div>
         <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:48px;resize:vertical;"></textarea>
@@ -881,7 +891,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport ECG</label>
         <textarea id="apercu_ecg" readonly
-            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
+            style="min-height:45px;background:#fff8f0;border:1px solid #e67e22;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
     </div>
     </form>
 </div>
@@ -919,7 +929,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="grid2">
         <div class="champ" id="wrap_echo_FEVG">
             <div class="label-excl"><label>FEVG %</label><button type="button" class="btn-excl" onclick="toggleExclEcho('FEVG')" title="Exclure">−</button></div>
-            <input type="text" name="FEVG" oninput="majConcatEcho()">
+            <input type="text" name="FEVG" id="echo_FEVG" oninput="majConcatEcho()">
         </div>
         <div class="champ" id="wrap_echo_DTD_VG">
             <div class="label-excl"><label>DTD-VG mm</label><button type="button" class="btn-excl" onclick="toggleExclEcho('DTD_VG')" title="Exclure">−</button></div>
@@ -954,7 +964,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 
     <!-- ── Cases à cocher CMLM Echo ── -->
-    <div style="margin-bottom:6px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
+    <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
         <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:4px;">📋 CMLM — diagnostic échographique</div>
 
         <!-- Échodoppler normale / anormale =1 -->
@@ -968,7 +978,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
             <!-- Cardiopathie hypertensive ≥1 avec SIV -->
             <div style="margin-top:2px;">
-                <label style="font-size:11px;font-weight:bold;"><input type="checkbox" class="cmlm-ec" value="cardiopathie hypertensive"> Cardiopathie hypertensive</label>
+                <label style="font-size:11px;font-weight:bold;"><input type="checkbox" class="cmlm-ec" value="cardiopathie hypertensive" onchange="if(this.checked) reporterSIV();"> Cardiopathie hypertensive</label>
                 <input type="text" id="ce_siv" placeholder="SIV=" style="width:60px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;margin-left:4px;">
             </div>
 
@@ -1103,7 +1113,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
             <!-- Cardiopathie dilatée =1 FEVG -->
             <div style="margin-top:3px;">
-                <label style="font-size:11px;font-weight:bold;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_dil" onchange="toggleCmlmSub(this)"> Cardiopathie dilatée</label>
+                <label style="font-size:11px;font-weight:bold;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_dil" onchange="toggleCmlmSub(this); if(this.checked) reporterFEVG();"> Cardiopathie dilatée</label>
             </div>
             <div id="ce_dil" style="display:none;margin-left:14px;">
                 <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" onchange="exclusifGroup(this)"> FEVG conservée <input type="text" id="ce_fevg_cons" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
@@ -1112,13 +1122,16 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </div>
 
         </div>
-        <button type="button" onclick="genererCmlmEcho()"
-            style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">
-            ▶ Générer diagnostic CMLM
-        </button>
-        <textarea id="cmlm_echo_apercu" readonly
-            style="display:none;margin-top:4px;width:100%;min-height:40px;font-size:11px;color:#1a4a7a;background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:4px 6px;font-family:Arial,sans-serif;resize:vertical;"></textarea>
-    </div>
+    </div><!-- fin panel_echo_cases -->
+    <button type="button" id="btn_generer_echo" onclick="genererCmlmEcho(); document.getElementById('panel_echo_cases').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='inline';"
+        style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">
+        ▶ Générer diagnostic CMLM
+    </button>
+    <span id="lien_modifier_echo" style="display:none;font-size:10px;margin-left:6px;">
+        <a href="#" onclick="document.getElementById('panel_echo_cases').style.display=''; document.getElementById('btn_generer_echo').style.display='inline-block'; document.getElementById('lien_modifier_echo').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
+    </span>
+    <textarea id="cmlm_echo_apercu" readonly
+        style="display:none;margin-top:4px;width:100%;min-height:40px;font-size:11px;color:#1a4a7a;background:#fff8f0;border:1px solid #e67e22;border-radius:3px;padding:4px 6px;font-family:Arial,sans-serif;resize:vertical;"></textarea>
     <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
     <div class="champ" id="wrap_DOPPLER">
         <div class="label-excl"><label>Doppler</label><button type="button" class="btn-excl" onclick="toggleExcl('DOPPLER')" title="Exclure du rapport">−</button></div>
@@ -1840,6 +1853,95 @@ function appliquerMultiple(containerId) {
             if (br && br.nodeName === 'BR') br.style.display = '';
         });
     }
+}
+
+/* ── Reporter valeurs écho dans les champs CMLM ── */
+function reporterFEVG() {
+    var el = document.getElementById('echo_FEVG');
+    var fevg = el ? el.value.trim() : '';
+    if (!fevg) return;
+    ['ce_fevg_cons','ce_fevg_alt','ce_fevg_tres'].forEach(function(id) {
+        var f = document.getElementById(id);
+        if (f) f.value = fevg;
+    });
+}
+function reporterSIV() {
+    var siv = (document.querySelector('input[name="SIV"]') || {}).value || '';
+    var el = document.getElementById('ce_siv');
+    if (el && !el.value) el.value = siv;
+}
+
+/* ══════════════════════════════════════════════════════
+   ÉPURER / RESTAURER — boutons globaux header
+══════════════════════════════════════════════════════ */
+
+/* Masque toutes les options non cochées, met les cochées en rouge gras */
+function epurerTout() {
+    // Tous les checkboxes du bilan (examen, ECG, Echo, CMLM)
+    var toutes = document.querySelectorAll(
+        '#panel_sympto input[type="checkbox"],' +
+        '#panel_ecg_cases input[type="checkbox"],' +
+        '.cmlm-ec,' +
+        'input.ecg-child,' +
+        'input.sympto-child'
+    );
+    // Utiliser un Set pour éviter les doublons
+    var vus = new Set();
+    toutes.forEach(function(cb) {
+        if (vus.has(cb)) return;
+        vus.add(cb);
+        var lbl = cb.parentElement;
+        var br  = lbl ? lbl.nextSibling : null;
+        if (cb.checked) {
+            if (lbl) { lbl.style.color = '#c0392b'; lbl.style.fontWeight = 'bold'; lbl.style.display = ''; }
+            if (br && br.nodeName === 'BR') br.style.display = '';
+        } else {
+            if (lbl) lbl.style.display = 'none';
+            if (br && br.nodeName === 'BR') br.style.display = 'none';
+        }
+    });
+}
+
+/* Remet tout à l'état initial : options visibles, pas de rouge, décoche tout */
+function restaurerTout() {
+    // Réactiver et afficher tous les checkboxes
+    var toutes = document.querySelectorAll('input[type="checkbox"]');
+    toutes.forEach(function(cb) {
+        cb.checked  = false;
+        cb.disabled = false;
+        var lbl = cb.parentElement;
+        var br  = lbl ? lbl.nextSibling : null;
+        if (lbl) { lbl.style.display = ''; lbl.style.color = ''; lbl.style.fontWeight = ''; }
+        if (br && br.nodeName === 'BR') br.style.display = '';
+    });
+    // Cacher tous les sous-panneaux (sub_*) qui s'ouvrent via toggleSub
+    document.querySelectorAll('[id^="sub_"]').forEach(function(el) {
+        el.style.display = 'none';
+    });
+    // Réinitialiser les boutons radio ECG (normal/anormal)
+    document.querySelectorAll('input[name="ecg_global"]').forEach(function(r) {
+        r.checked = false;
+    });
+    var ecgDetail = document.getElementById('ecg_detail');
+    if (ecgDetail) ecgDetail.style.display = 'none';
+    // Remettre les blocs de cases visibles
+    var ps = document.getElementById('panel_sympto');
+    if (ps) ps.style.display = '';
+    var pe = document.getElementById('panel_ecg_cases');
+    if (pe) pe.style.display = '';
+    var pec = document.getElementById('panel_echo_cases');
+    if (pec) pec.style.display = '';
+    var lms = document.getElementById('lien_modifier_sympto');
+    if (lms) lms.style.display = 'none';
+    var lme = document.getElementById('lien_modifier_ecg');
+    if (lme) lme.style.display = 'none';
+    var lmec = document.getElementById('lien_modifier_echo');
+    if (lmec) lmec.style.display = 'none';
+    var bge = document.getElementById('btn_generer_echo');
+    if (bge) bge.style.display = '';
+    // Réinitialiser les variables internes exclusions
+    if (typeof exclusions !== 'undefined') exclusions = {};
+    if (typeof exclusionsEcho !== 'undefined') exclusionsEcho = {};
 }
 
 </script>
