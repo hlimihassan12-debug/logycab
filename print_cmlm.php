@@ -494,7 +494,7 @@ function ajouterALD(produit, posologie, btn) {
     const li = document.createElement('li');
     const texte = produit + (posologie ? ' — ' + posologie : '');
     li.innerHTML = `<button class="btn-retirer" onclick="retirerALD('${cle.replace(/'/g,"\\'")}', this.parentElement)" title="Retirer">✕</button>
-                    <span class="traitement-item-text">• ${texte}</span>`;
+                    <span class="traitement-item-text">${texte}</span>`;
     li.dataset.cle = cle;
     document.getElementById('liste_ald').appendChild(li);
 }

@@ -859,7 +859,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <tbody id="nf_lignes_acc"></tbody>
                     <tfoot>
                         <tr style="background:#f0f4f8;font-weight:bold;font-size:11px;">
-                            <td colspan="3" style="padding:4px 6px;">Total</td>
+                            <td colspan="2" style="padding:4px 6px;">Total</td>
+                            <td style="padding:4px 6px;text-align:right;" id="nf_totalPrix_acc">0 DH</td>
                             <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse_acc">0 DH</td>
                             <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette_acc">0 DH</td>
                             <td></td>
@@ -1146,26 +1147,26 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
             </div>
             <?php else: ?>
                 <p style="color:#999;font-size:12px;">Aucune facture</p>
                 <div style="display:flex;justify-content:center;margin-top:8px;">
-                    <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
+                    <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
                 </div>
             <?php endif; ?>
             </div>
 
             <!-- FORMULAIRE NOUVELLE FACTURE -->
-            <div id="formNouvelleFacture" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
+            <div id="formNouvelleFacture_cons" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture()" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
+                    <button type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
-                    <input type="date" id="nf_date" value="<?= date('Y-m-d') ?>" style="margin-left:8px;border:1px solid #cdd5de;border-radius:3px;padding:3px 6px;font-size:12px;">
+                    <input type="date" id="nf_date_cons" value="<?= date('Y-m-d') ?>" style="margin-left:8px;border:1px solid #cdd5de;border-radius:3px;padding:3px 6px;font-size:12px;">
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:11px;">
                     <thead style="background:#1a4a7a;color:white;">
@@ -1178,21 +1179,21 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                             <th style="padding:4px 6px;"></th>
                         </tr>
                     </thead>
-                    <tbody id="nf_lignes"></tbody>
+                    <tbody id="nf_lignes_cons"></tbody>
                     <tfoot>
                         <tr style="background:#f0f4f8;font-weight:bold;font-size:11px;">
                             <td colspan="2" style="padding:4px 6px;">Total</td>
-                            <td style="padding:4px 6px;text-align:right;" id="nf_totalPrix">0 DH</td>
-                            <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse">0 DH</td>
-                            <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;" id="nf_totalPrix_cons">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse_cons">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette_cons">0 DH</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button type="button" onclick="nfEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
-                    <span id="nf_msg" style="font-size:11px;color:#27ae60;align-self:center;"></span>
+                    <button type="button" onclick="nfAjouterLigne('cons')" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <span id="nf_msg_cons" style="font-size:11px;color:#27ae60;align-self:center;"></span>
                 </div>
             </div>
 
@@ -2150,12 +2151,12 @@ function nfAjouterLigne(sfx) {
 }
 function nfRemplirPrix(sfx, i) {
     sfx = sfx || 'acc';
-    const sel  = document.getElementById(`nf_acte_${sfx}_${i}`);
+    const sel = document.getElementById(`nf_acte_${sfx}_${i}`);
     const cout = sel.options[sel.selectedIndex]?.getAttribute('data-cout') || '';
     document.getElementById(`nf_prix_${sfx}_${i}`).value = cout;
-    // Auto-remplir Versé avec le prix (paiement immédiat)
+    // Auto-remplir Versé = Prix (le médecin corrige si paiement partiel)
     const verseEl = document.getElementById(`nf_verse_${sfx}_${i}`);
-    if (verseEl) verseEl.value = cout;
+    if (verseEl) verseEl.value = cout ? parseFloat(cout) : 0;
     nfRecalculer(sfx, i);
 }
 function nfRecalculer(sfx, i) {
@@ -2177,13 +2178,9 @@ function nfMajTotaux(sfx) {
         const v = parseFloat(document.getElementById(`nf_verse_${sfx}_${idx}`)?.value) || 0;
         tp += p; tv += v; td += (p - v);
     });
-    // nf_totalPrix peut ne pas exister (vue Accueil sans colonne Prix)
-    const elPrix = document.getElementById(`nf_totalPrix_${sfx}`);
-    if (elPrix) elPrix.textContent = tp.toLocaleString('fr-FR') + ' DH';
-    const elVerse = document.getElementById(`nf_totalVerse_${sfx}`);
-    if (elVerse) elVerse.textContent = tv.toLocaleString('fr-FR') + ' DH';
-    const elDette = document.getElementById(`nf_totalDette_${sfx}`);
-    if (elDette) elDette.textContent = td.toLocaleString('fr-FR') + ' DH';
+    document.getElementById(`nf_totalPrix_${sfx}`).textContent  = tp.toLocaleString('fr-FR') + ' DH';
+    document.getElementById(`nf_totalVerse_${sfx}`).textContent = tv.toLocaleString('fr-FR') + ' DH';
+    document.getElementById(`nf_totalDette_${sfx}`).textContent = td.toLocaleString('fr-FR') + ' DH';
 }
 function nfEnregistrer(patientId, sfx) {
     sfx = sfx || 'acc';
