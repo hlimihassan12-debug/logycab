@@ -427,7 +427,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child excl1" data-group="rythme_sympto" onchange="exclusifGroup(this)" value="palpitations"> palpitations</label><br>
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child excl1" data-group="rythme_sympto" onchange="exclusifGroup(this)" value="tachycardie"> tachycardie</label><br>
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child excl1" data-group="rythme_sympto" onchange="exclusifGroup(this)" value="bradycardie"> bradycardie</label><br>
-        </div>
+        
+                <button type="button" onclick="appliquerMultiple('sub_rythme')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+            </div>
 
         <!-- Symptomatologie artéritique =1 -->
         <div style="margin-top:3px;">
@@ -439,7 +441,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child excl1" data-group="arterite" onchange="exclusifGroup(this)" value="artérite stade II"> artérite stade II</label><br>
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child excl1" data-group="arterite" onchange="exclusifGroup(this)" value="artérite stade IV"> artérite stade IV</label><br>
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child excl1" data-group="arterite" onchange="exclusifGroup(this)" value="gangrène"> gangrène</label><br>
-        </div>
+        
+                <button type="button" onclick="appliquerMultiple('sub_arterite')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+            </div>
 
         <!-- Symptomatologie phlébitique ≥1 -->
         <div style="margin-top:3px;">
@@ -450,7 +454,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child" value="varices des MI"> varices des MI</label><br>
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child" value="phlébite des MI"> phlébite des MI</label><br>
             <label style="font-size:11px;"><input type="checkbox" class="sympto-child" value="trouble trophique des MI"> trouble trophique des MI</label><br>
-        </div>
+        
+                <button type="button" onclick="appliquerMultiple('sub_phlebite')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+            </div>
 
         <button type="button" onclick="genererConclusion()" style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer conclusion</button>
     </div>
@@ -794,6 +800,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 <label style="font-size:11px;"><input type="checkbox" class="ecg-child ecg-repol-ter"> septal</label><br>
                 <label style="font-size:11px;"><input type="checkbox" class="ecg-child ecg-repol-ter"> septo-apical</label><br>
                 <label style="font-size:11px;"><input type="checkbox" class="ecg-child ecg-repol-ter"> septal profond</label><br>
+            
+                <button type="button" onclick="appliquerMultiple('sub_ecg_repol')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             <!-- Ischémie ondes Q ≥1 -->
@@ -821,6 +829,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 <label style="font-size:11px;"><input type="checkbox" class="ecg-child ecg-q-ter"> septal</label><br>
                 <label style="font-size:11px;"><input type="checkbox" class="ecg-child ecg-q-ter"> septo-apical</label><br>
                 <label style="font-size:11px;"><input type="checkbox" class="ecg-child ecg-q-ter"> septal profond</label><br>
+            
+                <button type="button" onclick="appliquerMultiple('sub_ecg_q')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             <!-- HVG =1 -->
@@ -1077,14 +1087,18 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                     <?php foreach (['antérieur','antérieur étendu','antéro-apical','antéro-latéral','antéro-septal','antéro-septo-apical','apical','circonférentiel','inférieur','inféro-latéral','latéral','latéro-septal','postérieur','postéro-apical','postéro-latéral','postéro-septal','septal','septo-apical','septal profond'] as $t): ?>
                     <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec"> <?= $t ?></label><br>
                     <?php endforeach; ?>
-                </div>
+                
+                <button type="button" onclick="appliquerMultiple('ce_hypo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+            </div>
                 <!-- Akinésie =1 choix de type, territoire ≥1 -->
                 <label style="font-size:11px;font-weight:bold;cursor:pointer;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_isch_type" data-target="ce_aki" onchange="exclusifGroup(this);toggleCmlmSub(this)" value="akinésie du territoire"> akinésie du territoire</label>
                 <div id="ce_aki" style="display:none;margin-left:12px;">
                     <?php foreach (['antérieur','antérieur étendu','antéro-apical','antéro-latéral','antéro-septal','antéro-septo-apical','apical','circonférentiel','inférieur','inféro-latéral','latéral','latéro-septal','postérieur','postéro-apical','postéro-latéral','postéro-septal','septal','septo-apical','septal profond'] as $t): ?>
                     <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec"> <?= $t ?></label><br>
                     <?php endforeach; ?>
-                </div>
+                
+                <button type="button" onclick="appliquerMultiple('ce_aki')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+            </div>
             </div>
 
             <!-- Cardiopathie dilatée =1 FEVG -->
@@ -1686,18 +1700,27 @@ function genererCmlmEcho() {
 function exclusifGroupRepol(cb, parentId) {
     var parent = document.getElementById(parentId);
     if (!parent) return;
-    // Identifier les cases "territoire" = toutes sauf la case absence elle-même
     var territories = parent.querySelectorAll('input[type="checkbox"]:not(.ecg-repol-abs):not(.ecg-q-abs)');
     if (cb.checked) {
+        cb.parentElement.style.color = '#c0392b';
+        cb.parentElement.style.fontWeight = 'bold';
         territories.forEach(function(el) {
             el.checked = false;
             el.disabled = true;
-            el.parentElement.style.opacity = '0.4';
+            var lbl = el.parentElement;
+            lbl.style.display = 'none';
+            var br = lbl.nextSibling;
+            if (br && br.nodeName === 'BR') br.style.display = 'none';
         });
     } else {
+        cb.parentElement.style.color = '';
+        cb.parentElement.style.fontWeight = '';
         territories.forEach(function(el) {
             el.disabled = false;
-            el.parentElement.style.opacity = '1';
+            var lbl = el.parentElement;
+            lbl.style.display = '';
+            var br = lbl.nextSibling;
+            if (br && br.nodeName === 'BR') br.style.display = '';
         });
     }
 }
@@ -1708,17 +1731,31 @@ function exclusifGroup(cb) {
     if (!group) return;
     var all = document.querySelectorAll('input[data-group="' + group + '"]');
     if (cb.checked) {
+        // Mettre le label coché en rouge gras
+        cb.parentElement.style.color = '#c0392b';
+        cb.parentElement.style.fontWeight = 'bold';
         all.forEach(function(el) {
             if (el !== cb) {
                 el.checked = false;
                 el.disabled = true;
-                el.parentElement.style.opacity = '0.4';
+                var lbl = el.parentElement;
+                lbl.style.display = 'none';
+                var br = lbl.nextSibling;
+                if (br && br.nodeName === 'BR') br.style.display = 'none';
+                var target = el.dataset.target;
+                if (target) { var sub = document.getElementById(target); if (sub) sub.style.display = 'none'; }
             }
         });
     } else {
+        // Retirer le rouge sur le label décoché
+        cb.parentElement.style.color = '';
+        cb.parentElement.style.fontWeight = '';
         all.forEach(function(el) {
             el.disabled = false;
-            el.parentElement.style.opacity = '1';
+            var lbl = el.parentElement;
+            lbl.style.display = '';
+            var br = lbl.nextSibling;
+            if (br && br.nodeName === 'BR') br.style.display = '';
         });
     }
 }
@@ -1769,6 +1806,40 @@ function genererCC() {
     }
     const ta = document.querySelector('[name="CC"]');
     if (ta) { ta.value = txt; ta.dispatchEvent(new Event('input')); }
+}
+
+/* ── Choix multiples : masquer non-cochés, rouge sur cochés ── */
+function appliquerMultiple(containerId) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var toutes = container.querySelectorAll('input[type="checkbox"]');
+    var nbCoches = 0;
+    toutes.forEach(function(el) { if (el.checked) nbCoches++; });
+
+    if (nbCoches > 0) {
+        toutes.forEach(function(el) {
+            var lbl = el.parentElement;
+            var br  = lbl.nextSibling;
+            if (el.checked) {
+                lbl.style.color      = '#c0392b';
+                lbl.style.fontWeight = 'bold';
+                lbl.style.display    = '';
+                if (br && br.nodeName === 'BR') br.style.display = '';
+            } else {
+                lbl.style.display = 'none';
+                if (br && br.nodeName === 'BR') br.style.display = 'none';
+            }
+        });
+    } else {
+        toutes.forEach(function(el) {
+            var lbl = el.parentElement;
+            var br  = lbl.nextSibling;
+            lbl.style.display    = '';
+            lbl.style.color      = '';
+            lbl.style.fontWeight = '';
+            if (br && br.nodeName === 'BR') br.style.display = '';
+        });
+    }
 }
 
 </script>
