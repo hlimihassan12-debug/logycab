@@ -87,45 +87,49 @@ if (!$excl_ecg) {
 
 $texteECG = '';
 if ($ecg) {
-    $freq = $ecg['FREQUENCE'] ?? '';
-    $parties = [];
+    // Si C/C renseigné (nouveau mode) → l'utiliser directement
+    if (!empty($ecg['C/C'])) {
+        $texteECG = trim($ecg['C/C']);
+        if (!empty($ecg['AUTRES Signes ECG'])) $texteECG .= "\n" . $ecg['AUTRES Signes ECG'];
+    } else {
+        // Ancien mode : reconstruction depuis les champs individuels
+        $freq = $ecg['FREQUENCE'] ?? '';
+        $parties = [];
 
-    $rythme = '';
-    if (!empty($ecg['RYTHME SUPRA VENTRICULAIRE'])) $rythme .= 'rythme : ' . $ecg['RYTHME SUPRA VENTRICULAIRE'];
-    if (!empty($ecg['trouble de rythme']))           $rythme .= ', rythme ventriculaire : ' . $ecg['trouble de rythme'];
-    if ($freq)                                        $rythme .= ($rythme ? ', ' : '') . 'fréquence cardiaque : ' . $freq . ' bat/min';
-    if ($rythme) $parties[] = '-' . $rythme;
+        $rythme = '';
+        if (!empty($ecg['RYTHME SUPRA VENTRICULAIRE'])) $rythme .= 'rythme : ' . $ecg['RYTHME SUPRA VENTRICULAIRE'];
+        if (!empty($ecg['trouble de rythme']))           $rythme .= ', rythme ventriculaire : ' . $ecg['trouble de rythme'];
+        if ($freq)                                        $rythme .= ($rythme ? ', ' : '') . 'fréquence cardiaque : ' . $freq . ' bat/min';
+        if ($rythme) $parties[] = '-' . $rythme;
 
-    $cond = '';
-    if (!empty($ecg['LA CONDUCTION NODALE']))      $cond .= 'conduction auriculo-ventriculaire : ' . $ecg['LA CONDUCTION NODALE'];
-    if (!empty($ecg['QRS']))                       $cond .= ($cond ? ', QRS : ' : 'QRS : ') . $ecg['QRS'];
-    if (!empty($ecg['LA CONDUCTION INFRANODALE'])) $cond .= ', conduction intra-ventriculaire : ' . $ecg['LA CONDUCTION INFRANODALE'];
-    if ($cond) $parties[] = '-' . $cond;
+        $cond = '';
+        if (!empty($ecg['LA CONDUCTION NODALE']))      $cond .= 'conduction auriculo-ventriculaire : ' . $ecg['LA CONDUCTION NODALE'];
+        if (!empty($ecg['QRS']))                       $cond .= ($cond ? ', QRS : ' : 'QRS : ') . $ecg['QRS'];
+        if (!empty($ecg['LA CONDUCTION INFRANODALE'])) $cond .= ', conduction intra-ventriculaire : ' . $ecg['LA CONDUCTION INFRANODALE'];
+        if ($cond) $parties[] = '-' . $cond;
 
-    $repol = '';
-    if (!empty($ecg['LA REPOLARISATION'])) $repol .= 'Repolarisation : ' . $ecg['LA REPOLARISATION'];
-    if (!empty($ecg['SEGMENT ST'])) {
-        $st = $ecg['SEGMENT ST'];
-        if (!empty($ecg['TOPOGRAPHIE_ST'])) $st .= ' (' . $ecg['TOPOGRAPHIE_ST'] . ')';
-        $repol .= ($repol ? ', segment ST : ' : 'segment ST : ') . $st;
+        $repol = '';
+        if (!empty($ecg['LA REPOLARISATION'])) $repol .= 'Repolarisation : ' . $ecg['LA REPOLARISATION'];
+        if (!empty($ecg['SEGMENT ST'])) {
+            $st = $ecg['SEGMENT ST'];
+            if (!empty($ecg['TOPOGRAPHIE_ST'])) $st .= ' (' . $ecg['TOPOGRAPHIE_ST'] . ')';
+            $repol .= ($repol ? ', segment ST : ' : 'segment ST : ') . $st;
+        }
+        if (!empty($ecg['ONDE_T'])) {
+            $t = $ecg['ONDE_T'];
+            if (!empty($ecg['TOPOGRAPHIE_T'])) $t .= ' (' . $ecg['TOPOGRAPHIE_T'] . ')';
+            $repol .= ($repol ? ', onde T : ' : 'onde T : ') . $t;
+        }
+        if ($repol) $parties[] = '-' . $repol;
+
+        if (!empty($ecg['IDM']) && $ecg['IDM'] !== 'absents') {
+            $q = 'Signes d\'infarctus : ' . $ecg['IDM'];
+            if (!empty($ecg['TOPOGRAPHIE_Q'])) $q .= ' (' . $ecg['TOPOGRAPHIE_Q'] . ')';
+            $parties[] = '-' . $q;
+        }
+        if (!empty($ecg['AUTRES Signes ECG'])) $parties[] = $ecg['AUTRES Signes ECG'];
+        $texteECG = implode("\n", $parties);
     }
-    if (!empty($ecg['ONDE_T'])) {
-        $t = $ecg['ONDE_T'];
-        if (!empty($ecg['TOPOGRAPHIE_T'])) $t .= ' (' . $ecg['TOPOGRAPHIE_T'] . ')';
-        $repol .= ($repol ? ', onde T : ' : 'onde T : ') . $t;
-    }
-    if ($repol) $parties[] = '-' . $repol;
-
-    if (!empty($ecg['IDM']) && $ecg['IDM'] !== 'absents') {
-        $q = 'Signes d\'infarctus : ' . $ecg['IDM'];
-        if (!empty($ecg['TOPOGRAPHIE_Q'])) $q .= ' (' . $ecg['TOPOGRAPHIE_Q'] . ')';
-        $parties[] = '-' . $q;
-    }
-
-    if (!empty($ecg['C/C']))               $parties[] = $ecg['C/C'];
-    if (!empty($ecg['AUTRES Signes ECG'])) $parties[] = $ecg['AUTRES Signes ECG'];
-
-    $texteECG = implode("\n", $parties);
 }
 
 // ── Dernier Echo (ou date choisie) ───────────────────────────────────────
