@@ -451,6 +451,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     </div>
     <button type="button" onclick="ouvrirModalRapport()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">🖨️ Rapport</button>
     <a href="print_cmlm.php?id=<?= $id ?>" target="_blank" class="btn-h" style="background:#8e44ad;">📋 CMLM</a>
+    <a href="print_lettre.php?id=<?= $id ?>" target="_blank" class="btn-h" style="background:#16a085;">✉️ Lettre</a>
+    <a href="📋 CMLM</a>
     <a href="logout.php" class="btn-h red">🚪 Déco</a>
     <!-- TITRE -->
     <h1 style="margin-left:4px;">🩺 Dossier médical</h1>

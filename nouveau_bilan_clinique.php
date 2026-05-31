@@ -467,17 +467,12 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <span id="lien_modifier_sympto" style="display:none;font-size:10px;">
         <a href="#" onclick="document.getElementById('panel_sympto').style.display=''; document.getElementById('lien_modifier_sympto').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
     </span>
-    <div class="champ" id="wrap_Conclusion">
-        <div class="label-excl">
-            <label>Conclusion</label>
-            <button type="button" class="btn-excl" onclick="toggleExcl('Conclusion')" title="Exclure du rapport">−</button>
-        </div>
-        <div class="excl-wrap">
-            <textarea name="Conclusion" class="court" oninput="majApercuExamen()"></textarea>
-            <button type="button" onclick="setConclusionECVN()" title="Examen Cardio-Vasculaire Normal"
-                style="flex-shrink:0;height:20px;padding:0 5px;border:1px solid #27ae60;border-radius:3px;background:#27ae60;color:white;font-size:9px;font-weight:bold;cursor:pointer;white-space:nowrap;">ECVN</button>
-        </div>
+    <div class="sec">Au total — Conduite à tenir</div>
+    <div class="champ">
+        <label>Conduite à tenir</label>
+        <textarea name="Conduite_ATenir" style="min-height:70px;" placeholder="Conclusion générale et plan de prise en charge..."></textarea>
     </div>
+
     <div class="champ" id="wrap_REMARQUE">
         <div class="label-excl">
             <label>Remarque</label>
@@ -487,6 +482,17 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <textarea name="REMARQUE" class="court" oninput="majApercuExamen()"></textarea>
             <button type="button" onclick="viderConclusionRemarque()" title="Vider pour saisie libre"
                 style="flex-shrink:0;height:20px;padding:0 5px;border:1px solid #e67e22;border-radius:3px;background:#e67e22;color:white;font-size:9px;font-weight:bold;cursor:pointer;white-space:nowrap;">ECVAN</button>
+        </div>
+    </div>
+    <div class="champ" id="wrap_Conclusion">
+        <div class="label-excl">
+            <label>Conclusion</label>
+            <button type="button" class="btn-excl" onclick="toggleExcl('Conclusion')" title="Exclure du rapport">−</button>
+        </div>
+        <div class="excl-wrap">
+            <textarea name="Conclusion" class="court" oninput="majApercuExamen()" style="background:#fff8f0;border:1px solid #e67e22;"></textarea>
+            <button type="button" onclick="setConclusionECVN()" title="Examen Cardio-Vasculaire Normal"
+                style="flex-shrink:0;height:20px;padding:0 5px;border:1px solid #27ae60;border-radius:3px;background:#27ae60;color:white;font-size:9px;font-weight:bold;cursor:pointer;white-space:nowrap;">ECVN</button>
         </div>
     </div>
 
@@ -505,13 +511,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport Examen</label>
         <textarea id="apercu_examen" readonly
-            style="min-height:45px;background:#fff8f0;border:1px solid #e67e22;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
-    </div>
-
-    <div class="sec">Au total — Conduite à tenir</div>
-    <div class="champ">
-        <label>Conduite à tenir</label>
-        <textarea name="Conduite_ATenir" style="min-height:70px;" placeholder="Conclusion générale et plan de prise en charge..."></textarea>
+            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
     </div>
     </form>
 </div>
@@ -868,14 +868,14 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <span id="lien_modifier_ecg" style="display:none;font-size:10px;">
         <a href="#" onclick="document.getElementById('panel_ecg_cases').style.display=''; document.getElementById('lien_modifier_ecg').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
     </span>
-    <!-- 12. C/C -->
-    <div class="champ" id="wrap_CC"><div class="label-excl"><label>C/C</label><button type="button" class="btn-excl" onclick="toggleExcl('CC')" title="Exclure du rapport">−</button></div>
-        <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:48px;resize:vertical;"></textarea>
-    </div>
-
     <!-- 13. Autres signes ECG (NOUVEAU) -->
     <div class="champ"><label>Autres signes ECG</label>
         <input type="text" name="AUTRES_SIGNES">
+    </div>
+
+    <!-- 12. C/C -->
+    <div class="champ" id="wrap_CC"><div class="label-excl"><label>C/C</label><button type="button" class="btn-excl" onclick="toggleExcl('CC')" title="Exclure du rapport">−</button></div>
+        <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:48px;resize:vertical;background:#fff8f0;border:1px solid #e67e22;"></textarea>
     </div>
 
     <!-- Champs cachés exclusion ECG -->
@@ -891,7 +891,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport ECG</label>
         <textarea id="apercu_ecg" readonly
-            style="min-height:45px;background:#fff8f0;border:1px solid #e67e22;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
+            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"></textarea>
     </div>
     </form>
 </div>
@@ -1116,22 +1116,13 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 <label style="font-size:11px;font-weight:bold;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_dil" onchange="toggleCmlmSub(this); if(this.checked) reporterFEVG();"> Cardiopathie dilatée</label>
             </div>
             <div id="ce_dil" style="display:none;margin-left:14px;">
-                <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" onchange="exclusifGroup(this)"> FEVG conservée <input type="text" id="ce_fevg_cons" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
-                <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" onchange="exclusifGroup(this)"> FEVG altérée <input type="text" id="ce_fevg_alt" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
-                <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" onchange="exclusifGroup(this)"> FEVG très altérée en bas débit <input type="text" id="ce_fevg_tres" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
+                <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" value="FEVG conservée" onchange="exclusifGroup(this)"> FEVG conservée <input type="text" id="ce_fevg_cons" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
+                <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" value="FEVG altérée" onchange="exclusifGroup(this)"> FEVG altérée <input type="text" id="ce_fevg_alt" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
+                <label style="font-size:11px;"><input type="checkbox" class="cmlm-ec excl1" data-group="ce_fevg" value="FEVG très altérée en bas débit" onchange="exclusifGroup(this)"> FEVG très altérée en bas débit <input type="text" id="ce_fevg_tres" placeholder="%" style="width:36px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></label><br>
             </div>
 
         </div>
     </div><!-- fin panel_echo_cases -->
-    <button type="button" id="btn_generer_echo" onclick="genererCmlmEcho(); document.getElementById('panel_echo_cases').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='inline';"
-        style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">
-        ▶ Générer diagnostic CMLM
-    </button>
-    <span id="lien_modifier_echo" style="display:none;font-size:10px;margin-left:6px;">
-        <a href="#" onclick="document.getElementById('panel_echo_cases').style.display=''; document.getElementById('btn_generer_echo').style.display='inline-block'; document.getElementById('lien_modifier_echo').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
-    </span>
-    <textarea id="cmlm_echo_apercu" readonly
-        style="display:none;margin-top:4px;width:100%;min-height:40px;font-size:11px;color:#1a4a7a;background:#fff8f0;border:1px solid #e67e22;border-radius:3px;padding:4px 6px;font-family:Arial,sans-serif;resize:vertical;"></textarea>
     <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
     <div class="champ" id="wrap_DOPPLER">
         <div class="label-excl"><label>Doppler</label><button type="button" class="btn-excl" onclick="toggleExcl('DOPPLER')" title="Exclure du rapport">−</button></div>
@@ -1142,6 +1133,21 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <textarea name="DTSA" class="court" oninput="majConcatEcho()"></textarea>
     </div>
 
+    <button type="button" id="btn_generer_echo" onclick="genererCmlmEcho(); document.getElementById('panel_echo_cases').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='inline';"
+        style="margin-top:6px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">
+        ▶ Générer diagnostic CMLM
+    </button>
+    <span id="lien_modifier_echo" style="display:none;font-size:10px;margin-left:6px;">
+        <a href="#" onclick="document.getElementById('panel_echo_cases').style.display=''; document.getElementById('btn_generer_echo').style.display='inline-block'; document.getElementById('lien_modifier_echo').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
+    </span>
+    <textarea id="cmlm_echo_apercu" readonly
+        style="display:none;margin-top:4px;width:100%;min-height:40px;font-size:11px;color:#1a4a7a;background:#fff8f0;border:1px solid #e67e22;border-radius:3px;padding:4px 6px;font-family:Arial,sans-serif;resize:vertical;"></textarea>
+
+    <!-- Champs cachés exclusion Echo -->
+    <input type="hidden" id="excl_DOPPLER"     name="excl_DOPPLER">
+    <input type="hidden" id="excl_DTSA"        name="excl_DTSA">
+    <input type="hidden" id="excl_CONCLUSION1" name="excl_CONCLUSION1">
+
     <!-- Aperçu + Conclusion fusionnés : une seule zone bleue éditable -->
     <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
         <div class="label-excl">
@@ -1149,14 +1155,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <button type="button" class="btn-excl" onclick="toggleExcl('CONCLUSION1')" title="Exclure du rapport">−</button>
         </div>
         <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:70px;background:#f0f7ff;border:1px solid #2e6da4;font-size:10px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+            style="min-height:70px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
             oninput="majApercuEcho()"></textarea>
     </div>
-
-    <!-- Champs cachés exclusion Echo -->
-    <input type="hidden" id="excl_DOPPLER"     name="excl_DOPPLER">
-    <input type="hidden" id="excl_DTSA"        name="excl_DTSA">
-    <input type="hidden" id="excl_CONCLUSION1" name="excl_CONCLUSION1">
     </form>
 </div>
 
@@ -1683,13 +1684,13 @@ function genererCmlmEcho() {
         document.querySelectorAll('.cmlm-ec:checked').forEach(function(cb) {
             var txt = (cb.value && cb.value !== 'on') ? cb.value : '';
             // Ajout valeurs FEVG
-            if (txt.indexOf('FEVG conservée') !== -1) {
+            if (txt === 'FEVG conservée') {
                 var v = document.getElementById('ce_fevg_cons');
                 if (v && v.value) txt += ' ' + v.value + '%';
-            } else if (txt.indexOf('très altérée') !== -1) {
+            } else if (txt === 'FEVG très altérée en bas débit') {
                 var v = document.getElementById('ce_fevg_tres');
                 if (v && v.value) txt += ' ' + v.value + '%';
-            } else if (txt.indexOf('FEVG altérée') !== -1) {
+            } else if (txt === 'FEVG altérée') {
                 var v = document.getElementById('ce_fevg_alt');
                 if (v && v.value) txt += ' ' + v.value + '%';
             }
@@ -1705,7 +1706,7 @@ function genererCmlmEcho() {
     var result = parties.join(', ');
     document.getElementById('cmlm_echo_val').value = result;
     var ap = document.getElementById('cmlm_echo_apercu');
-    if (ap) { ap.value = '✓ ' + result; ap.style.display = 'block'; }
+    if (ap) { ap.value = result; ap.style.display = 'block'; }
 }
 
 
