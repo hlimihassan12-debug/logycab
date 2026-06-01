@@ -1342,13 +1342,14 @@ mesures.forEach(function(n, idx) {
 function _collectForm(onglet) {
     // Vider temporairement les champs exclus, collecter FormData, restaurer
     var sauv = {};
+    var form = document.getElementById('form-' + onglet);
     Object.keys(exclusions).forEach(function(n){
-        var e=document.querySelector('[name='+n+']');
+        var e=form.querySelector('[name='+n+']');
         if(e){ sauv[n]=e.value; e.value=''; }
     });
-    var data = new FormData(document.getElementById('form-'+onglet));
+    var data = new FormData(form);
     Object.keys(sauv).forEach(function(n){
-        var e=document.querySelector('[name='+n+']'); if(e) e.value=sauv[n];
+        var e=form.querySelector('[name='+n+']'); if(e) e.value=sauv[n];
     });
     return data;
 }
