@@ -139,13 +139,9 @@ if ($nOrd) {
     $medicaments = $stmtMed->fetchAll();
 }
 
-$stmtEx = $db->prepare("SELECT * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC");
+$stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC");
 $stmtEx->execute([$id]);
-$examens = $stmtEx->fetchAll();
-$nExam = (int)($_GET['exam'] ?? ($examens ? $examens[0]['N1'] : 0));
-$examen = null; $idxExam = 0;
-foreach ($examens as $i => $e) { if ($e['N1'] == $nExam) { $examen = $e; $idxExam = $i; break; } }
-if (!$examen && $examens) { $examen = $examens[0]; }
+$examen = $stmtEx->fetch();
 
 $stmtECGs = $db->prepare("SELECT * FROM ecg WHERE [N-PAT]=? ORDER BY [Date ECG] DESC");
 $stmtECGs->execute([$id]);
@@ -160,40 +156,7 @@ $echos = $stmtEchos->fetchAll();
 $nEcho = (int)($_GET['echo'] ?? ($echos ? $echos[0]['N°'] : 0));
 $echoCourant = null; $idxEcho = 0;
 foreach ($echos as $i => $e) { if ($e['N°'] == $nEcho) { $echoCourant = $e; $idxEcho = $i; break; } }
-// ── BILANS BIOLOGIE — liste pour navigation dossier ───────────────────
-$stmtBioListe = $db->prepare("
-    SELECT b.n_bilan,
-           CONVERT(varchar(10), b.date_bilan, 103) AS date_fr,
-           b.date_bilan,
-           ISNULL(b.observation,'') AS observation,
-           COUNT(a.N_analyse) AS nb_total,
-           SUM(CASE WHEN ISNULL(a.résultat,'') <> '' AND a.résultat <> 'N' THEN 1 ELSE 0 END) AS nb_anormal
-    FROM LE_BILAN b
-    LEFT JOIN analyses a ON a.N_bilan = b.n_bilan
-    WHERE b.id = ?
-    GROUP BY b.n_bilan, b.date_bilan, b.observation
-    ORDER BY b.date_bilan DESC
-");
-$stmtBioListe->execute([$id]);
-$bilansListe = $stmtBioListe->fetchAll();
-$bilanCourantData = $bilansListe ? $bilansListe[0] : null;
- 
-// Charger le détail du premier bilan (le plus récent)
-$lignesBioActuel = [];
-if ($bilanCourantData) {
-    $stmtBioDetail = $db->prepare("
-        SELECT a.N_analyse,
-               c.analyse AS nom,
-               c.rubrique,
-               ISNULL(a.résultat,'') AS resultat
-        FROM analyses a
-        LEFT JOIN C_ANALYSE c ON c.[N°TypeAnalyse] = a.bilan
-        WHERE a.N_bilan = ?
-        ORDER BY c.rubrique, c.analyse
-    ");
-    $stmtBioDetail->execute([$bilanCourantData['n_bilan']]);
-    $lignesBioActuel = $stmtBioDetail->fetchAll();
-}
+
 $stmtFact = $db->prepare("
     SELECT f.n_facture, f.id, f.date_facture, f.montant,
            ISNULL(SUM(d.prixU),0) AS total,
@@ -209,10 +172,10 @@ $factures = $stmtFact->fetchAll();
 $nFact = (int)($_GET['fact'] ?? ($factures ? $factures[0]['n_facture'] : 0));
 $factCourante = null; $idxFact = 0;
 foreach ($factures as $i => $f) { if ($f['n_facture'] == $nFact) { $factCourante = $f; $idxFact = $i; break; } }
-$factPremiere = $factures ? $factures[0]['n_facture'] : 0;
-$factDerniere = $factures ? $factures[count($factures)-1]['n_facture'] : 0;
-$factPrev = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
-$factNext = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
+$factPremiere = $factures ? $factures[count($factures)-1]['n_facture'] : 0;
+$factDerniere = $factures ? $factures[0]['n_facture'] : 0;
+$factPrev = ($idxFact < count($factures)-1) ? $factures[$idxFact+1]['n_facture'] : $nFact;
+$factNext = ($idxFact > 0) ? $factures[$idxFact-1]['n_facture'] : $nFact;
 
 $detailActes = [];
 if ($nFact) {
@@ -391,7 +354,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .btn-vue.actif  { background:#1a4a7a; opacity:1; }
 .btn-vue.inactif{ background:rgba(255,255,255,0.25); opacity:0.7; }
 .btn-vue.inactif:hover { opacity:1; }
-#btn-vue-consultation { display: none; }
 
 /* ── Tableau accueil ── */
 .tbl-acc { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; border-radius:6px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.12); }
@@ -449,10 +411,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🏠 Accueil</button>
         <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Consultation</button>
     </div>
-    <button type="button" onclick="ouvrirModalRapport()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">🖨️ Rapport</button>
-    <a href="print_cmlm.php?id=<?= $id ?>" target="_blank" class="btn-h" style="background:#8e44ad;">📋 CMLM</a>
-    <a href="print_lettre.php?id=<?= $id ?>" target="_blank" class="btn-h" style="background:#16a085;">✉️ Lettre</a>
-    <a href="📋 CMLM</a>
     <a href="logout.php" class="btn-h red">🚪 Déco</a>
     <!-- TITRE -->
     <h1 style="margin-left:4px;">🩺 Dossier médical</h1>
@@ -829,52 +787,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
             </div>
             <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucune facture</p>
-            <div style="display:flex;justify-content:center;margin-top:8px;">
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
-            </div>
             <?php endif; ?>
-
-            <!-- FORMULAIRE NOUVELLE FACTURE — vue Accueil -->
-            <div id="formNouvelleFacture_acc" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
-                </div>
-                <div style="margin-bottom:8px;">
-                    <label style="font-size:11px;font-weight:600;">Date facture :</label>
-                    <input type="date" id="nf_date_acc" value="<?= date('Y-m-d') ?>" style="margin-left:8px;border:1px solid #cdd5de;border-radius:3px;padding:3px 6px;font-size:12px;">
-                </div>
-                <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                    <thead style="background:#1a4a7a;color:white;">
-                        <tr>
-                            <th style="padding:4px 6px;text-align:left;">Date acte</th>
-                            <th style="padding:4px 6px;text-align:left;">Acte</th>
-                            <th style="padding:4px 6px;text-align:right;">Versé</th>
-                            <th style="padding:4px 6px;text-align:right;">Reste</th>
-                            <th style="padding:4px 6px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="nf_lignes_acc"></tbody>
-                    <tfoot>
-                        <tr style="background:#f0f4f8;font-weight:bold;font-size:11px;">
-                            <td colspan="2" style="padding:4px 6px;">Total</td>
-                            <td style="padding:4px 6px;text-align:right;" id="nf_totalPrix_acc">0 DH</td>
-                            <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse_acc">0 DH</td>
-                            <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette_acc">0 DH</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-                <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne('acc')" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
-                    <span id="nf_msg_acc" style="font-size:11px;color:#27ae60;align-self:center;"></span>
-                </div>
-            </div>
         </div>
 
         <!-- CERTIFICAT (bouton seulement, zone cachée) -->
@@ -1149,26 +1066,26 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
             </div>
             <?php else: ?>
                 <p style="color:#999;font-size:12px;">Aucune facture</p>
                 <div style="display:flex;justify-content:center;margin-top:8px;">
-                    <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
+                    <button type="button" onclick="toggleNouvelleFacture()" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
                 </div>
             <?php endif; ?>
             </div>
 
             <!-- FORMULAIRE NOUVELLE FACTURE -->
-            <div id="formNouvelleFacture_cons" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
+            <div id="formNouvelleFacture" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
+                    <button type="button" onclick="toggleNouvelleFacture()" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
-                    <input type="date" id="nf_date_cons" value="<?= date('Y-m-d') ?>" style="margin-left:8px;border:1px solid #cdd5de;border-radius:3px;padding:3px 6px;font-size:12px;">
+                    <input type="date" id="nf_date" value="<?= date('Y-m-d') ?>" style="margin-left:8px;border:1px solid #cdd5de;border-radius:3px;padding:3px 6px;font-size:12px;">
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:11px;">
                     <thead style="background:#1a4a7a;color:white;">
@@ -1181,21 +1098,21 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                             <th style="padding:4px 6px;"></th>
                         </tr>
                     </thead>
-                    <tbody id="nf_lignes_cons"></tbody>
+                    <tbody id="nf_lignes"></tbody>
                     <tfoot>
                         <tr style="background:#f0f4f8;font-weight:bold;font-size:11px;">
                             <td colspan="2" style="padding:4px 6px;">Total</td>
-                            <td style="padding:4px 6px;text-align:right;" id="nf_totalPrix_cons">0 DH</td>
-                            <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse_cons">0 DH</td>
-                            <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette_cons">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;" id="nf_totalPrix">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;" id="nf_totalVerse">0 DH</td>
+                            <td style="padding:4px 6px;text-align:right;color:#c0392b;" id="nf_totalDette">0 DH</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne('cons')" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
-                    <span id="nf_msg_cons" style="font-size:11px;color:#27ae60;align-self:center;"></span>
+                    <button type="button" onclick="nfAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <span id="nf_msg" style="font-size:11px;color:#27ae60;align-self:center;"></span>
                 </div>
             </div>
 
@@ -1259,9 +1176,10 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
     </div><!-- FIN card ordonnance -->
 </div><!-- FIN col-mid -->
-<!-- ══ COLONNE DROITE : EXAMEN title="Valeurs normales">✅</button> ══ -->
+<!-- ══ COLONNE DROITE : EXAMEN CLINIQUE ══ -->
 <div class="col-right" id="col-right-exam">
     <div class="card">
+        <div class="card-title">🩺 Examen clinique</div>
         <?php if ($examen): ?>
         <?php
             $dateExamRaw = $examen['DateExam'] ?? null;
@@ -1278,12 +1196,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 }
             }
         ?>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🩺 Examen</span>
-            <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($examen): ?><button type="button" onclick="toggleApercu('apercu-examen-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
-                <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
-            </div>
+        <div style="text-align:center;margin-bottom:8px;">
+            <span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date examen</span>
+            <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
         </div>
         <?php
         $tas = (int)($examen['TAS'] ?? 0); $tad = (int)($examen['TAD'] ?? 0);
@@ -1298,135 +1213,26 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <div class="champ"><label>Poids</label><span><?= htmlspecialchars($examen['POIDS'] ?? '—') ?> kg</span></div>
             <div class="champ"><label>Taille</label><span><?= htmlspecialchars($examen['TAILLE'] ?? '—') ?> cm</span></div>
         </div>
-        <?php if (!empty($examen['Conclusion'])): ?>
-        <div class="champ" style="margin-top:4px;">
-            <label>Conclusion</label>
-            <span style="font-size:11px;color:#1a4a7a;"><?= htmlspecialchars($examen['Conclusion']) ?></span>
-        </div>
-        <?php endif; ?>
-        <?php if (!empty($examen['REMARQUE'])): ?>
-        <div class="champ" style="margin-top:2px;">
-            <label>Remarque</label>
-            <span style="font-size:11px;color:#555;"><?= htmlspecialchars($examen['REMARQUE']) ?></span>
-        </div>
-        <?php endif; ?>
-        <?php
-        // Aperçu rapport Examen — même logique que print_rapport.php
-        $apercuExamen = '';
-        if ($examen) {
-            $parts = array_filter([
-                $examen['S_Fonctionnels']     ?? '',
-                $examen['Auscult_Cardiaque']  ?? '',
-                $examen['Auscult_Pulmonaire'] ?? '',
-                $examen['Examen_Vasculaire']  ?? '',
-                (!empty($examen['Signes_IVG']) && $examen['Signes_IVG'] !== 'Absents') ? 'Signes IVG : '.$examen['Signes_IVG'] : '',
-                (!empty($examen['Signes_IVD']) && $examen['Signes_IVD'] !== 'Absents') ? 'Signes IVD : '.$examen['Signes_IVD'] : '',
-                $examen['Autres_Symptomes']   ?? '',
-                $examen['Conclusion']         ?? '',
-                $examen['REMARQUE']           ?? '',
-            ], fn($v) => trim((string)$v) !== '');
-            $apercuExamen = implode(' ; ', $parts);
-        }
-        ?>
-        <?php if ($apercuExamen): ?>
-        <div id="apercu-examen-dossier" style="display:none;margin-top:6px;">
-            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
-                <?= htmlspecialchars($apercuExamen) ?>
-            </div>
-        </div>
-        <?php endif; ?>
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucun examen enregistré</p>
         <?php endif; ?>
-        <!-- Navigation Examen en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
-        </div>
-	 <!-- ══ BIOLOGIE COMPACT ══ -->
-        <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🧪 Biologie</span>
-                <div style="display:flex;align-items:center;gap:5px;">
-                    <span id="bio-nb-anormal" style="font-size:10px;font-weight:bold;color:#e74c3c;display:none;"></span>
-                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:#1a4a7a;">—</span>
-                    <button type="button" onclick="toggleApercu('apercu-bio-dossier',this)"
-                        id="bio-btn-apercu"
-                        style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;"
-                        title="Aperçu rapport">👁</button>
-                </div>
-            </div>
- 
-            <!-- Zone résultats — remplie par PHP au chargement, puis par JS à la navigation -->
-            <div id="bio-resultats" style="font-size:11px;min-height:20px;">
-                <?php if ($bilanCourantData): ?>
-                <?php foreach ($lignesBioActuel as $bl):
-                    $v = trim($bl['resultat']);
-                    $anormal = ($v !== '' && strtoupper($v) !== 'N');
-                ?>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1px 0;border-bottom:1px solid #f5f5f5;">
-                    <span style="color:<?= $anormal ? '#e74c3c' : '#aaa' ?>;font-weight:<?= $anormal ? 'bold' : 'normal' ?>;font-size:<?= $anormal ? '11px' : '10px' ?>;">
-                        <?= htmlspecialchars($bl['nom']) ?>
-                    </span>
-                    <span style="color:<?= $anormal ? '#e74c3c' : '#bbb' ?>;font-weight:<?= $anormal ? 'bold' : 'normal' ?>;font-size:<?= $anormal ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
-                        <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
-                    </span>
-                </div>
-                <?php endforeach; ?>
-                <?php else: ?>
-                <span style="color:#999;font-size:11px;">Aucun bilan</span>
-                <?php endif; ?>
-            </div>
- 
-            <!-- Aperçu rapport biologie (caché par défaut, bouton 👁) -->
-            <div id="apercu-bio-dossier" style="display:none;margin-top:6px;">
-                <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;" id="apercu-bio-texte">
-                    <?php
-                    $apercuBioLignes = [];
-                    foreach ($lignesBioActuel as $bl) {
-                        $v = trim($bl['resultat']);
-                        if ($v !== '' && strtoupper($v) !== 'N') {
-                            $apercuBioLignes[] = htmlspecialchars($bl['nom'])
-                                . ' : <strong style="color:#e74c3c;">'
-                                . htmlspecialchars($v) . '</strong>';
-                        }
-                    }
-                    echo $apercuBioLignes
-                        ? implode('<br>', $apercuBioLignes)
-                        : '<span style="color:#999;">Aucun résultat anormal</span>';
-                    ?>
-                </div>
-            </div>
- 
-            <!-- Navigation entre bilans -->
-            <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
-                <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</button>
-                <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent">◀</button>
-                <span id="bio-nav-pos" style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;">
-                    <?= $bilansListe ? '1 / '.count($bilansListe) : '0' ?>
-                </span>
-                <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant">▶</button>
-                <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</button>
-                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:10px;" title="Ouvrir module Biologie">✚</a>
-            </div>
-        </div><!-- FIN card biologie -->	
 		<!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
-            <span>⚡ ECG</span>
-            <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($ecgCourant): ?><button type="button" onclick="toggleApercu('apercu-ecg-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
-                <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
-                <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
-                <?php endif; ?>
+            ⚡ ECG
+            <div class="nav-btns" style="gap:2px;">
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 3px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+                <a href="nouveau_ecg.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;">✚</a>
             </div>
         </div>
         <?php if ($ecgCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date ECG</span>
+                <span style="font-size:11px;font-weight:bold;color:#1a4a7a;"><?= $ecgCourant['Date ECG'] ? date('d/m/Y', strtotime($ecgCourant['Date ECG'])) : '—' ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Fréquence</span>
                 <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['FREQUENCE'] ?? '—') ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Rythme</span>
@@ -1445,63 +1251,25 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun ECG enregistré</p>
         <?php endif; ?>
-        <?php
-        // Aperçu rapport ECG
-        $apercuECG = '';
-        if ($ecgCourant) {
-            $p = [];
-            $rsv  = $ecgCourant['RYTHME SUPRA VENTRICULAIRE'] ?? '';
-            $trv  = $ecgCourant['trouble de rythme'] ?? '';
-            $freq = $ecgCourant['FREQUENCE'] ?? '';
-            $r = '';
-            if ($rsv) $r .= 'Rythme : '.$rsv;
-            if ($trv) $r .= ($r ? ', ' : '').$trv;
-            if ($freq) $r .= ($r ? ', ' : '').'FC : '.$freq.' bat/min';
-            if ($r) $p[] = $r;
-            $cn = $ecgCourant['LA CONDUCTION NODALE'] ?? '';
-            if ($cn) $p[] = 'Conduction AV : '.$cn;
-            $qrs = $ecgCourant['QRS'] ?? '';
-            if ($qrs) $p[] = 'QRS : '.$qrs;
-            $inf = $ecgCourant['LA CONDUCTION INFRANODALE'] ?? '';
-            if ($inf) $p[] = $inf;
-            $rep = $ecgCourant['LA REPOLARISATION'] ?? '';
-            if ($rep) $p[] = 'Repolarisation : '.$rep;
-            $cc  = $ecgCourant['C/C'] ?? '';
-            if ($cc) $p[] = $cc;
-            $apercuECG = implode(' ; ', $p);
-        }
-        ?>
-        <?php if ($apercuECG): ?>
-        <div id="apercu-ecg-dossier" style="display:none;margin-top:6px;">
-            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
-                <?= htmlspecialchars($apercuECG) ?>
-            </div>
-        </div>
-        <?php endif; ?>
-        <!-- Navigation ECG en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
-        </div>
     </div>
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
-            <span>🫀 Echo-Doppler</span>
-            <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($echoCourant): ?><button type="button" onclick="toggleApercu('apercu-echo-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
-                <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
-                <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
-                <?php endif; ?>
+            🫀 Echo-Doppler
+            <div class="nav-btns" style="gap:2px;">
+                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">◀</a>
+                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 3px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
+                <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;">▶|</a>
+                <a href="nouveau_echo.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;">✚</a>
             </div>
         </div>
         <?php if ($echoCourant): ?>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Date Echo</span>
+                <span style="font-size:11px;font-weight:bold;color:#1a4a7a;"><?= $echoCourant['DATEchog'] ? date('d/m/Y', strtotime($echoCourant['DATEchog'])) : '—' ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">FEVG</span>
                 <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['FEVG'] ?? '—') ?></span></div>
             <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">DTD-VG</span>
@@ -1520,25 +1288,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun Echo enregistré</p>
         <?php endif; ?>
-        <?php
-        $apercuEcho = htmlspecialchars(trim($echoCourant['CONCLUSION1'] ?? ''));
-        ?>
-        <?php if ($apercuEcho): ?>
-        <div id="apercu-echo-dossier" style="display:none;margin-top:6px;">
-            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
-                <?= $apercuEcho ?>
-            </div>
-        </div>
-        <?php endif; ?>
-        <!-- Navigation Echo en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
-        </div>
     </div>
     </div>
 	
@@ -1749,15 +1498,6 @@ function reportTraitement(mois, patientId) {
 // ════════════════════════════════════════════════════════════
 // UTILITAIRE date
 // ════════════════════════════════════════════════════════════
-function toggleApercu(id, btn) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    var visible = el.style.display !== 'none';
-    el.style.display = visible ? 'none' : 'block';
-    btn.style.background = visible ? 'none' : '#2e6da4';
-    btn.style.color = visible ? '#2e6da4' : 'white';
-}
-
 function dateEnFr(d) {
     if (!d) return '';
     const [a,m,j] = d.split('-');
@@ -2124,88 +1864,66 @@ function noEnregistrer(patientId) {
 
 const nfActes = <?= json_encode(array_map(fn($a)=>['n_acte'=>$a['n_acte'],'ACTE'=>$a['ACTE'],'cout'=>(float)$a['cout']],$listeActes)) ?>;
 let nfIdx=0;
-/* ── Facture : suffixe 'acc' pour vue Accueil ── */
-function toggleNouvelleFacture(sfx) {
-    sfx = sfx || 'acc';
-    const formId = 'formNouvelleFacture_' + sfx;
-    const form = document.getElementById(formId);
-    if (!form) return;
-    const visible = form.style.display !== 'none';
-    form.style.display = visible ? 'none' : 'block';
-    if (!visible && document.getElementById('nf_lignes_' + sfx).children.length === 0)
-        nfAjouterLigne(sfx);
+function toggleNouvelleFacture() {
+    const form=document.getElementById('formNouvelleFacture'), aff=document.getElementById('fact-affichage');
+    const visible=form.style.display!=='none';
+    form.style.display=visible?'none':'block';
+    if(aff) aff.style.display=visible?'block':'none';
+    if(!visible&&document.getElementById('nf_lignes').children.length===0) nfAjouterLigne();
 }
-function nfAjouterLigne(sfx) {
-    sfx = sfx || 'acc';
-    const i = nfIdx++;
-    const today = document.getElementById('nf_date_' + sfx).value;
-    let opts = '<option value="">— Acte —</option>';
-    nfActes.forEach(a => { opts += `<option value="${a.n_acte}" data-cout="${a.cout}">${a.ACTE}</option>`; });
-    const tr = document.createElement('tr'); tr.style.borderBottom = '1px solid #eee';
-    tr.dataset.sfx = sfx;
-    tr.innerHTML = `<td style="padding:3px 4px;"><input type="date" id="nf_dateacte_${sfx}_${i}" value="${today}" style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:105px;"></td>
-        <td style="padding:3px 4px;"><select id="nf_acte_${sfx}_${i}" onchange="nfRemplirPrix('${sfx}',${i})" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;">${opts}</select></td>
-        <input type="hidden" id="nf_prix_${sfx}_${i}" value="">
-        <td style="padding:3px 4px;"><input type="number" id="nf_verse_${sfx}_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer('${sfx}',${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
-        <td style="padding:3px 4px;text-align:right;font-weight:600;color:#c0392b;" id="nf_dette_${sfx}_${i}">0</td>
-        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux('${sfx}')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
-    document.getElementById('nf_lignes_' + sfx).appendChild(tr);
+function nfAjouterLigne() {
+    const i=nfIdx++; const today=document.getElementById('nf_date').value;
+    let opts='<option value="">— Acte —</option>';
+    nfActes.forEach(a=>{opts+=`<option value="${a.n_acte}" data-cout="${a.cout}">${a.ACTE}</option>`;});
+    const tr=document.createElement('tr'); tr.style.borderBottom='1px solid #eee';
+    tr.innerHTML=`<td style="padding:3px 4px;"><input type="date" id="nf_dateacte_${i}" value="${today}" style="border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;width:105px;"></td>
+        <td style="padding:3px 4px;"><select id="nf_acte_${i}" onchange="nfRemplirPrix(${i})" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;">${opts}</select></td>
+        <td style="padding:3px 4px;"><input type="number" id="nf_prix_${i}" min="0" step="0.01" placeholder="0" oninput="nfRecalculer(${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
+        <td style="padding:3px 4px;"><input type="number" id="nf_verse_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer(${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
+        <td style="padding:3px 4px;text-align:right;font-weight:600;color:#c0392b;" id="nf_dette_${i}">0</td>
+        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
+    document.getElementById('nf_lignes').appendChild(tr);
 }
-function nfRemplirPrix(sfx, i) {
-    sfx = sfx || 'acc';
-    const sel = document.getElementById(`nf_acte_${sfx}_${i}`);
-    const cout = sel.options[sel.selectedIndex]?.getAttribute('data-cout') || '';
-    document.getElementById(`nf_prix_${sfx}_${i}`).value = cout;
-    // Auto-remplir Versé = Prix (le médecin corrige si paiement partiel)
-    const verseEl = document.getElementById(`nf_verse_${sfx}_${i}`);
-    if (verseEl) verseEl.value = cout ? parseFloat(cout) : 0;
-    nfRecalculer(sfx, i);
+function nfRemplirPrix(i) {
+    const sel=document.getElementById(`nf_acte_${i}`);
+    document.getElementById(`nf_prix_${i}`).value=sel.options[sel.selectedIndex]?.getAttribute('data-cout')||'';
+    nfRecalculer(i);
 }
-function nfRecalculer(sfx, i) {
-    sfx = sfx || 'acc';
-    const prix  = parseFloat(document.getElementById(`nf_prix_${sfx}_${i}`)?.value) || 0;
-    const verse = parseFloat(document.getElementById(`nf_verse_${sfx}_${i}`)?.value) || 0;
-    const el = document.getElementById(`nf_dette_${sfx}_${i}`);
-    if (el) el.textContent = (prix - verse).toLocaleString('fr-FR') + ' DH';
-    nfMajTotaux(sfx);
+function nfRecalculer(i) {
+    const prix=parseFloat(document.getElementById(`nf_prix_${i}`)?.value)||0;
+    const verse=parseFloat(document.getElementById(`nf_verse_${i}`)?.value)||0;
+    const el=document.getElementById(`nf_dette_${i}`); if(el) el.textContent=(prix-verse).toLocaleString('fr-FR')+' DH';
+    nfMajTotaux();
 }
-function nfMajTotaux(sfx) {
-    sfx = sfx || 'acc';
-    let tp = 0, tv = 0, td = 0;
-    document.querySelectorAll(`#nf_lignes_${sfx} tr`).forEach(tr => {
-        const sel = tr.querySelector('select');
-        if (!sel) return;
-        const idx = sel.id.replace(`nf_acte_${sfx}_`, '');
-        const p = parseFloat(document.getElementById(`nf_prix_${sfx}_${idx}`)?.value) || 0;
-        const v = parseFloat(document.getElementById(`nf_verse_${sfx}_${idx}`)?.value) || 0;
-        tp += p; tv += v; td += (p - v);
+function nfMajTotaux() {
+    let tp=0,tv=0,td=0;
+    document.querySelectorAll('#nf_lignes tr').forEach(tr=>{
+        const idx=tr.querySelector('select')?.id?.replace('nf_acte_',''); if(!idx) return;
+        const p=parseFloat(document.getElementById(`nf_prix_${idx}`)?.value)||0;
+        const v=parseFloat(document.getElementById(`nf_verse_${idx}`)?.value)||0;
+        tp+=p;tv+=v;td+=(p-v);
     });
-    document.getElementById(`nf_totalPrix_${sfx}`).textContent  = tp.toLocaleString('fr-FR') + ' DH';
-    document.getElementById(`nf_totalVerse_${sfx}`).textContent = tv.toLocaleString('fr-FR') + ' DH';
-    document.getElementById(`nf_totalDette_${sfx}`).textContent = td.toLocaleString('fr-FR') + ' DH';
+    document.getElementById('nf_totalPrix').textContent=tp.toLocaleString('fr-FR')+' DH';
+    document.getElementById('nf_totalVerse').textContent=tv.toLocaleString('fr-FR')+' DH';
+    document.getElementById('nf_totalDette').textContent=td.toLocaleString('fr-FR')+' DH';
 }
-function nfEnregistrer(patientId, sfx) {
-    sfx = sfx || 'acc';
-    const date_facture = document.getElementById(`nf_date_${sfx}`).value;
-    const lignes = [];
-    document.querySelectorAll(`#nf_lignes_${sfx} tr`).forEach(tr => {
-        const sel = tr.querySelector('select');
-        if (!sel) return;
-        const idx   = sel.id.replace(`nf_acte_${sfx}_`, '');
-        const acte  = document.getElementById(`nf_acte_${sfx}_${idx}`)?.value;
-        const prix  = parseFloat(document.getElementById(`nf_prix_${sfx}_${idx}`)?.value) || 0;
-        const verse = parseFloat(document.getElementById(`nf_verse_${sfx}_${idx}`)?.value) || 0;
-        const dateA = document.getElementById(`nf_dateacte_${sfx}_${idx}`)?.value;
-        if (acte) lignes.push({acte, prix, verse, date_acte: dateA});
+function nfEnregistrer(patientId) {
+    const date_facture=document.getElementById('nf_date').value; const lignes=[];
+    document.querySelectorAll('#nf_lignes tr').forEach(tr=>{
+        const idx=tr.querySelector('select')?.id?.replace('nf_acte_',''); if(!idx) return;
+        const acte=document.getElementById(`nf_acte_${idx}`)?.value;
+        const prix=parseFloat(document.getElementById(`nf_prix_${idx}`)?.value)||0;
+        const verse=parseFloat(document.getElementById(`nf_verse_${idx}`)?.value)||0;
+        const dateA=document.getElementById(`nf_dateacte_${idx}`)?.value;
+        if(acte) lignes.push({acte,prix,verse,date_acte:dateA});
     });
-    const msgEl = document.getElementById(`nf_msg_${sfx}`);
-    if (lignes.length === 0) { msgEl.textContent = '⚠ Ajoutez au moins un acte.'; msgEl.style.color = '#e74c3c'; return; }
-    msgEl.textContent = 'Enregistrement…'; msgEl.style.color = '#999';
-    fetch('ajax_nouvelle_facture.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id: patientId, date_facture, lignes})})
-    .then(r => r.json()).then(data => {
-        if (data.success) window.location.href = `dossier.php?id=${patientId}&fact=${data.n_facture}`;
-        else { msgEl.textContent = '❌ ' + data.error; msgEl.style.color = '#e74c3c'; }
-    }).catch(() => { msgEl.textContent = '❌ Erreur réseau'; msgEl.style.color = '#e74c3c'; });
+    if(lignes.length===0){document.getElementById('nf_msg').textContent='⚠ Ajoutez au moins un acte.';document.getElementById('nf_msg').style.color='#e74c3c';return;}
+    document.getElementById('nf_msg').textContent='Enregistrement…';document.getElementById('nf_msg').style.color='#999';
+    fetch('ajax_nouvelle_facture.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:patientId,date_facture,lignes})})
+    .then(r=>r.json()).then(data=>{
+        if(data.success) window.location.href=`dossier.php?id=${patientId}&fact=${data.n_facture}`;
+        else{document.getElementById('nf_msg').textContent='❌ '+data.error;document.getElementById('nf_msg').style.color='#e74c3c';}
+    }).catch(()=>{document.getElementById('nf_msg').textContent='❌ Erreur réseau';document.getElementById('nf_msg').style.color='#e74c3c';});
 }
 
 // DOMContentLoaded : pas de chargement auto des créneaux (ils se chargent à l'ouverture de la popup)
@@ -2378,97 +2096,7 @@ function confirmerRdv(nOrdon) {
         });
     });
 }
-// ════════════════════════════════════════════════════════════
-// NAVIGATION BIOLOGIE (dossier)
-// ════════════════════════════════════════════════════════════
-const bioBilans = <?= json_encode(array_map(fn($b) => [
-    'n_bilan'    => $b['n_bilan'],
-    'date_fr'    => $b['date_fr'],
-    'nb_anormal' => (int)$b['nb_anormal'],
-    'nb_total'   => (int)$b['nb_total'],
-], $bilansListe)) ?>;
-let bioIdx = 0; // 0 = bilan le plus récent
- 
-function bioNav(dir) {
-    if (!bioBilans.length) return;
-    if      (dir === 'first') bioIdx = 0;
-    else if (dir === 'last')  bioIdx = bioBilans.length - 1;
-    else if (dir === 'prev')  bioIdx = Math.max(0, bioIdx - 1);
-    else if (dir === 'next')  bioIdx = Math.min(bioBilans.length - 1, bioIdx + 1);
-    bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
-}
- 
-async function bioCharger(n_bilan, idx) {
-    const res = await fetch('ajax_bio_dossier.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'get_detail', n_bilan})
-    }).then(r => r.json());
- 
-    if (!res.ok) return;
- 
-    // Mettre à jour compteur position
-    document.getElementById('bio-nav-pos').textContent = (idx + 1) + ' / ' + bioBilans.length;
- 
-    // Mettre à jour la date affichée
-    document.getElementById('bio-date-affich').textContent = res.bilan?.date_fr || '—';
- 
-    // Compter et afficher le nombre de résultats anormaux
-    const anormaux = res.lignes.filter(l => l.resultat !== '' && l.resultat.toUpperCase() !== 'N');
-    const elNb = document.getElementById('bio-nb-anormal');
-    if (anormaux.length > 0) {
-        elNb.textContent = anormaux.length + ' ⚠️';
-        elNb.style.display = '';
-    } else {
-        elNb.style.display = 'none';
-    }
- 
-    // Afficher toutes les lignes (anormaux en rouge, normaux en gris)
-    const zone = document.getElementById('bio-resultats');
-    if (!res.lignes.length) {
-        zone.innerHTML = '<span style="color:#999;font-size:11px;">Bilan vide</span>';
-    } else {
-        zone.innerHTML = res.lignes.map(l => {
-            const v  = l.resultat || '';
-            const an = (v !== '' && v.toUpperCase() !== 'N');
-            const col = an ? '#e74c3c' : '#aaa';
-            const fw  = an ? 'bold'   : 'normal';
-            const fs  = an ? '11px'   : '10px';
-            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:1px 0;border-bottom:1px solid #f5f5f5;">
-                <span style="color:${col};font-weight:${fw};font-size:${fs};">${l.nom}</span>
-                <span style="color:${col};font-weight:${fw};font-size:${fs};margin-left:6px;white-space:nowrap;">${v || '—'}</span>
-            </div>`;
-        }).join('');
-    }
- 
-    // Mettre à jour l'aperçu rapport (anormaux seulement)
-    const apercuTexte = document.getElementById('apercu-bio-texte');
-    if (apercuTexte) {
-        const lignesAn = res.lignes.filter(l => l.resultat && l.resultat.toUpperCase() !== 'N');
-        apercuTexte.innerHTML = lignesAn.length
-            ? lignesAn.map(l => `${l.nom} : <strong style="color:#e74c3c;">${l.resultat}</strong>`).join('<br>')
-            : '<span style="color:#999;">Aucun résultat anormal</span>';
-    }
- 
-    // Afficher bouton aperçu 👁 si le bilan a des lignes
-    document.getElementById('bio-btn-apercu').style.display = res.lignes.length ? '' : 'none';
-}
- 
-// Initialiser l'affichage au chargement de la page
-document.addEventListener('DOMContentLoaded', function() {
-    if (!bioBilans.length) return;
-    const elNb = document.getElementById('bio-nb-anormal');
-    const nbAn = bioBilans[0]?.nb_anormal || 0;
-    if (nbAn > 0) {
-        elNb.textContent = nbAn + ' ⚠️';
-        elNb.style.display = '';
-    }
-    document.getElementById('bio-date-affich').textContent = bioBilans[0]?.date_fr || '—';
-    if (bioBilans[0]?.nb_total > 0) {
-        document.getElementById('bio-btn-apercu').style.display = '';
-    }
-});
- 
+
 // Certificat vue accueil
 function calcNbrJAcc() {
     const d1=document.getElementById('cert_debut_acc').value, d2=document.getElementById('cert_fin_acc').value;
@@ -2538,180 +2166,6 @@ function calcNbrJAcc() {
         </div>
     </div>
 </div>
-
-
-<!-- ══════════════════════════════════════════════════════════════════
-     MODALE — Sélection dates rapport cardio-vasculaire
-══════════════════════════════════════════════════════════════════ -->
-<div id="modal-rapport" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-     background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:10px;width:380px;max-width:96%;
-                box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
-        <!-- Header -->
-        <div style="background:#c0392b;color:white;padding:10px 16px;
-                    display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-weight:bold;font-size:13px;">🖨️ Rapport cardio-vasculaire</span>
-            <button onclick="fermerModalRapport()" style="background:none;border:none;color:white;
-                    font-size:18px;cursor:pointer;line-height:1;">✕</button>
-        </div>
-        <!-- Corps -->
-        <div style="padding:16px;">
-            <div id="rapport-loading" style="text-align:center;color:#888;font-size:12px;padding:20px 0;">
-                Chargement des dates…
-            </div>
-            <div id="rapport-contenu" style="display:none;">
-                <!-- Ligne Examen -->
-                <div id="ligne-examen" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#1a4a7a;">🩺 Examen clinique :</span>
-                    <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
-                    <button onclick="toggleExclusionRubrique('examen')" id="btn-excl-examen"
-                        title="Exclure cette rubrique du rapport"
-                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
-                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-                </div>
-                <!-- Ligne ECG -->
-                <div id="ligne-ecg" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#1a4a7a;">📈 ECG :</span>
-                    <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
-                    <button onclick="toggleExclusionRubrique('ecg')" id="btn-excl-ecg"
-                        title="Exclure cette rubrique du rapport"
-                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
-                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-                </div>
-                <!-- Ligne Echo -->
-                <div id="ligne-echo" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#1a4a7a;">🫀 Echo-Doppler :</span>
-                    <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
-                    <button onclick="toggleExclusionRubrique('echo')" id="btn-excl-echo"
-                        title="Exclure cette rubrique du rapport"
-                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
-                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-                </div>
-                <!-- Boutons action -->
-                <div style="display:flex;justify-content:flex-end;gap:8px;">
-                    <button onclick="fermerModalRapport()"
-                        style="background:#95a5a6;color:white;border:none;border-radius:5px;
-                               padding:6px 16px;font-size:12px;cursor:pointer;">Annuler</button>
-                    <button onclick="imprimerRapport()"
-                        style="background:#c0392b;color:white;border:none;border-radius:5px;
-                               padding:6px 16px;font-size:12px;font-weight:bold;cursor:pointer;">🖨️ Imprimer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-/* ── Exclusions rubriques rapport ── */
-var rapportExclusions = { examen: false, ecg: false, echo: false };
-
-function ouvrirModalRapport() {
-    rapportExclusions = { examen: false, ecg: false, echo: false };
-    // Réinitialiser l'affichage des boutons exclusion
-    ['examen','ecg','echo'].forEach(function(r) {
-        var btn = document.getElementById('btn-excl-' + r);
-        var ligne = document.getElementById('ligne-' + r);
-        if (btn) { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
-        if (ligne) ligne.style.opacity = '1';
-    });
-
-    document.getElementById('modal-rapport').style.display = 'flex';
-    document.getElementById('rapport-loading').style.display = 'block';
-    document.getElementById('rapport-contenu').style.display = 'none';
-
-    fetch('ajax_dates_rapport.php?id=<?= $id ?>')
-        .then(function(r){ return r.json(); })
-        .then(function(d) {
-            remplirSelectRapport('sel-examen', d.examen || []);
-            remplirSelectRapport('sel-ecg',    d.ecg    || []);
-            remplirSelectRapport('sel-echo',   d.echo   || []);
-            document.getElementById('rapport-loading').style.display = 'none';
-            document.getElementById('rapport-contenu').style.display = 'block';
-        })
-        .catch(function(e) {
-            document.getElementById('rapport-loading').textContent = 'Erreur de chargement.';
-        });
-}
-
-function remplirSelectRapport(selectId, dates) {
-    var sel = document.getElementById(selectId);
-    sel.innerHTML = '';
-    if (!dates || dates.length === 0) {
-        var opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = '— aucun —';
-        sel.appendChild(opt);
-        sel.disabled = true;
-        // Exclure automatiquement si aucune donnée
-        var rubrique = selectId.replace('sel-','');
-        rapportExclusions[rubrique] = true;
-        var btn = document.getElementById('btn-excl-' + rubrique);
-        var ligne = document.getElementById('ligne-' + rubrique);
-        if (btn) { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
-        if (ligne) ligne.style.opacity = '0.4';
-    } else {
-        sel.disabled = false;
-        dates.forEach(function(d, i) {
-            var opt = document.createElement('option');
-            opt.value = d.date_tri;   // format YYYYMMDD pour la requête SQL
-            opt.textContent = d.date_fr; // format JJ/MM/AAAA pour l'affichage
-            if (i === 0) opt.selected = true; // dernière date par défaut
-            sel.appendChild(opt);
-        });
-    }
-}
-
-function toggleExclusionRubrique(rubrique) {
-    rapportExclusions[rubrique] = !rapportExclusions[rubrique];
-    var btn   = document.getElementById('btn-excl-' + rubrique);
-    var ligne = document.getElementById('ligne-' + rubrique);
-    var sel   = document.getElementById('sel-' + rubrique);
-    if (rapportExclusions[rubrique]) {
-        // Exclure : griser, barrer, bouton ↩
-        if (btn)   { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
-        if (ligne) ligne.style.opacity = '0.4';
-        if (sel)   sel.disabled = true;
-    } else {
-        // Réintégrer
-        if (btn)   { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
-        if (ligne) ligne.style.opacity = '1';
-        if (sel)   sel.disabled = false;
-    }
-}
-
-function fermerModalRapport() {
-    document.getElementById('modal-rapport').style.display = 'none';
-}
-
-function imprimerRapport() {
-    var url = 'print_rapport.php?id=<?= $id ?>';
-    if (!rapportExclusions.examen) {
-        var v = document.getElementById('sel-examen').value;
-        if (v) url += '&date_ex=' + encodeURIComponent(v);
-    } else {
-        url += '&excl_examen=1';
-    }
-    if (!rapportExclusions.ecg) {
-        var v = document.getElementById('sel-ecg').value;
-        if (v) url += '&date_ecg=' + encodeURIComponent(v);
-    } else {
-        url += '&excl_ecg=1';
-    }
-    if (!rapportExclusions.echo) {
-        var v = document.getElementById('sel-echo').value;
-        if (v) url += '&date_echo=' + encodeURIComponent(v);
-    } else {
-        url += '&excl_echo=1';
-    }
-    window.open(url, '_blank');
-    fermerModalRapport();
-}
-
-// Fermer si clic sur le fond
-document.getElementById('modal-rapport').addEventListener('click', function(e) {
-    if (e.target === this) fermerModalRapport();
-});
-</script>
 
 </body>
 </html>
