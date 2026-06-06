@@ -309,9 +309,6 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
         <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🩺 Examen clinique</span>
-        <button type="button" class="btn-preset btn-normal" onclick="remplirExamenNormal()" title="Valeurs normales">✅</button>
-        <button type="button" class="btn-preset btn-anormal" onclick="setExamenAnormal(); document.getElementById('panel_sympto').style.display=''; document.getElementById('lien_modifier_sympto').style.display='none';" title="Modifier les cases">✏️</button>
-        <button type="button" class="btn-save" onclick="enregistrerAjax('examen')" title="Enregistrer">💾</button>
         <span style="flex:1;"></span>
         <input type="date" name="DateExam" value="<?= $today ?>" id="date_examen" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
@@ -346,9 +343,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
         <div style="margin-top:6px;margin-bottom:4px;">
             <button type="button" id="btn_generer_examen"
-                onclick="if(document.getElementById('bloc_normal')&&document.getElementById('bloc_normal').style.display!=='none'){genererConclusionNormal();}else{genererConclusion();} document.getElementById('bloc_normal').style.display='none'; document.getElementById('sympto_cases').style.display='none'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='inline'; enregistrerAjax('examen');"
+                onclick="if(document.getElementById('bloc_normal')&&document.getElementById('bloc_normal').style.display!=='none'){genererConclusionNormal();}else{genererConclusion();} document.getElementById('bloc_normal').style.display='none'; document.getElementById('sympto_cases').style.display='none'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');"
                 style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
-            <span id="lien_modifier_sympto" style="display:none;font-size:10px;margin-left:6px;">
+            <span id="lien_modifier_sympto" style="display:none;font-size:11px;">
                 <a href="#" onclick="modifierExamen(); return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
             </span>
         </div>
@@ -536,9 +533,6 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
         <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">⚡ ECG</span>
-        <button type="button" class="btn-preset btn-normal" onclick="remplirECGNormal()" title="Valeurs normales">✅</button>
-        <button type="button" class="btn-preset btn-anormal" onclick="viderECG()" title="Vider les champs">✏️</button>
-        <button type="button" class="btn-save" onclick="enregistrerAjax('ecg')" title="Enregistrer">💾</button>
         <span style="flex:1;"></span>
         <input type="date" name="Date_ECG" value="<?= $today ?>" id="date_ecg" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
@@ -569,9 +563,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
         <div style="margin-top:6px;margin-bottom:4px;">
             <button type="button" id="btn_generer_ecg"
-                onclick="genererRapportECG(); document.getElementById('ecg_normal_detail').style.display='none'; document.getElementById('ecg_detail').style.display='none'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='inline'; enregistrerAjax('ecg');"
+                onclick="genererRapportECG(); document.getElementById('ecg_normal_detail').style.display='none'; document.getElementById('ecg_detail').style.display='none'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');"
                 style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
-            <span id="lien_modifier_ecg" style="display:none;font-size:10px;margin-left:6px;">
+            <span id="lien_modifier_ecg" style="display:none;font-size:11px;">
                 <a href="#" onclick="modifierECG(); return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
             </span>
         </div>
@@ -759,9 +753,6 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
         <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🫀 Echo-Doppler</span>
-        <button type="button" class="btn-preset btn-normal" onclick="remplirEchoNormal()" title="Valeurs normales">✅</button>
-        <button type="button" class="btn-preset btn-anormal" onclick="viderEcho()" title="Vider les champs">✏️</button>
-        <button type="button" class="btn-save" onclick="enregistrerAjax('echo')" title="Enregistrer">💾</button>
         <span style="flex:1;"></span>
         <input type="date" name="DATEchog" value="<?= $today ?>" id="date_echo" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
@@ -791,9 +782,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
         <div style="margin-top:6px;margin-bottom:4px;">
             <button type="button" id="btn_generer_echo"
-                onclick="genererCmlmEcho(); document.getElementById('echo_normale_detail').style.display='none'; document.getElementById('cmlm_echo_detail').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='inline'; enregistrerAjax('echo');"
+                onclick="genererCmlmEcho(); document.getElementById('echo_normale_detail').style.display='none'; document.getElementById('cmlm_echo_detail').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');"
                 style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
-            <span id="lien_modifier_echo" style="display:none;font-size:10px;margin-left:6px;">
+            <span id="lien_modifier_echo" style="display:none;font-size:11px;">
                 <a href="#" onclick="modifierEcho(); return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
             </span>
         </div>
@@ -1389,6 +1380,7 @@ function majConcatEcho() {
 ══════════════════════════════════════════════════════ */
 
 function setExamenNormal() {
+    modeExamen = 'normal';
     var bn = document.getElementById('btn_exam_normal');
     var ba = document.getElementById('btn_exam_anormal');
     if(bn){ bn.style.background='#27ae60'; bn.style.color='white'; }
@@ -1404,6 +1396,7 @@ function setExamenNormal() {
 }
 
 function setExamenAnormal() {
+    modeExamen = 'anormal';
     var bn = document.getElementById('btn_exam_normal');
     var ba = document.getElementById('btn_exam_anormal');
     if(ba){ ba.style.background='#e67e22'; ba.style.color='white'; }
@@ -1445,8 +1438,7 @@ function genererConclusionNormal() {
     if(autresN && autresN.value.trim()) condParts.push(autresN.value.trim());
     var ct = document.getElementById('conduite_textarea');
     if(ct && condParts.length > 0) ct.value = condParts.map(function(p){ return '- ' + p; }).join('\n');
-    document.getElementById('panel_sympto').style.display = 'none';
-    document.getElementById('lien_modifier_sympto').style.display = 'inline';
+    // Ne pas cacher panel_sympto — seulement les listes (géré par le bouton onclick)
 }
 
 /* ── Exclusion mutuelle bloc Normal ── */
@@ -1995,6 +1987,7 @@ function setEcgGlobal(val) {
     var panel = document.getElementById('panel_ecg_cases');
     if (panel) panel.style.display = '';
     if (val === 'normal') {
+        modeECG = 'normal';
         if (bn) { bn.style.background = '#27ae60'; bn.style.color = 'white'; }
         if (ba) { ba.style.background = 'white';   ba.style.color = '#e67e22'; }
         toggleECGAnormal(false);
@@ -2015,6 +2008,7 @@ function setEcgGlobal(val) {
         var ap = document.getElementById('apercu_ecg');
         if (ap) ap.value = lignes.join('\n');
     } else {
+        modeECG = 'anormal';
         if (ba) { ba.style.background = '#e67e22'; ba.style.color = 'white'; }
         if (bn) { bn.style.background = 'white';   bn.style.color = '#27ae60'; }
         /* Cacher les cases ECG normal */
@@ -2035,10 +2029,12 @@ function setEchoGlobal(val) {
     var btnGen = document.getElementById('btn_generer_echo');
     if (btnGen) btnGen.style.display = 'block';
     if (val === 'normale') {
+        modeEcho = 'normale';
         if (bn) { bn.style.background = '#27ae60'; bn.style.color = 'white'; }
         if (ba) { ba.style.background = 'white';   ba.style.color = '#e67e22'; }
         toggleCmlmEcho(false);
     } else {
+        modeEcho = 'anormale';
         if (ba) { ba.style.background = '#e67e22'; ba.style.color = 'white'; }
         if (bn) { bn.style.background = 'white';   bn.style.color = '#27ae60'; }
         toggleCmlmEcho(true);
@@ -2413,34 +2409,50 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /* ── Modifier les cases — réafficher les listes ── */
+/* Variables globales mémorisant le mode actif de chaque panneau */
+var modeExamen = 'aucun'; // 'normal' ou 'anormal'
+var modeECG    = 'aucun'; // 'normal' ou 'anormal'
+var modeEcho   = 'aucun'; // 'normale' ou 'anormale'
+
 function modifierExamen() {
-    document.getElementById('btn_generer_examen').style.display = 'inline-block';
+    var bg = document.getElementById('btn_generer_examen');
+    var bgh = document.getElementById('btn_generer_examen_h');
+    var lh = document.getElementById('lien_modifier_sympto_h');
+    if (bg) bg.style.display = 'inline-block';
+    if (bgh) bgh.style.display = 'inline-block';
     document.getElementById('lien_modifier_sympto').style.display = 'none';
-    // Réafficher le bon bloc selon le dernier bouton actif
-    var btnN = document.getElementById('btn_exam_normal');
-    if (btnN && btnN.style.background.indexOf('27ae60') !== -1) {
+    if (lh) lh.style.display = 'none';
+    if (modeExamen === 'normal') {
         document.getElementById('bloc_normal').style.display = 'block';
-    } else {
+    } else if (modeExamen === 'anormal') {
         document.getElementById('sympto_cases').style.display = 'block';
     }
 }
 function modifierECG() {
-    document.getElementById('btn_generer_ecg').style.display = 'inline-block';
+    var bg = document.getElementById('btn_generer_ecg');
+    var bgh = document.getElementById('btn_generer_ecg_h');
+    var lh = document.getElementById('lien_modifier_ecg_h');
+    if (bg) bg.style.display = 'inline-block';
+    if (bgh) bgh.style.display = 'inline-block';
     document.getElementById('lien_modifier_ecg').style.display = 'none';
-    var btnN = document.getElementById('btn_ecg_normal');
-    if (btnN && btnN.style.background.indexOf('27ae60') !== -1) {
+    if (lh) lh.style.display = 'none';
+    if (modeECG === 'normal') {
         document.getElementById('ecg_normal_detail').style.display = 'block';
-    } else {
+    } else if (modeECG === 'anormal') {
         document.getElementById('ecg_detail').style.display = 'block';
     }
 }
 function modifierEcho() {
-    document.getElementById('btn_generer_echo').style.display = 'inline-block';
+    var bg = document.getElementById('btn_generer_echo');
+    var bgh = document.getElementById('btn_generer_echo_h');
+    var lh = document.getElementById('lien_modifier_echo_h');
+    if (bg) bg.style.display = 'inline-block';
+    if (bgh) bgh.style.display = 'inline-block';
     document.getElementById('lien_modifier_echo').style.display = 'none';
-    var btnN = document.getElementById('btn_echo_normale');
-    if (btnN && btnN.style.background.indexOf('27ae60') !== -1) {
+    if (lh) lh.style.display = 'none';
+    if (modeEcho === 'normale') {
         document.getElementById('echo_normale_detail').style.display = 'block';
-    } else {
+    } else if (modeEcho === 'anormale') {
         document.getElementById('cmlm_echo_detail').style.display = 'block';
     }
 }
