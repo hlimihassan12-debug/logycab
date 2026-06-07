@@ -22,6 +22,8 @@ $champsAutorises = [
     'MOTIF CONSULTATION',
     'ATCD',
     'REMARQUE',
+    'CHAMP_FDR',
+    'diagnostic',
 ];
 
 if ($id == 0) {

@@ -482,6 +482,12 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div class="card-title">👤 Dossier patient
             <span id="dossier_status" style="font-size:10px;color:#27ae60;font-weight:normal;"></span>
         </div>
+        <div style="text-align:center;margin-bottom:8px;">
+            <button type="button" onclick="ouvrirPopupMAD('motif')"
+                style="background:#1a4a7a;color:white;border:none;border-radius:5px;padding:4px 14px;font-size:11px;font-weight:bold;cursor:pointer;letter-spacing:0.5px;">
+                MDC | ATCD | DIC | FDR
+            </button>
+        </div>
         <?php
         $fdrs = [];
         $nomsfdrs = [
@@ -495,6 +501,15 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         if ($examen) { foreach ($nomsfdrs as $champFDR => $nomFDR) { if (!empty($examen[$champFDR])) $fdrs[] = $nomFDR; } }
         ?>
     </div>
+
+    <!-- Remarque patient -->
+    <div class="card" style="flex:1;">
+        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:4px;">📝 Remarque</div>
+        <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
+            style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:80px;field-sizing:content;box-sizing:border-box;"
+        ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
+    </div>
+
 </div><!-- FIN col-left -->
 
 <!-- ══ COLONNE MILIEU ══ -->
@@ -1163,96 +1178,63 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
         </div><!-- FIN vue-ordonnance -->
 
-        <!-- ── Grille Motif / Antécédents / Diagnostic / FDR ── -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:10px;border-top:2px solid #e0e8f0;padding-top:8px;">
+        <!-- ── Grille Motif / Antécédents / FDR / Diagnostic ── -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-top:8px;border-top:2px solid #e0e8f0;padding-top:6px;">
 
             <!-- Motif de consultation -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:8px;">
+            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
                     <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">📋 Motif</span>
                     <div style="display:flex;gap:3px;">
-                        <button type="button" onclick="ouvrirPopupMAD('motif')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;">📋</button>
+                        <button type="button" onclick="ouvrirPopupMAD('motif')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Motif">📋</button>
                         <button type="button" onclick="viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
                     </div>
                 </div>
                 <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:60px;field-sizing:content;"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
                 ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
-                <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-top:6px;margin-bottom:4px;">📂 Antécédents</div>
-                <div style="display:flex;justify-content:flex-end;margin-bottom:3px;">
-                    <button type="button" onclick="viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
+            </div>
+
+            <!-- Antécédents -->
+            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">📂 Antécédents</span>
+                    <div style="display:flex;gap:3px;">
+                        <button type="button" onclick="ouvrirPopupMAD('atcd')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Antécédents">📋</button>
+                        <button type="button" onclick="viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
+                    </div>
                 </div>
                 <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:60px;field-sizing:content;"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
                 ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
             </div>
 
-            <!-- Diagnostic principal -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:8px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">🩺 Diagnostic</span>
-                    <button type="button" onclick="viderDiagnostic()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
-                </div>
-                <div id="diag_1" class="diag-bloc">
-                    <?php foreach ($diagnostics as $d): ?>
-                    <div class="diag-ligne" data-pk="<?= $d['N_dic'] ?>">
-                        <input type="text" value="<?= htmlspecialchars($d['diagnostic']) ?>"
-                            list="datalist_diag_1"
-                            onblur="diagUpdate(1, <?= $d['N_dic'] ?>, this.value)"
-                            style="flex:1;border:1px solid #ddd;border-radius:3px;padding:2px 4px;font-size:11px;">
-                        <button type="button" onclick="diagDelete(1, <?= $d['N_dic'] ?>, <?= $id ?>, this)"
-                            style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">✕</button>
-                    </div>
-                    <?php endforeach; ?>
-                    <?php if (empty($diagnostics)): ?>
-                    <div class="diag-vide" style="color:#999;font-size:11px;padding:2px 0;">—</div>
-                    <?php endif; ?>
-                </div>
-                <datalist id="datalist_diag_1">
-                    <?php foreach ($listeDiag1 as $opt): ?>
-                    <option value="<?= htmlspecialchars($opt) ?>">
-                    <?php endforeach; ?>
-                </datalist>
-                <div style="display:flex;gap:3px;margin-top:4px;">
-                    <input type="text" id="new_diag_1" list="datalist_diag_1"
-                        placeholder="Saisir..."
-                        style="flex:1;border:1px solid #27ae60;border-radius:3px;padding:2px 5px;font-size:11px;">
-                    <button type="button" onclick="diagAjouter(1, <?= $id ?>, <?= htmlspecialchars(json_encode($listeDiag1), ENT_QUOTES) ?>)"
-                        style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px;">➕</button>
-                </div>
-            </div>
-
             <!-- Facteurs de risque -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:8px;">
+            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
                     <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">⚠️ Facteurs de risque</span>
-                    <a href="fdr_edit.php?id=<?= $id ?>" style="font-size:10px;color:#2e6da4;">✏️</a>
+                    <div style="display:flex;gap:3px;">
+                        <button type="button" onclick="ouvrirPopupMAD('fdr')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Facteurs de risque">📋</button>
+                        <button type="button" onclick="viderChamp('champ_fdr','CHAMP_FDR')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
+                    </div>
                 </div>
-                <?php if (!empty($fdrPatient)): ?>
-                <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px;">
-                    <?php foreach ($fdrPatient as $f): ?>
-                    <span style="background:#e74c3c;color:white;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:bold;"><?= htmlspecialchars($f) ?></span>
-                    <?php endforeach; ?>
-                </div>
-                <?php else: ?>
-                <div style="font-size:11px;color:#999;margin-bottom:4px;">—</div>
-                <?php endif; ?>
-                <?php if (!empty($fdrs)): ?>
-                <div style="font-size:10px;color:#555;font-weight:bold;margin-bottom:2px;">Depuis examen :</div>
-                <div style="display:flex;flex-wrap:wrap;gap:3px;">
-                    <?php foreach ($fdrs as $f): ?>
-                    <span style="background:#e67e22;color:white;padding:2px 6px;border-radius:10px;font-size:10px;"><?= $f ?></span>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
+                <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
+                ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
             </div>
 
-            <!-- Remarque -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:8px;">
-                <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:4px;">📝 Remarque</div>
-                <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:100px;field-sizing:content;"
-                ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
+            <!-- Diagnostic -->
+            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">🩺 Diagnostic</span>
+                    <div style="display:flex;gap:3px;">
+                        <button type="button" onclick="ouvrirPopupMAD('diag')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Diagnostic">📋</button>
+                        <button type="button" onclick="viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
+                    </div>
+                </div>
+                <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
+                ><?= htmlspecialchars($patient['diagnostic'] ?? (isset($diagnostics[0]) ? $diagnostics[0]['diagnostic'] : '')) ?></textarea>
             </div>
 
         </div><!-- fin grille MAD -->
@@ -2759,8 +2741,8 @@ function validerAtcd() {
     var neoD = document.getElementById('atcd_neo_detail');
     if (neo && neo.checked && neoD && neoD.value.trim()) {
         // Remplacer l'item générique par l'item avec précision
-        items = items.filter(function(i){ return i !== 'ATCD : Néoplasie'; });
-        items.push('ATCD : Néoplasie (' + neoD.value.trim() + ')');
+        items = items.filter(function(i){ return i !== 'Néoplasie'; });
+        items.push('Néoplasie (' + neoD.value.trim() + ')');
     }
     // Autre chirurgie avec précision
     var autreChir = document.getElementById('atcd_autrechir_cb');
@@ -2856,13 +2838,12 @@ function madValiderTout() {
     // ── Motif ──
     var motifs = [];
     document.querySelectorAll('.mad-motif:checked').forEach(function(cb) {
-        if (cb.value) motifs.push(cb.value);
+        if (cb.value) motifs.push('• ' + cb.value);
     });
     if (motifs.length > 0) {
         var ta = document.getElementById('champ_motif');
         if (ta) {
-            var existing = ta.value.trim();
-            ta.value = existing ? existing + ' — ' + motifs.join(' — ') : motifs.join(' — ');
+            ta.value = motifs.join('\n');
             sauvegarderChamp('MOTIF CONSULTATION', ta.value);
         }
     }
@@ -2870,54 +2851,56 @@ function madValiderTout() {
     // ── Antécédents ──
     var atcds = [];
     document.querySelectorAll('.mad-atcd:checked').forEach(function(cb) {
-        if (cb.value) atcds.push(cb.value);
+        if (cb.value) atcds.push('• ' + cb.value);
     });
     var neo = document.getElementById('mad_neo_cb');
     var neoD = document.getElementById('mad_neo_detail');
     if (neo && neo.checked && neoD && neoD.value.trim()) {
-        atcds = atcds.filter(function(i){ return i !== 'ATCD : Néoplasie'; });
-        atcds.push('ATCD : Néoplasie (' + neoD.value.trim() + ')');
+        atcds = atcds.filter(function(i){ return i !== '• Néoplasie'; });
+        atcds.push('• ATCD : Néoplasie (' + neoD.value.trim() + ')');
     }
     var autreChir = document.getElementById('mad_autrechir_cb');
     var autreChirD = document.getElementById('mad_autrechir_detail');
     if (autreChir && autreChir.checked && autreChirD && autreChirD.value.trim()) {
-        atcds = atcds.filter(function(i){ return i !== 'ATCD chir. : Autre'; });
-        atcds.push('ATCD chir. : Autre (' + autreChirD.value.trim() + ')');
+        atcds = atcds.filter(function(i){ return i !== '• Autre'; });
+        atcds.push('• ATCD chir. : Autre (' + autreChirD.value.trim() + ')');
     }
     if (atcds.length > 0) {
         var ta2 = document.getElementById('champ_atcd');
         if (ta2) {
-            var existing2 = ta2.value.trim();
-            ta2.value = existing2 ? existing2 + '\n' + atcds.join('\n') : atcds.join('\n');
+            ta2.value = atcds.join('\n');
             sauvegarderChamp('ATCD', ta2.value);
         }
     }
 
-    // ── Diagnostic ──
+    // ── Diagnostic → champ_diagnostic ──
     var diags = [];
     document.querySelectorAll('.mad-diag:checked').forEach(function(cb) {
-        if (cb.value) diags.push(cb.value);
+        if (cb.value) diags.push('• ' + cb.value);
     });
-    // Bradycardie avec FC
     var fcMoy = document.getElementById('md_fc_moy');
     var fcMin = document.getElementById('md_fc_min');
-    if (fcMoy && fcMoy.value) diags.push('Bradycardie sinusale — FC moy: ' + fcMoy.value + '/min');
-    if (fcMin && fcMin.value) diags.push('Bradycardie sinusale — FC min: ' + fcMin.value + '/min');
-
+    if (fcMoy && fcMoy.value) diags.push('• Bradycardie sinusale — FC moy: ' + fcMoy.value + '/min');
+    if (fcMin && fcMin.value) diags.push('• Bradycardie sinusale — FC min: ' + fcMin.value + '/min');
     if (diags.length > 0) {
-        diags.forEach(function(val) {
-            diagAjouter(1, id, liste, val);
-        });
+        var champDiag = document.getElementById('champ_diagnostic');
+        if (champDiag) {
+            champDiag.value = diags.join('\n');
+            sauvegarderChamp('diagnostic', champDiag.value);
+        }
     }
 
-    // ── Facteurs de risque — stockés en session pour fdr_edit ──
+    // ── Facteurs de risque → champ_fdr ──
     var fdrs = [];
     document.querySelectorAll('.mad-fdr:checked').forEach(function(cb) {
-        if (cb.value) fdrs.push(cb.value);
+        if (cb.value) fdrs.push('• ' + cb.value);
     });
     if (fdrs.length > 0) {
-        // Rediriger vers fdr_edit avec les FDR présélectionnés
-        window.open('fdr_edit.php?id=<?= $id ?>&prefill=' + encodeURIComponent(JSON.stringify(fdrs)), '_blank');
+        var champFdr = document.getElementById('champ_fdr');
+        if (champFdr) {
+            champFdr.value = fdrs.join('\n');
+            sauvegarderChamp('CHAMP_FDR', champFdr.value);
+        }
     }
 
     fermerPopupMAD();
@@ -2931,11 +2914,11 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
 <!-- ══ POPUP Motif / Antécédents / Diagnostic ══ -->
 <div id="popup-mad" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow:hidden;">
-    <div style="background:white;border-radius:8px;width:520px;max-width:96vw;max-height:90vh;margin:3vh auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+    <div style="background:white;border-radius:8px;width:820px;max-width:98vw;max-height:92vh;margin:2vh auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
 
         <!-- Header -->
         <div style="background:#1a4a7a;color:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-            <span style="font-weight:bold;font-size:13px;">📋 Motif — Antécédents — Diagnostic</span>
+            <span style="font-weight:bold;font-size:13px;">📋 Motif — Antécédents — Diagnostic — Facteurs de risque</span>
             <button onclick="fermerPopupMAD()" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
         </div>
 
@@ -2973,63 +2956,63 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
                 <div id="ma_cardio" style="display:none;margin-left:10px;">
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_coro" onchange="madToggle(this)"> ▶ Cardiopathies ischémiques</label>
                     <div id="ma_coro" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Angine de poitrine"> Angine de poitrine</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Infarctus du myocarde"> Infarctus du myocarde</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Syndrome coronarien aigu"> Syndrome coronarien aigu</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Angine de poitrine"> Angine de poitrine</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Infarctus du myocarde"> Infarctus du myocarde</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Syndrome coronarien aigu"> Syndrome coronarien aigu</label>
                     </div>
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_ic" onchange="madToggle(this)"> ▶ Insuffisance cardiaque</label>
                     <div id="ma_ic" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : IC — FE réduite"> FE réduite</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : IC — FE préservée"> FE préservée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="IC — FE réduite"> FE réduite</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="IC — FE préservée"> FE préservée</label>
                     </div>
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_valv" onchange="madToggle(this)"> ▶ Valvulopathies</label>
                     <div id="ma_valv" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Valvulopathie aortique"> Aortique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Valvulopathie mitrale"> Mitrale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Valvulopathie tricuspide"> Tricuspide</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Valvulopathie aortique"> Aortique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Valvulopathie mitrale"> Mitrale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Valvulopathie tricuspide"> Tricuspide</label>
                     </div>
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_rythme" onchange="madToggle(this)"> ▶ Troubles du rythme</label>
                     <div id="ma_rythme" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Fibrillation atriale"> Fibrillation atriale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Flutter atrial"> Flutter atrial</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Tachycardie supraventriculaire"> Tachycardie supraventriculaire</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : BAV"> BAV</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Bloc de branche"> Bloc de branche</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Fibrillation atriale"> Fibrillation atriale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Flutter atrial"> Flutter atrial</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Tachycardie supraventriculaire"> Tachycardie supraventriculaire</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="BAV"> BAV</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Bloc de branche"> Bloc de branche</label>
                     </div>
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_hta" onchange="madToggle(this)"> ▶ HTA</label>
                     <div id="ma_hta" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : HTA systémique"> Systémique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : HTAP"> Pulmonaire</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="HTA systémique"> Systémique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="HTAP"> Pulmonaire</label>
                     </div>
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_vasc" onchange="madToggle(this)"> ▶ Pathologies vasculaires</label>
                     <div id="ma_vasc" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Artériopathie des MI"> Artériopathie des MI</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Anévrisme aortique ou périphérique"> Anévrisme aortique/périphérique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : TVP"> TVP</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Insuffisance veineuse chronique"> Insuffisance veineuse chronique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Embolie pulmonaire"> Embolie pulmonaire</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Artériopathie des MI"> Artériopathie des MI</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Anévrisme aortique ou périphérique"> Anévrisme aortique/périphérique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="TVP"> TVP</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Insuffisance veineuse chronique"> Insuffisance veineuse chronique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Embolie pulmonaire"> Embolie pulmonaire</label>
                     </div>
                     <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_cong" onchange="madToggle(this)"> ▶ Maladies congénitales</label>
                     <div id="ma_cong" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : CIA"> CIA</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : CIV"> CIV</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Canal artériel persistant"> Canal artériel persistant</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Tétralogie de Fallot"> Tétralogie de Fallot</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="CIA"> CIA</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="CIV"> CIV</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Canal artériel persistant"> Canal artériel persistant</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Tétralogie de Fallot"> Tétralogie de Fallot</label>
                     </div>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Endocardite infectieuse"> Endocardite infectieuse</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Endocardite infectieuse"> Endocardite infectieuse</label>
                 </div>
 
                 <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="ma_meta" onchange="madToggle(this)"> ▶ Métaboliques et autres</label>
                 <div id="ma_meta" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Diabète"> Diabète</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Dyslipidémie"> Dyslipidémie</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Insuffisance rénale chronique"> Insuffisance rénale chronique</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : BPCO / insuffisance respiratoire"> BPCO / insuffisance respiratoire</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Maladie thyroïdienne"> Maladie thyroïdienne</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : AVC / AIT"> AVC / AIT</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD : Démence / troubles cognitifs"> Démence / troubles cognitifs</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Diabète"> Diabète</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Dyslipidémie"> Dyslipidémie</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Insuffisance rénale chronique"> Insuffisance rénale chronique</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="BPCO / insuffisance respiratoire"> BPCO / insuffisance respiratoire</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Maladie thyroïdienne"> Maladie thyroïdienne</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="AVC / AIT"> AVC / AIT</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Démence / troubles cognitifs"> Démence / troubles cognitifs</label>
                     <label style="font-size:10px;display:flex;align-items:center;gap:3px;margin-bottom:1px;">
-                        <input type="checkbox" class="mad-atcd" id="mad_neo_cb" value="ATCD : Néoplasie"> Néoplasie —
+                        <input type="checkbox" class="mad-atcd" id="mad_neo_cb" value="Néoplasie"> Néoplasie —
                         <input type="text" id="mad_neo_detail" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
                     </label>
                 </div>
@@ -3240,22 +3223,49 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
             <!-- ── Onglet Facteurs de risque ── -->
             <div id="tab_fdr" style="display:none;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="L'âge"> L'âge</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="ATCD IDM famille"> ATCD IDM famille</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="ATCD AVC"> ATCD AVC</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Tabagisme"> Tabagisme</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Diabète"> Diabète</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="HTA"> HTA</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="LDL cholestérol"> LDL cholestérol</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Triglycérides"> Triglycérides</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Obésité"> Obésité</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Surpoids IMC > 25"> Surpoids IMC &gt; 25</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Tour de taille"> Tour de taille</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Sédentarité"> Sédentarité</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Syndrome métabolique"> Syndrome métabolique</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Stress / Dépression"> Stress / Dépression</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Troubles du sommeil"> Troubles du sommeil</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-fdr" value="Drogues"> Drogues</label>
+                <!-- Pas de FDR -->
+                <label style="font-size:10px;display:block;margin-bottom:3px;"><input type="checkbox" class="mad-fdr" value="Pas de facteurs de risque"> <strong>Pas de facteurs de risque</strong></label>
+                <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
+
+                <!-- Non modifiables -->
+                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Non modifiables</div>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Âge > 50 ans (H) ou > 65 ans (F)"> Âge : &gt;50 ans chez H, 65 ans chez F</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Sexe masculin"> Sexe masculin</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="ATCD familiaux MCV précoce (H < 55 ans / F < 65 ans)"> ATCD familiaux (MCV précoce : H &lt; 55 ans / F &lt; 65 ans)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="ATCD AVC < 45 ans"> ATCD AVC &lt; 45 ans</label>
+                <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
+
+                <!-- Modifiables -->
+                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Modifiables</div>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="HTA (> 140/90 mmHg ou traitement)"> HTA (&gt; 140/90 mmHg ou traitement)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Tabac (actif ou passif)"> Tabac (actif ou passif)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="LDL-cholestérol élevé"> LDL-cholestérol</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Syndrome métabolique (Ob abd - TG - HDL - HTA - Diabète)"> Syndrome métabolique (Ob abd - TG - HDL - HTA - Diabète)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Diabète type 2 (insulinorésistance)"> Diabète : surtout type 2, lié à l'insulinorésistance</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Triglycérides élevés"> Triglycérides</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Obésité abdominale (H > 94 cm / F > 80 cm)"> Obésité abdominale (tour de taille : H &gt; 94 cm / F &gt; 80 cm)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Obésité (IMC > 30)"> Obésité IMC &gt; 30</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Surpoids (IMC > 25)"> Surpoids IMC &gt; 25</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Tour de taille > 80 cm (F) ou > 94 cm (H)"> Tour de taille &gt; 80 F / 94 H</label>
+                <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
+
+                <!-- Émergents -->
+                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Émergents (à évoquer si risque résiduel)</div>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Pollution (PM2.5)"> Pollution PM2.5</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Score calcique élevé"> Score calcique élevé</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Inflammatoire (CRP us > 3 mg/L ou maladie auto-immune)"> Inflammatoire (CRP us &gt; 3 mg/L, ou maladie auto-immune)</label>
+                <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
+
+                <!-- Additionnels -->
+                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Facteurs de risque additionnels</div>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Sédentarité"> Sédentarité</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Alimentation pro-inflammatoire (gras trans, sucres rapides, sel)"> Alimentation pro-inflammatoire (gras trans, sucres rapides, sel)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Alcool (excès chronique)"> Alcool (excès chronique)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Stress / anxiété / troubles du sommeil"> Stress / anxiété / troubles du sommeil</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Insuffisance rénale (DFG < 60 ml/min)"> Insuffisance rénale (DFG &lt; 60 ml/min)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="AOMI ou plaque carotidienne asymptomatique"> AOMI ou plaque carotidienne asymptomatique</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Antécédent de prééclampsie (F)"> Antécédent de prééclampsie (F)</label>
+                <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Apnée du sommeil non traitée"> Apnée du sommeil non traitée</label>
             </div>
 
         </div><!-- fin scroll -->
