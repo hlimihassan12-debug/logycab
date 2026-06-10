@@ -103,23 +103,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($onglet === 'echo') {
         $dEcho = $_POST['DATEchog'] ?? date('Y-m-d');
+        $fn = fn($v) => (isset($_POST[$v]) && $_POST[$v] !== '') ? (float)$_POST[$v] : null;
         try {
             $db->prepare("INSERT INTO echo
                 ([N-PAT],DATEchog,ECHOGENICITE,[RACINE-AO],
                  [DTD-VG],[DTS-VG],SIV,PP,FEVG,
                  CINETIQUE,HTAP,DOPPLER,CONCLUSION1,
-                 [DOPPLER DES TRONCS SUPRA AORTIQUES],TYPE_ECHO,CMLM_ECHO)
-                VALUES (?,CONVERT(datetime,?,120),?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                 [DOPPLER DES TRONCS SUPRA AORTIQUES],TYPE_ECHO,CMLM_ECHO,
+                 GRAD_MOY_AO,PHT_AO,VMAX_IA,
+                 SURF_MI,SOR_MI,HTAP_TR,GRAD_PU,
+                 GLOBAL_STRAIN,DIAM_PERIC,
+                 OG_SURF,OD_SURF,DIAM_VCI,DIAM_AO_INIT)
+                VALUES (?,CONVERT(datetime,?,120),?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+                        ?,?,?,?,?,?,?,?,?,?,?,?,?)")
             ->execute([$id,
                 $dEcho.' 00:00:00',$_POST['ECHOGENICITE']?:null,
-                $_POST['RACINE_AO']?:null,$_POST['DTD_VG']?:null,
-                $_POST['DTS_VG']?:null,$_POST['SIV']?:null,
-                $_POST['PP']?:null,$_POST['FEVG']?:null,
+                $_POST['RACINE_AO']?:null,$fn('DTD_VG'),
+                $fn('DTS_VG'),$fn('SIV'),
+                null,$fn('FEVG'),
                 $_POST['CINETIQUE']?:null,$_POST['HTAP']?:null,
                 $_POST['DOPPLER']?:null,$_POST['CONCLUSION1']?:null,
                 $_POST['DTSA']?:null,
                 $_POST['TYPE_ECHO']?:null,
-                $_POST['CMLM_ECHO']?:null]);
+                $_POST['CMLM_ECHO']?:null,
+                $fn('GRAD_MOY_AO'),$fn('PHT_AO'),$fn('VMAX_IA'),
+                $fn('SURF_MI'),$fn('SOR_MI'),$fn('HTAP_TR'),$fn('GRAD_PU'),
+                $fn('GLOBAL_STRAIN'),$fn('DIAM_PERIC'),
+                $fn('OG_SURF'),$fn('OD_SURF'),$fn('DIAM_VCI'),$fn('DIAM_AO_INIT')]);
             if ($isAjax) { ob_clean(); header('Content-Type: application/json'); echo json_encode(['ok'=>true,'msg'=>'✅ Echo enregistré']); exit; }
         } catch (Exception $e) {
             if ($isAjax) { ob_clean(); header('Content-Type: application/json'); echo json_encode(['ok'=>false,'msg'=>'❌ Echo : '.$e->getMessage()]); exit; }
@@ -494,8 +504,16 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
     <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
         <span>Au total — Conduite à tenir</span>
-        <button type="button" onclick="toggleConduitePanel()" title="Choisir dans la liste"
-            style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;">📋</button>
+        <div style="display:flex;align-items:center;gap:4px;">
+            <button type="button" id="btn_valider_conduite"
+                onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; document.getElementById('btn_valider_conduite').style.display='none'; document.getElementById('lien_modifier_conduite').style.display='inline-flex';"
+                style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;">▶ Valider &amp; masquer</button>
+            <span id="lien_modifier_conduite" style="display:none;font-size:11px;">
+                <a href="#" onclick="document.getElementById('panel_conduite').style.display='block'; document.getElementById('btn_valider_conduite').style.display='inline-block'; document.getElementById('lien_modifier_conduite').style.display='none'; return false;" style="color:#2e6da4;">↺ Modifier</a>
+            </span>
+            <button type="button" onclick="toggleConduitePanel()" title="Choisir dans la liste"
+                style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;">📋</button>
+        </div>
     </div>
 
     <!-- Panneau Conduite à tenir (caché par défaut) -->
@@ -767,15 +785,17 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('echo','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('echo','first')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('echo','first')" title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
-    <!-- TYPE_ECHO caché : mis à jour par Normal/Anormal -->
     <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="Echoscopie cardiaque">
 
-    <!-- ── Cases à cocher CMLM Echo ── -->
+    <!-- ── Cases à cocher Echo ── -->
     <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
+
+        <!-- Titre section Echo -->
+        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">📊 Écho-Doppler — cochez pour générer le rapport Écho-Doppler</div>
 
         <!-- Boutons Normale / Anormale -->
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -808,390 +828,330 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <!-- ══ ANORMALE ══ -->
         <div id="cmlm_echo_detail" style="display:none;">
 
-            <!-- Cardiopathie hypertensive -->
-            <div style="margin-top:2px;">
-                <label style="font-size:11px;font-weight:bold;"><input type="checkbox" class="cmlm-ec" id="ce_hta_cb" value="cardiopathie hypertensive" onchange="if(this.checked) reporterSIV();"> Cardiopathie hypertensive</label>
-                <span style="font-size:10px;"> SIV=<input type="text" id="ce_siv" placeholder="mm" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></span>
+            <!-- ── Cardiopathie hypertensive ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_hta" onchange="toggleSub(this)"> Cardiopathie hypertensive</label>
+            </div>
+            <div id="sub_hta" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:2px;">SIV : <input type="number" id="em_siv_hta" name="em_siv_hta" placeholder="mm" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" id="ce_hta_cb2" value="cardiopathie hypertensive"> Cardiopathie hypertensive</label>
             </div>
 
-            <!-- ── Cardiopathie valvulaire ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_valv" onchange="toggleCmlmSub(this)"> Cardiopathie valvulaire</label>
+            <!-- ── Valvulaire Aortique ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao" onchange="toggleSub(this)"> Valvulaire Aortique</label>
             </div>
-            <div id="ce_valv" style="display:none;margin-left:14px;">
-
-                <!-- Aortique -->
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_valv_ao" onchange="toggleCmlmSub(this)"> Aortique</label>
-                <div id="ce_valv_ao" style="display:none;margin-left:12px;">
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_ra" onchange="toggleCmlmSub(this)"> Rétrécissement aortique</label>
-                    <div id="ce_ao_ra" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">Grad moyen : <input type="text" id="ce_ao_ra_grad" placeholder="mmHg" style="width:50px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_ra" onchange="exclusifGroup(this)" value="rétrécissement aortique très serré chirurgical"> très serré chirurgical</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_ra" onchange="exclusifGroup(this)" value="rétrécissement aortique serré"> serré</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_ra" onchange="exclusifGroup(this)" value="rétrécissement aortique lâche"> lâche</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_fa" onchange="toggleCmlmSub(this)"> Fuite aortique</label>
-                    <div id="ce_ao_fa" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">
-                            1/2PHT : <input type="text" id="ce_ao_fa_pht" placeholder="ms" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                            Vmax IAo : <input type="text" id="ce_ao_fa_vmax" placeholder="m/s" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+            <div id="sub_ao" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:3px;">
+                    Grad moy : <input type="number" id="em_grad_ao" name="GRAD_MOY_AO" placeholder="mmHg" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    ½PHT : <input type="number" id="em_pht_ao" name="PHT_AO" placeholder="ms" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    Vmax IA : <input type="number" id="em_vmax_ia" name="VMAX_IA" placeholder="m/s" step="0.01" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_ra" onchange="toggleSub(this)"> Rétrécissement aortique</label>
+                <div id="sub_ao_ra" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_ra" onchange="exclusifGroup(this)" value="rétrécissement aortique très serré chirurgical"> très serré chirurgical</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_ra" onchange="exclusifGroup(this)" value="rétrécissement aortique serré"> serré</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_ra" onchange="exclusifGroup(this)" value="rétrécissement aortique lâche"> lâche</label>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_fa" onchange="toggleSub(this)"> Fuite aortique</label>
+                <div id="sub_ao_fa" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_fa" onchange="exclusifGroup(this)" value="fuite aortique chirurgicale"> chirurgicale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_fa" onchange="exclusifGroup(this)" value="fuite aortique non chirurgicale"> non chirurgicale</label>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_ma" onchange="toggleSub(this)"> Maladie aortique</label>
+                <div id="sub_ao_ma" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_ma" onchange="exclusifGroup(this)" value="maladie aortique chirurgicale"> chirurgicale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_ma" onchange="exclusifGroup(this)" value="maladie aortique non chirurgicale"> non chirurgicale</label>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_proth" onchange="toggleSub(this)"> Prothèse valvulaire aortique</label>
+                <div id="sub_ao_proth" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_proth" onchange="exclusifGroup(this)" value="prothèse aortique fonctionnelle"> Prothèse fonctionnelle</label>
+                    <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep excl1" data-group="g2_ao_proth" data-target="sub_ao_dysf" onchange="exclusifGroup(this);toggleSub(this)"> Dysfonction de prothèse</label>
+                    <div id="sub_ao_dysf" style="display:none;margin-left:12px;margin-top:1px;">
+                        <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_obs" onchange="toggleSub(this)"> Dysfonction obstructive</label>
+                        <div id="sub_ao_obs" style="display:none;margin-left:12px;margin-top:1px;">
+                            <div style="font-size:10px;color:#555;margin-bottom:2px;">Grad moy : <input type="number" id="em_ao_obs_grad" placeholder="mmHg" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_obs" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse aortique légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_obs" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse aortique modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_obs" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse aortique sévère"> Sévère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_obs" onchange="exclusifGroup(this)" value="thrombose de prothèse aortique"> Thrombose de prothèse</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_obs" onchange="exclusifGroup(this)" value="pannus prothèse aortique"> Pannus</label>
                         </div>
-                        <div style="font-size:10px;margin-bottom:2px;">
-                            TAS : <input type="text" id="ce_ao_fa_tas" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                            TAD : <input type="text" id="ce_ao_fa_tad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_fproth" onchange="toggleSub(this)"> Dysfonction par fuite</label>
+                        <div id="sub_ao_fproth" style="display:none;margin-left:12px;margin-top:1px;">
+                            <div style="font-size:10px;color:#555;margin-bottom:2px;">½PHT : <input type="number" id="em_ao_fproth_pht" placeholder="ms" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"> Vmax : <input type="number" id="em_ao_fproth_vmax" placeholder="m/s" step="0.01" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_fproth" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse aortique légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_fproth" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse aortique modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_fproth" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse aortique sévère"> Sévère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_fproth" onchange="exclusifGroup(this)" value="fuite paraprothétique aortique"> Fuite paraprothétique</label>
                         </div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_fa" onchange="exclusifGroup(this)" value="fuite aortique chirurgicale"> chirurgicale</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_fa" onchange="exclusifGroup(this)" value="fuite aortique non chirurgicale"> non chirurgicale</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_ma" onchange="toggleCmlmSub(this)"> Maladie aortique</label>
-                    <div id="ce_ao_ma" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_ma" onchange="exclusifGroup(this)" value="maladie aortique chirurgicale"> chirurgicale</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_ma" onchange="exclusifGroup(this)" value="maladie aortique non chirurgicale"> non chirurgicale</label>
-                    </div>
-
-                    <!-- Prothèse aortique -->
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_proth" onchange="toggleCmlmSub(this)"> Prothèse valvulaire aortique</label>
-                    <div id="ce_ao_proth" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_proth_fonct" onchange="exclusifGroup(this)" value="prothèse aortique fonctionnelle"> □ Prothèse fonctionnelle</label>
-                        <label style="font-size:11px;display:block;margin-top:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep excl1" data-group="g_ao_proth_fonct" data-target="ce_ao_proth_dysf" onchange="exclusifGroup(this);toggleCmlmSub(this)"> □ Dysfonction de prothèse valvulaire</label>
-                        <div id="ce_ao_proth_dysf" style="display:none;margin-left:12px;">
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_dysf_obstr" onchange="toggleCmlmSub(this)"> □ Dysfonction obstructive</label>
-                            <div id="ce_ao_dysf_obstr" style="display:none;margin-left:12px;">
-                                <div style="font-size:10px;margin-bottom:2px;">Grad moy : <input type="text" id="ce_ao_proth_grad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_obstr" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse aortique légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_obstr" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse aortique modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_obstr" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse aortique sévère"> □ Sévère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_obstr" onchange="exclusifGroup(this)" value="thrombose de prothèse aortique"> □ Thrombose de prothèse</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_obstr" onchange="exclusifGroup(this)" value="pannus prothèse aortique"> □ Pannus</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_dysf_fuite" onchange="toggleCmlmSub(this)"> □ Dysfonction par fuite</label>
-                            <div id="ce_ao_dysf_fuite" style="display:none;margin-left:12px;">
-                                <div style="font-size:10px;margin-bottom:2px;">1/2PHT : <input type="text" id="ce_ao_proth_pht" placeholder="ms" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"> Vmax IA : <input type="text" id="ce_ao_proth_vmax" placeholder="m/s" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_fuite" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse aortique légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_fuite" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse aortique modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_fuite" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse aortique sévère"> □ Sévère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_fuite" onchange="exclusifGroup(this)" value="fuite paraprothétique aortique"> □ Fuite paraprothétique</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_dysf_degen" onchange="toggleCmlmSub(this)"> □ Dégénérescence de bioprothèse</label>
-                            <div id="ce_ao_dysf_degen" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse aortique légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse aortique modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse aortique sévère"> □ Sévère</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_dysf_endo" onchange="toggleCmlmSub(this)"> □ Endocardite sur prothèse</label>
-                            <div id="ce_ao_dysf_endo" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse aortique non compliquée"> □ Non compliquée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse aortique compliquée"> □ Compliquée</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_dysf_desin" onchange="toggleCmlmSub(this)"> □ Désinsertion de prothèse</label>
-                            <div id="ce_ao_dysf_desin" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_desin" onchange="exclusifGroup(this)" value="désinsertion partielle prothèse aortique"> □ Partielle</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_desin" onchange="exclusifGroup(this)" value="désinsertion importante prothèse aortique"> □ Importante</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_ao_dysf_discord" onchange="toggleCmlmSub(this)"> □ Discordance patient–prothèse</label>
-                            <div id="ce_ao_dysf_discord" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_discord" onchange="exclusifGroup(this)" value="discordance patient-prothèse aortique légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_discord" onchange="exclusifGroup(this)" value="discordance patient-prothèse aortique modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_dysf_discord" onchange="exclusifGroup(this)" value="discordance patient-prothèse aortique sévère"> □ Sévère</label>
-                            </div>
-                            <div style="font-size:10px;font-weight:bold;color:#555;margin-top:4px;margin-bottom:2px;">Conclusion (cocher une seule case)</div>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_proth_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse aortique non significative"> □ Dysfonction non significative</label>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_proth_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse aortique significative"> □ Dysfonction significative</label>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_proth_concl" onchange="exclusifGroup(this)" value="dysfonction sévère prothèse aortique nécessitant avis spécialisé"> □ Dysfonction sévère nécessitant avis spécialisé</label>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_ao_proth_concl" onchange="exclusifGroup(this)" value="urgence prothèse aortique (thrombose obstructive / endocardite compliquée / désinsertion majeure)"> □ Urgence</label>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_degen" onchange="toggleSub(this)"> Dégénérescence de bioprothèse</label>
+                        <div id="sub_ao_degen" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse aortique légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse aortique modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse aortique sévère"> Sévère</label>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Mitrale -->
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_valv_mi" onchange="toggleCmlmSub(this)"> Mitrale</label>
-                <div id="ce_valv_mi" style="display:none;margin-left:12px;">
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_rm" onchange="toggleCmlmSub(this)"> Rétrécissement mitral</label>
-                    <div id="ce_mi_rm" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">
-                            Surface : <input type="text" id="ce_mi_rm_surf" placeholder="cm²" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                            Grad moy : <input type="text" id="ce_mi_rm_grad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_endo" onchange="toggleSub(this)"> Endocardite sur prothèse</label>
+                        <div id="sub_ao_endo" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse aortique non compliquée"> Non compliquée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse aortique compliquée"> Compliquée</label>
                         </div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_rm" onchange="exclusifGroup(this)" value="rétrécissement mitral très serré chirurgical"> très serré chirurgical</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_rm" onchange="exclusifGroup(this)" value="rétrécissement mitral serré"> serré</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_rm" onchange="exclusifGroup(this)" value="rétrécissement mitral lâche"> lâche</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_fm" onchange="toggleCmlmSub(this)"> Fuite mitrale</label>
-                    <div id="ce_mi_fm" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">SOR : <input type="text" id="ce_mi_fm_sor" placeholder="cm²" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_fm" onchange="exclusifGroup(this)" value="fuite mitrale chirurgicale"> chirurgicale</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_fm" onchange="exclusifGroup(this)" value="fuite mitrale non chirurgicale"> non chirurgicale</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_mm" onchange="toggleCmlmSub(this)"> Maladie mitrale</label>
-                    <div id="ce_mi_mm" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_mm" onchange="exclusifGroup(this)" value="maladie mitrale chirurgicale"> chirurgicale</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_mm" onchange="exclusifGroup(this)" value="maladie mitrale non chirurgicale"> non chirurgicale</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec" value="prolapsus mitral"> Prolapsus mitral</label>
-
-                    <!-- Prothèse mitrale -->
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_proth" onchange="toggleCmlmSub(this)"> Prothèse valvulaire mitrale</label>
-                    <div id="ce_mi_proth" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_proth_fonct" onchange="exclusifGroup(this)" value="prothèse mitrale fonctionnelle"> □ Prothèse fonctionnelle</label>
-                        <label style="font-size:11px;display:block;margin-top:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep excl1" data-group="g_mi_proth_fonct" data-target="ce_mi_proth_dysf" onchange="exclusifGroup(this);toggleCmlmSub(this)"> □ Dysfonction de prothèse valvulaire</label>
-                        <div id="ce_mi_proth_dysf" style="display:none;margin-left:12px;">
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_dysf_obstr" onchange="toggleCmlmSub(this)"> □ Dysfonction obstructive</label>
-                            <div id="ce_mi_dysf_obstr" style="display:none;margin-left:12px;">
-                                <div style="font-size:10px;margin-bottom:2px;">Grad moy : <input type="text" id="ce_mi_proth_grad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_obstr" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse mitrale légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_obstr" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse mitrale modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_obstr" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse mitrale sévère"> □ Sévère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_obstr" onchange="exclusifGroup(this)" value="thrombose de prothèse mitrale"> □ Thrombose de prothèse</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_obstr" onchange="exclusifGroup(this)" value="pannus prothèse mitrale"> □ Pannus</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_dysf_fuite" onchange="toggleCmlmSub(this)"> □ Dysfonction par fuite</label>
-                            <div id="ce_mi_dysf_fuite" style="display:none;margin-left:12px;">
-                                <div style="font-size:10px;margin-bottom:2px;">SOR : <input type="text" id="ce_mi_proth_sor" placeholder="mm²" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_fuite" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse mitrale légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_fuite" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse mitrale modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_fuite" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse mitrale sévère"> □ Sévère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_fuite" onchange="exclusifGroup(this)" value="fuite paraprothétique mitrale"> □ Fuite paraprothétique</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_dysf_degen" onchange="toggleCmlmSub(this)"> □ Dégénérescence de bioprothèse</label>
-                            <div id="ce_mi_dysf_degen" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse mitrale légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse mitrale modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse mitrale sévère"> □ Sévère</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_dysf_endo" onchange="toggleCmlmSub(this)"> □ Endocardite sur prothèse</label>
-                            <div id="ce_mi_dysf_endo" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse mitrale non compliquée"> □ Non compliquée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse mitrale compliquée"> □ Compliquée</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_dysf_desin" onchange="toggleCmlmSub(this)"> □ Désinsertion de prothèse</label>
-                            <div id="ce_mi_dysf_desin" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_desin" onchange="exclusifGroup(this)" value="désinsertion partielle prothèse mitrale"> □ Partielle</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_desin" onchange="exclusifGroup(this)" value="désinsertion importante prothèse mitrale"> □ Importante</label>
-                            </div>
-                            <label style="font-size:11px;display:block;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_mi_dysf_discord" onchange="toggleCmlmSub(this)"> □ Discordance patient–prothèse</label>
-                            <div id="ce_mi_dysf_discord" style="display:none;margin-left:12px;">
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_discord" onchange="exclusifGroup(this)" value="discordance patient-prothèse mitrale légère"> □ Légère</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_discord" onchange="exclusifGroup(this)" value="discordance patient-prothèse mitrale modérée"> □ Modérée</label>
-                                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_dysf_discord" onchange="exclusifGroup(this)" value="discordance patient-prothèse mitrale sévère"> □ Sévère</label>
-                            </div>
-                            <div style="font-size:10px;font-weight:bold;color:#555;margin-top:4px;margin-bottom:2px;">Conclusion (cocher une seule case)</div>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_proth_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse mitrale non significative"> □ Dysfonction non significative</label>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_proth_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse mitrale significative"> □ Dysfonction significative</label>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_proth_concl" onchange="exclusifGroup(this)" value="dysfonction sévère prothèse mitrale nécessitant avis spécialisé"> □ Dysfonction sévère nécessitant avis spécialisé</label>
-                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_mi_proth_concl" onchange="exclusifGroup(this)" value="urgence prothèse mitrale (thrombose obstructive / endocardite compliquée / désinsertion majeure)"> □ Urgence</label>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_desin" onchange="toggleSub(this)"> Désinsertion de prothèse</label>
+                        <div id="sub_ao_desin" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_desin" onchange="exclusifGroup(this)" value="désinsertion partielle prothèse aortique"> Partielle</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_desin" onchange="exclusifGroup(this)" value="désinsertion importante prothèse aortique"> Importante</label>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Tricuspidienne -->
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_valv_tr" onchange="toggleCmlmSub(this)"> Tricuspidienne</label>
-                <div id="ce_valv_tr" style="display:none;margin-left:12px;">
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_tr_rt" onchange="toggleCmlmSub(this)"> Rétrécissement tricuspidien</label>
-                    <div id="ce_tr_rt" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">
-                            Surface : <input type="text" id="ce_tr_rt_surf" placeholder="cm²" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                            Grad moy : <input type="text" id="ce_tr_rt_grad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_ao_discord" onchange="toggleSub(this)"> Discordance patient–prothèse</label>
+                        <div id="sub_ao_discord" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse aortique légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse aortique modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse aortique sévère"> Sévère</label>
                         </div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_rt" onchange="exclusifGroup(this)" value="rétrécissement tricuspidien serré"> serré</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_rt" onchange="exclusifGroup(this)" value="rétrécissement tricuspidien lâche"> lâche</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_tr_ft" onchange="toggleCmlmSub(this)"> Fuite tricuspidienne</label>
-                    <div id="ce_tr_ft" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">HTAP : <input type="text" id="ce_tr_ft_htap" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_ft" onchange="exclusifGroup(this)" value="fuite tricuspide modérée"> modérée</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_ft" onchange="exclusifGroup(this)" value="fuite tricuspide moyenne"> moyenne</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_ft" onchange="exclusifGroup(this)" value="fuite tricuspide sévère"> sévère</label>
-                    </div>
-                    <label style="font-size:11px;display:block;margin-top:3px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_tr_proth" onchange="toggleCmlmSub(this)"> Prothèse valvulaire tricuspidienne</label>
-                    <div id="ce_tr_proth" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_proth" onchange="exclusifGroup(this)" value="annuloplastie tricuspidienne"> annuloplastie tricuspidienne</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tr_proth" onchange="exclusifGroup(this)" value="réparation tricuspidienne"> réparation</label>
-                    </div>
-                </div>
-
-                <!-- Pulmonaire -->
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_valv_pu" onchange="toggleCmlmSub(this)"> Pulmonaire</label>
-                <div id="ce_valv_pu" style="display:none;margin-left:12px;">
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_pu_rp" onchange="toggleCmlmSub(this)"> Rétrécissement pulmonaire</label>
-                    <div id="ce_pu_rp" style="display:none;margin-left:12px;">
-                        <div style="font-size:10px;margin-bottom:2px;">Grad moy : <input type="text" id="ce_pu_rp_grad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_pu_rp" onchange="exclusifGroup(this)" value="rétrécissement pulmonaire valvulaire"> valvulaire</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_pu_rp" onchange="exclusifGroup(this)" value="rétrécissement pulmonaire infundibulaire"> infundibulaire</label>
-                    </div>
-
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_pu_fp" onchange="toggleCmlmSub(this)"> Fuite pulmonaire</label>
-                    <div id="ce_pu_fp" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_pu_fp" onchange="exclusifGroup(this)" value="fuite pulmonaire moyenne"> moyenne</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_pu_fp" onchange="exclusifGroup(this)" value="fuite pulmonaire importante"> importante</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_pu_fp" onchange="exclusifGroup(this)" value="fuite pulmonaire sévère"> sévère</label>
-                    </div>
-                </div>
-            </div><!-- fin ce_valv -->
-
-            <!-- ── Patient porteur de prothèse ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_proth" onchange="toggleCmlmSub(this)"> Patient porteur de prothèse</label>
-            </div>
-            <div id="ce_proth" style="display:none;margin-left:14px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_proth_ao" onchange="toggleCmlmSub(this)"> En position aortique</label>
-                <div id="ce_proth_ao" style="display:none;margin-left:12px;">
-                    <div style="font-size:10px;margin-bottom:2px;">Grad moy transprothet. : <input type="text" id="ce_proth_ao_grad" placeholder="mmHg" style="width:50px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_proth_ao" onchange="exclusifGroup(this)" value="prothèse mécanique en position aortique"> prothèse mécanique</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_proth_ao" onchange="exclusifGroup(this)" value="bioprothèse en position aortique"> bioprothèse</label>
-                </div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_proth_mi" onchange="toggleCmlmSub(this)"> En position mitrale</label>
-                <div id="ce_proth_mi" style="display:none;margin-left:12px;">
-                    <div style="font-size:10px;margin-bottom:2px;">Grad moy transprothet. : <input type="text" id="ce_proth_mi_grad" placeholder="mmHg" style="width:50px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_proth_mi" onchange="exclusifGroup(this)" value="prothèse mécanique en position mitrale"> prothèse mécanique</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_proth_mi" onchange="exclusifGroup(this)" value="bioprothèse en position mitrale"> bioprothèse</label>
-                </div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_proth_tr" onchange="toggleCmlmSub(this)"> En position tricuspidienne</label>
-                <div id="ce_proth_tr" style="display:none;margin-left:12px;">
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_proth_tr" onchange="exclusifGroup(this)" value="plastie tricuspide"> plastie tricuspide</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_proth_tr" onchange="exclusifGroup(this)" value="annuloplastie tricuspide"> annuloplastie</label>
-                </div>
-            </div>
-
-            <!-- ── Cardiopathie ischémique ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_isch" onchange="toggleCmlmSub(this)"> Cardiopathie ischémique</label>
-            </div>
-            <div id="ce_isch" style="display:none;margin-left:14px;">
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_isch_type" onchange="exclusifGroup(this)" value="cinétique globale et régionale normale"> cinétique globale et régionale normale</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep excl1" data-group="g_isch_type" data-target="ce_isch_cin" onchange="exclusifGroup(this);toggleCmlmSub(this)"> Trouble de la cinétique</label>
-                <div id="ce_isch_cin" style="display:none;margin-left:12px;">
-                    <!-- Hypocinésie -->
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_hypo" onchange="toggleCmlmSub(this)"> Hypocinésie</label>
-                    <div id="ce_hypo" style="display:none;margin-left:12px;">
-                        <?php foreach (["antérieur","antérieur étendu","antéro-apical","antéro-latéral","antéro-septal","antéro-septo-apical","apical","circonférentiel","inférieur","inféro-latéral","latéral","latéro-septal","postérieur","postéro-apical","postéro-latérale","postéro-septal","septal","septo-apical","septal profond"] as $t): ?>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec"> <?= $t ?></label>
-                        <?php endforeach; ?>
-                        <button type="button" onclick="appliquerMultiple('ce_hypo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
-                    </div>
-                    <!-- Akinésie -->
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_aki" onchange="toggleCmlmSub(this)"> Akinésie</label>
-                    <div id="ce_aki" style="display:none;margin-left:12px;">
-                        <?php foreach (["antérieur","antérieur étendu","antéro-apical","antéro-latéral","antéro-septal","antéro-septo-apical","apical","circonférentiel","inférieur","inféro-latéral","latéral","latéro-septal","postérieur","postéro-apical","postéro-latérale","postéro-septal","septal","septo-apical","septal profond"] as $t): ?>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec"> <?= $t ?></label>
-                        <?php endforeach; ?>
-                        <button type="button" onclick="appliquerMultiple('ce_aki')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
-                    </div>
-                    <!-- Dyskinésie -->
-                    <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_dysk" onchange="toggleCmlmSub(this)"> Dyskinésie</label>
-                    <div id="ce_dysk" style="display:none;margin-left:12px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_dysk" onchange="exclusifGroup(this)" value="dyskinésie septale"> septale</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_dysk" onchange="exclusifGroup(this)" value="dyskinésie latérale"> latérale</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_dysk" onchange="exclusifGroup(this)" value="dyskinésie antérieure"> antérieure</label>
+                        <div style="font-size:10px;color:#1a4a7a;font-weight:bold;margin-top:3px;">Conclusion :</div>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse aortique non significative"> Dysfonction non significative</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse aortique significative"> Dysfonction significative</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="dysfonction sévère prothèse aortique — avis spécialisé"> Dysfonction sévère — avis spécialisé</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="urgence prothèse aortique"> Urgence</label>
                     </div>
                 </div>
             </div>
 
-            <!-- ── Cardiopathie dilatée ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_dil" onchange="toggleCmlmSub(this); if(this.checked) reporterFEVG();"> Cardiopathie dilatée</label>
+            <!-- ── Valvulaire Mitrale ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi" onchange="toggleSub(this)"> Valvulaire Mitrale</label>
             </div>
-            <div id="ce_dil" style="display:none;margin-left:14px;">
-                <div style="font-size:10px;margin-bottom:2px;">
-                    FEVG : <input type="text" id="ce_fevg_val" placeholder="%" style="width:35px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                    DTD-VG : <input type="text" id="ce_dtd" placeholder="mm" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                    DTS-VG : <input type="text" id="ce_dts" placeholder="mm" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+            <div id="sub_mi" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:3px;">
+                    Surface : <input type="number" id="em_surf_mi" name="SURF_MI" placeholder="cm²" step="0.01" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    SOR : <input type="number" id="em_sor_mi" name="SOR_MI" placeholder="mm²" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
                 </div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_fevg" id="ce_fevg_cons_cb" onchange="exclusifGroup(this)" value="IC à FEVG préservée (≥ 50%)"> IC à FEVG préservée (≥ 50%)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_fevg" id="ce_fevg_alt_cb" onchange="exclusifGroup(this)" value="IC à FEVG modérément altérée (40-49%)"> IC à FEVG modérément altérée (40-49%)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_fevg" id="ce_fevg_tres_cb" onchange="exclusifGroup(this)" value="IC à FEVG réduite (< 40%)"> IC à FEVG réduite (&lt; 40%)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_fevg" onchange="exclusifGroup(this)" value="IC droite"> IC droite</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_fevg" onchange="exclusifGroup(this)" value="IC globale"> IC globale</label>
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_rm" onchange="toggleSub(this)"> Rétrécissement mitral</label>
+                <div id="sub_mi_rm" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_rm" onchange="exclusifGroup(this)" value="rétrécissement mitral très serré chirurgical"> très serré chirurgical</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_rm" onchange="exclusifGroup(this)" value="rétrécissement mitral serré"> serré</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_rm" onchange="exclusifGroup(this)" value="rétrécissement mitral lâche"> lâche</label>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_fm" onchange="toggleSub(this)"> Fuite mitrale</label>
+                <div id="sub_mi_fm" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_fm" onchange="exclusifGroup(this)" value="fuite mitrale chirurgicale"> chirurgicale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_fm" onchange="exclusifGroup(this)" value="fuite mitrale non chirurgicale"> non chirurgicale</label>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_mm" onchange="toggleSub(this)"> Maladie mitrale</label>
+                <div id="sub_mi_mm" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_mm" onchange="exclusifGroup(this)" value="maladie mitrale chirurgicale"> chirurgicale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_mm" onchange="exclusifGroup(this)" value="maladie mitrale non chirurgicale"> non chirurgicale</label>
+                </div>
+                <label style="font-size:11px;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ec" value="prolapsus mitral"> Prolapsus mitral</label>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_proth" onchange="toggleSub(this)"> Prothèse valvulaire mitrale</label>
+                <div id="sub_mi_proth" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_proth" onchange="exclusifGroup(this)" value="prothèse mitrale fonctionnelle"> Prothèse fonctionnelle</label>
+                    <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep excl1" data-group="g2_mi_proth" data-target="sub_mi_dysf" onchange="exclusifGroup(this);toggleSub(this)"> Dysfonction de prothèse</label>
+                    <div id="sub_mi_dysf" style="display:none;margin-left:12px;margin-top:1px;">
+                        <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_obs" onchange="toggleSub(this)"> Dysfonction obstructive</label>
+                        <div id="sub_mi_obs" style="display:none;margin-left:12px;margin-top:1px;">
+                            <div style="font-size:10px;color:#555;margin-bottom:2px;">Grad moy : <input type="number" id="em_mi_obs_grad" placeholder="mmHg" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_obs" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse mitrale légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_obs" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse mitrale modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_obs" onchange="exclusifGroup(this)" value="dysfonction obstructive prothèse mitrale sévère"> Sévère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_obs" onchange="exclusifGroup(this)" value="thrombose de prothèse mitrale"> Thrombose de prothèse</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_obs" onchange="exclusifGroup(this)" value="pannus prothèse mitrale"> Pannus</label>
+                        </div>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_fproth" onchange="toggleSub(this)"> Dysfonction par fuite</label>
+                        <div id="sub_mi_fproth" style="display:none;margin-left:12px;margin-top:1px;">
+                            <div style="font-size:10px;color:#555;margin-bottom:2px;">SOR : <input type="number" id="em_mi_fproth_sor" placeholder="mm²" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_fproth" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse mitrale légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_fproth" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse mitrale modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_fproth" onchange="exclusifGroup(this)" value="dysfonction par fuite prothèse mitrale sévère"> Sévère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_fproth" onchange="exclusifGroup(this)" value="fuite paraprothétique mitrale"> Fuite paraprothétique</label>
+                        </div>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_degen" onchange="toggleSub(this)"> Dégénérescence de bioprothèse</label>
+                        <div id="sub_mi_degen" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse mitrale légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse mitrale modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_degen" onchange="exclusifGroup(this)" value="dégénérescence bioprothèse mitrale sévère"> Sévère</label>
+                        </div>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_endo" onchange="toggleSub(this)"> Endocardite sur prothèse</label>
+                        <div id="sub_mi_endo" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse mitrale non compliquée"> Non compliquée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_endo" onchange="exclusifGroup(this)" value="endocardite sur prothèse mitrale compliquée"> Compliquée</label>
+                        </div>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_desin" onchange="toggleSub(this)"> Désinsertion de prothèse</label>
+                        <div id="sub_mi_desin" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_desin" onchange="exclusifGroup(this)" value="désinsertion partielle prothèse mitrale"> Partielle</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_desin" onchange="exclusifGroup(this)" value="désinsertion importante prothèse mitrale"> Importante</label>
+                        </div>
+                        <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_mi_discord" onchange="toggleSub(this)"> Discordance patient–prothèse</label>
+                        <div id="sub_mi_discord" style="display:none;margin-left:12px;margin-top:1px;">
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse mitrale légère"> Légère</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse mitrale modérée"> Modérée</label>
+                            <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse mitrale sévère"> Sévère</label>
+                        </div>
+                        <div style="font-size:10px;color:#1a4a7a;font-weight:bold;margin-top:3px;">Conclusion :</div>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse mitrale non significative"> Dysfonction non significative</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse mitrale significative"> Dysfonction significative</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="dysfonction sévère prothèse mitrale — avis spécialisé"> Dysfonction sévère — avis spécialisé</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="urgence prothèse mitrale"> Urgence</label>
+                    </div>
+                </div>
             </div>
 
-            <!-- ── Cardiopathie hypertrophique ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_hypert" onchange="toggleCmlmSub(this)"> Cardiopathie hypertrophique</label>
+            <!-- ── Valvulaire Tricuspide ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_tr" onchange="toggleSub(this)"> Valvulaire Tricuspide</label>
             </div>
-            <div id="ce_hypert" style="display:none;margin-left:14px;">
-                <div style="font-size:10px;margin-bottom:2px;">SIV : <input type="text" id="ce_hypert_siv" placeholder="mm" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"> Grad moy : <input type="text" id="ce_hypert_grad" placeholder="mmHg" style="width:45px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_hypert" onchange="exclusifGroup(this)" value="cardiopathie hypertrophique obstructive"> Obstructive</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_hypert" onchange="exclusifGroup(this)" value="cardiopathie hypertrophique non obstructive"> Non obstructive</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_hypert" onchange="exclusifGroup(this)" value="cardiopathie restrictive"> Restrictive</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_hypert" onchange="exclusifGroup(this)" value="amylose cardiaque"> Amylose cardiaque</label>
+            <div id="sub_tr" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:3px;">HTAP : <input type="number" id="em_htap_tr" name="HTAP_TR" placeholder="mmHg" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tr" onchange="exclusifGroup(this)" value="fuite tricuspide modérée"> Fuite tricuspide modérée</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tr" onchange="exclusifGroup(this)" value="fuite tricuspide moyenne"> Fuite tricuspide moyenne</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tr" onchange="exclusifGroup(this)" value="fuite tricuspide sévère"> Fuite tricuspide sévère</label>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_tr_proth" onchange="toggleSub(this)"> Prothèse valvulaire tricuspide</label>
+                <div id="sub_tr_proth" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tr_proth" onchange="exclusifGroup(this)" value="annuloplastie tricuspidienne"> Annuloplastie</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tr_proth" onchange="exclusifGroup(this)" value="réparation tricuspidienne"> Réparation</label>
+                </div>
             </div>
 
-            <!-- ── Syndrome de Takotsubo ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_tako" onchange="toggleCmlmSub(this)"> Syndrome de Takotsubo</label>
+            <!-- ── Valvulaire Pulmonaire ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_pu" onchange="toggleSub(this)"> Valvulaire Pulmonaire</label>
             </div>
-            <div id="ce_tako" style="display:none;margin-left:14px;">
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tako" onchange="exclusifGroup(this)" value="syndrome de Takotsubo présent"> présent</label>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_tako" onchange="exclusifGroup(this)" checked value="syndrome de Takotsubo absent"> absent</label>
+            <div id="sub_pu" style="display:none;margin-left:14px;margin-top:2px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_pu_valv" onchange="toggleSub(this)"> Sténose valvulaire pulmonaire</label>
+                <div id="sub_pu_valv" style="display:none;margin-left:12px;margin-top:1px;">
+                    <div style="font-size:10px;color:#555;margin-bottom:2px;">Grad moy : <input type="number" id="em_grad_pu_valv" name="GRAD_PU" placeholder="mmHg" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_pu_valv" onchange="exclusifGroup(this)" value="sténose valvulaire pulmonaire modérée"> modérée</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_pu_valv" onchange="exclusifGroup(this)" value="sténose valvulaire pulmonaire moyenne"> moyenne</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_pu_valv" onchange="exclusifGroup(this)" value="sténose valvulaire pulmonaire sévère"> sévère</label>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_pu_infund" onchange="toggleSub(this)"> Sténose infundibulaire pulmonaire</label>
+                <div id="sub_pu_infund" style="display:none;margin-left:12px;margin-top:1px;">
+                    <div style="font-size:10px;color:#555;margin-bottom:2px;">Grad moy : <input type="number" id="em_grad_pu_infund" placeholder="mmHg" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_pu_infund" onchange="exclusifGroup(this)" value="sténose infundibulaire pulmonaire modérée"> modérée</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_pu_infund" onchange="exclusifGroup(this)" value="sténose infundibulaire pulmonaire moyenne"> moyenne</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_pu_infund" onchange="exclusifGroup(this)" value="sténose infundibulaire pulmonaire sévère"> sévère</label>
+                </div>
+            </div>
+
+            <!-- ── Cardiopathie Dilatée ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_dil" onchange="toggleSub(this)"> Cardiopathie Dilatée</label>
+            </div>
+            <div id="sub_dil" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:3px;">
+                    FEVG : <input type="number" id="em_fevg2" name="FEVG" placeholder="%" step="0.1" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;" oninput="reporterFEVG()">
+                    DTD-VG : <input type="number" id="em_DTD" name="DTD_VG" placeholder="mm" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    DTS-VG : <input type="number" id="em_DTS" name="DTS_VG" placeholder="mm" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    SIV : <input type="number" id="inp_SIV2" name="SIV" placeholder="mm" step="0.1" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;" oninput="reporterSIV()">
+                    Global Strain : <input type="number" id="em_gstrain" name="GLOBAL_STRAIN" placeholder="%" step="0.1" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                </div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_dil_fevg" onchange="exclusifGroup(this)" value="IC à FEVG réduite (< 40%)"> IC à FEVG réduite (&lt; 40%)</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_dil_fevg" onchange="exclusifGroup(this)" value="IC à FEVG modérément altérée (40-49%)"> IC à FEVG modérément altérée (40-49%)</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_dil_fevg" onchange="exclusifGroup(this)" value="IC à FEVG préservée (≥ 50%)"> IC à FEVG préservée (≥ 50%)</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_dil_fevg" onchange="exclusifGroup(this)" value="IC droite"> IC droite</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_dil_fevg" onchange="exclusifGroup(this)" value="IC globale"> IC globale</label>
+            </div>
+
+            <!-- ── Cardiopathie Hypertrophique ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_hypert" onchange="toggleSub(this)"> Cardiopathie Hypertrophique</label>
+            </div>
+            <div id="sub_hypert" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:3px;">
+                    SIV : <input type="number" id="em_siv_hypert" placeholder="mm" step="0.1" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    Grad moy : <input type="number" id="em_grad_hypert" placeholder="mmHg" step="0.1" style="width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                </div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_hypert" onchange="exclusifGroup(this)" value="cardiopathie hypertrophique obstructive"> Obstructive</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_hypert" onchange="exclusifGroup(this)" value="cardiopathie hypertrophique non obstructive"> Non obstructive</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_hypert" onchange="exclusifGroup(this)" value="cardiopathie restrictive"> Restrictive</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_hypert" onchange="exclusifGroup(this)" value="amylose cardiaque"> Amylose cardiaque</label>
             </div>
 
             <!-- ── Péricarde ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_peri" onchange="toggleCmlmSub(this)"> Péricarde</label>
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_peri" onchange="toggleSub(this)"> Péricarde</label>
             </div>
-            <div id="ce_peri" style="display:none;margin-left:14px;">
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_peri" onchange="exclusifGroup(this)" value="péricarde sec"> sec</label>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_peri" onchange="exclusifGroup(this)" value="décollement systolique"> décollement systolique</label>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_peri" onchange="exclusifGroup(this)" value="décollement systolodiastolique"> décollement systolodiastolique</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep excl1" data-group="g_peri" data-target="ce_epanch" onchange="exclusifGroup(this);toggleCmlmSub(this)"> Épanchement péricardique</label>
-                <div id="ce_epanch" style="display:none;margin-left:12px;">
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_epanch" onchange="exclusifGroup(this)" value="épanchement péricardique minime (< 10mm, < 100mL)"> minime (&lt; 10mm)</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_epanch" onchange="exclusifGroup(this)" value="épanchement péricardique modéré (10-20mm, 100-500mL)"> modéré (10-20mm)</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_epanch" onchange="exclusifGroup(this)" value="épanchement péricardique sévère (> 20mm, > 500mL)"> sévère (&gt; 20mm)</label>
-                </div>
+            <div id="sub_peri" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:2px;">Diam. épanch. : <input type="number" id="em_diam_peric" name="DIAM_PERIC" placeholder="mm" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="péricarde sec"> sec</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="décollement systolique"> décollement systolique</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="décollement systolodiastolique"> décollement systolodiastolique</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="épanchement péricardique minime (< 10mm, < 100mL)"> Épanchement minime (&lt; 10mm)</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="épanchement péricardique modéré (10-20mm, 100-500mL)"> Épanchement modéré (10-20mm)</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="épanchement péricardique sévère (> 20mm, > 500mL)"> Épanchement sévère (&gt; 20mm)</label>
             </div>
 
             <!-- ── Oreillettes ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_oreil" onchange="toggleCmlmSub(this)"> Oreillettes</label>
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_oreil" onchange="toggleSub(this)"> Oreillettes</label>
             </div>
-            <div id="ce_oreil" style="display:none;margin-left:14px;">
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_oreil" onchange="exclusifGroup(this)" value="oreillettes non dilatées"> non dilatées — OG surface : <input type="text" id="ce_og_surf_nd" placeholder="cm²" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;display:inline;"></label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep excl1" data-group="g_oreil" data-target="ce_oreil_dil" onchange="exclusifGroup(this);toggleCmlmSub(this)"> dilatées</label>
-                <div id="ce_oreil_dil" style="display:none;margin-left:12px;">
-                    <div style="font-size:10px;margin-bottom:2px;">
-                        OG surface : <input type="text" id="ce_og_surf" placeholder="cm²" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                        OD surface : <input type="text" id="ce_od_surf" placeholder="cm²" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                    </div>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="massif auriculaire dilaté"> massif auriculaire dilaté</label>
+            <div id="sub_oreil" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:2px;">
+                    OG : <input type="number" id="em_og_surf" name="OG_SURF" placeholder="cm²" step="0.01" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    OD : <input type="number" id="em_od_surf" name="OD_SURF" placeholder="cm²" step="0.01" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
                 </div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_oreil" onchange="exclusifGroup(this)" value="oreillettes non dilatées"> non dilatées</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_oreil" onchange="exclusifGroup(this)" value="dilatées : massif auriculaire dilaté"> dilatées : massif auriculaire dilaté</label>
                 <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="contraste spontané"> contraste spontané</label>
                 <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="thrombus intra-auriculaire droit"> thrombus intra-auriculaire droit</label>
                 <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="thrombus intra-auriculaire gauche"> thrombus intra-auriculaire gauche</label>
-                <label style="font-size:11px;display:flex;align-items:center;gap:4px;">
-                    <input type="checkbox" class="cmlm-ec" id="ce_oreil_autre_cb" value="oreillettes - autre"> autres :
-                    <input type="text" id="ce_oreil_autre" placeholder="" style="width:80px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                </label>
             </div>
 
             <!-- ── VCI ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_vci" onchange="toggleCmlmSub(this)"> VCI</label>
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_vci" onchange="toggleSub(this)"> VCI</label>
             </div>
-            <div id="ce_vci" style="display:none;margin-left:14px;">
-                <div style="font-size:10px;margin-bottom:2px;">Diamètre : <input type="text" id="ce_vci_diam" placeholder="mm" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_vci" onchange="exclusifGroup(this)" value="VCI non dilatée et compliante"> non dilatée et compliante</label>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_vci" onchange="exclusifGroup(this)" value="VCI dilatée non compliante"> dilatée non compliante</label>
+            <div id="sub_vci" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:2px;">Diam. : <input type="number" id="em_diam_vci" name="DIAM_VCI" placeholder="mm" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_vci" onchange="exclusifGroup(this)" value="VCI non dilatée et compliante"> non dilatée et compliante</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_vci" onchange="exclusifGroup(this)" value="VCI dilatée non compliante"> dilatée non compliante</label>
             </div>
 
-            <!-- ── Aorte initiale ── -->
-            <div style="margin-top:3px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="cmlm-ep" data-target="ce_aorte" onchange="toggleCmlmSub(this)"> Aorte initiale</label>
+            <!-- ── Aorte Initiale ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_aorte" onchange="toggleSub(this)"> Aorte Initiale</label>
             </div>
-            <div id="ce_aorte" style="display:none;margin-left:14px;">
-                <div style="font-size:10px;margin-bottom:2px;">Diamètre : <input type="text" id="ce_aorte_diam" placeholder="mm" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_aorte" onchange="exclusifGroup(this)" value="aorte initiale de diamètre normal"> de diamètre normal</label>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_aorte" onchange="exclusifGroup(this)" value="dilatation modérée de l'aorte initiale"> dilatation modérée</label>
-                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g_aorte" onchange="exclusifGroup(this)" value="dilatation anévrysmale de l'aorte initiale"> dilatation anévrysmale</label>
+            <div id="sub_aorte" style="display:none;margin-left:14px;margin-top:2px;">
+                <div style="font-size:10px;color:#555;margin-bottom:2px;">Diam. : <input type="number" id="em_diam_ao_init" name="DIAM_AO_INIT" placeholder="mm" step="0.1" style="width:46px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;"></div>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_aorte" onchange="exclusifGroup(this)" value="aorte initiale de diamètre normal"> de diamètre normal</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_aorte" onchange="exclusifGroup(this)" value="dilatation modérée de l'aorte initiale"> dilatation modérée</label>
+                <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_aorte" onchange="exclusifGroup(this)" value="dilatation anévrysmale de l'aorte initiale"> dilatation anévrysmale</label>
+            </div>
+
+            <!-- ── Cardiopathie Ischémique ── -->
+            <div style="margin-top:4px;">
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_isch" onchange="toggleSub(this)"> Cardiopathie Ischémique</label>
+            </div>
+            <div id="sub_isch" style="display:none;margin-left:14px;margin-top:2px;">
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_isch_cin" onchange="exclusifGroup(this)" value="cinétique globale et régionale normale"> Cinétique normale</label>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-bottom:2px;"><input type="checkbox" class="cmlm-ep excl1" data-group="g2_isch_cin" data-target="sub_isch_detail" onchange="exclusifGroup(this);toggleSub(this)"> Trouble de la cinétique</label>
+                <div id="sub_isch_detail" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="cmlm-ep" data-target="sub_hypo" onchange="toggleSub(this)"> Hypokinésie</label>
+                    <div id="sub_hypo" style="display:none;margin-left:12px;margin-top:1px;">
+                        <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="hypokinésie <?= strtolower($t) ?>"> <?= $t ?></label>
+                        <?php endforeach; ?>
+                        <button type="button" onclick="appliquerMultiple('sub_hypo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    </div>
+                    <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_aki" onchange="toggleSub(this)"> Akinésie</label>
+                    <div id="sub_aki" style="display:none;margin-left:12px;margin-top:1px;">
+                        <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="akinésie <?= strtolower($t) ?>"> <?= $t ?></label>
+                        <?php endforeach; ?>
+                        <button type="button" onclick="appliquerMultiple('sub_aki')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    </div>
+                    <label style="font-size:11px;cursor:pointer;display:block;margin-top:2px;"><input type="checkbox" class="cmlm-ep" data-target="sub_dysk" onchange="toggleSub(this)"> Dyskinésie</label>
+                    <div id="sub_dysk" style="display:none;margin-left:12px;margin-top:1px;">
+                        <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec" value="dyskinésie <?= strtolower($t) ?>"> <?= $t ?></label>
+                        <?php endforeach; ?>
+                        <button type="button" onclick="appliquerMultiple('sub_dysk')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    </div>
+                </div>
+                <label style="font-size:11px;cursor:pointer;display:block;margin-top:4px;"><input type="checkbox" class="cmlm-ep" data-target="sub_tako" onchange="toggleSub(this)"> Syndrome de Takotsubo</label>
+                <div id="sub_tako" style="display:none;margin-left:12px;margin-top:1px;">
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tako" onchange="exclusifGroup(this)" value="syndrome de Takotsubo présent"> présent</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tako" onchange="exclusifGroup(this)" value="syndrome de Takotsubo absent"> absent</label>
+                </div>
             </div>
 
         </div><!-- fin cmlm_echo_detail -->
@@ -1199,41 +1159,14 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
     <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
 
-    <!-- Mesures Echo -->
-    <style>
-        #em_DTD::-webkit-inner-spin-button,#em_DTD::-webkit-outer-spin-button,
-        #em_DTS::-webkit-inner-spin-button,#em_DTS::-webkit-outer-spin-button,
-        #inp_FEVG::-webkit-inner-spin-button,#inp_FEVG::-webkit-outer-spin-button,
-        #inp_SIV::-webkit-inner-spin-button, #inp_SIV::-webkit-outer-spin-button,
-        #em_PP::-webkit-inner-spin-button,   #em_PP::-webkit-outer-spin-button
-        { -webkit-appearance:none; margin:0; }
-        #em_DTD,#em_DTS,#inp_FEVG,#inp_SIV,#em_PP { -moz-appearance:textfield; }
-    </style>
-    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:6px 0 4px 0;">
-        <label style="font-size:10px;color:#888;">DTD-VG</label>
-        <input type="number" id="em_DTD" name="DTD_VG" placeholder="mm" style="width:48px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-        <label style="font-size:10px;color:#888;">DTS-VG</label>
-        <input type="number" id="em_DTS" name="DTS_VG" placeholder="mm" style="width:48px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-        <label style="font-size:10px;color:#888;">FEVG</label>
-        <input type="number" id="inp_FEVG" name="FEVG" placeholder="%" style="width:44px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;font-size:11px;" oninput="reporterFEVG()">
-        <label style="font-size:10px;color:#888;">SIV</label>
-        <input type="number" id="inp_SIV" step="0.1" name="SIV" placeholder="mm" style="width:44px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;font-size:11px;" oninput="reporterSIV()">
-        <label style="font-size:10px;color:#888;">PP</label>
-        <input type="number" id="em_PP" step="0.1" name="PP" placeholder="mm" style="width:44px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-    </div>
+    <!-- Champs cachés exclusion Echo -->
+    <input type="hidden" id="excl_DTSA"        name="excl_DTSA">
+    <input type="hidden" id="excl_CONCLUSION1" name="excl_CONCLUSION1">
 
-    <div class="champ" id="wrap_echo_HTAP">
-        <div class="label-excl"><label>HTAP</label><button type="button" class="btn-excl" onclick="toggleExclEcho('HTAP')" title="Exclure">−</button></div>
-        <input type="text" name="HTAP" oninput="majConcatEcho()">
-    </div>
     <div class="champ" id="wrap_DTSA">
         <div class="label-excl"><label>DTSA</label><button type="button" class="btn-excl" onclick="toggleExcl('DTSA')" title="Exclure du rapport">−</button></div>
         <textarea name="DTSA" class="court" oninput="majConcatEcho()"></textarea>
     </div>
-
-    <!-- Champs cachés exclusion Echo -->
-    <input type="hidden" id="excl_DTSA"        name="excl_DTSA">
-    <input type="hidden" id="excl_CONCLUSION1" name="excl_CONCLUSION1">
 
     <!-- Aperçu Echo -->
     <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
@@ -1893,10 +1826,20 @@ function toggleCmlmSub(cb) {
         if (i.dataset && i.dataset.target) { const s = document.getElementById(i.dataset.target); if(s) s.style.display='none'; }
     });
 }
+/* ── Ouvrir/fermer les sections Echo ── */
+function toggleEchoSub(id) {
+    var el  = document.getElementById(id);
+    var arr = document.getElementById(id + '_arr');
+    if (!el) return;
+    var open = el.style.display === 'none' || el.style.display === '';
+    el.style.display  = open ? 'block' : 'none';
+    if (arr) arr.textContent = open ? '▼' : '▶';
+}
+
 function genererCmlmEcho() {
     var isNormale = document.getElementById('echo_normale_detail') &&
                     document.getElementById('echo_normale_detail').style.display !== 'none';
-    let parties = [];
+    var parties = [];
 
     if (isNormale) {
         document.querySelectorAll('.echo-n:checked').forEach(function(cb) {
@@ -1908,99 +1851,96 @@ function genererCmlmEcho() {
             var txt = (cb.value && cb.value !== 'on') ? cb.value : '';
             if (!txt) return;
 
-            // Cardiopathie hypertensive + SIV
-            if (txt === 'cardiopathie hypertensive') {
-                var siv = document.getElementById('ce_siv');
-                if (siv && siv.value) txt += ' (SIV=' + siv.value + 'mm)';
-            }
-            // Rétrécissement aortique + grad
+            /* ─ Aortique ─ */
             if (txt.indexOf('rétrécissement aortique') === 0) {
-                var g = document.getElementById('ce_ao_ra_grad');
+                var g = document.getElementById('em_grad_ao');
                 if (g && g.value) txt += ' (grad moy=' + g.value + 'mmHg)';
             }
-            // Fuite aortique + mesures
             if (txt.indexOf('fuite aortique') === 0) {
                 var extras = [];
-                var pht = document.getElementById('ce_ao_fa_pht'); if (pht && pht.value) extras.push('1/2PHT=' + pht.value + 'ms');
-                var vm  = document.getElementById('ce_ao_fa_vmax'); if (vm && vm.value)  extras.push('Vmax=' + vm.value + 'm/s');
-                var tas = document.getElementById('ce_ao_fa_tas');  if (tas && tas.value) extras.push('TAS=' + tas.value);
-                var tad = document.getElementById('ce_ao_fa_tad');  if (tad && tad.value) extras.push('TAD=' + tad.value);
+                var pht = document.getElementById('em_pht_ao');   if (pht && pht.value) extras.push('1/2PHT=' + pht.value + 'ms');
+                var vm  = document.getElementById('em_vmax_ia');   if (vm  && vm.value)  extras.push('Vmax=' + vm.value + 'm/s');
                 if (extras.length) txt += ' (' + extras.join(', ') + ')';
             }
-            // Rétrécissement mitral + surf + grad
+            if (txt.indexOf('maladie aortique') === 0) {
+                var extras = [];
+                var g   = document.getElementById('em_grad_ao');   if (g   && g.value)   extras.push('grad moy=' + g.value + 'mmHg');
+                var pht = document.getElementById('em_pht_ao');     if (pht && pht.value) extras.push('1/2PHT=' + pht.value + 'ms');
+                var vm  = document.getElementById('em_vmax_ia');    if (vm  && vm.value)  extras.push('Vmax=' + vm.value + 'm/s');
+                if (extras.length) txt += ' (' + extras.join(', ') + ')';
+            }
+            /* ─ Mitrale ─ */
             if (txt.indexOf('rétrécissement mitral') === 0) {
                 var extras = [];
-                var s = document.getElementById('ce_mi_rm_surf'); if (s && s.value) extras.push('surface=' + s.value + 'cm²');
-                var g = document.getElementById('ce_mi_rm_grad'); if (g && g.value) extras.push('grad moy=' + g.value + 'mmHg');
+                var s = document.getElementById('em_surf_mi'); if (s && s.value) extras.push('surface=' + s.value + 'cm²');
                 if (extras.length) txt += ' (' + extras.join(', ') + ')';
             }
-            // Fuite mitrale + SOR
             if (txt.indexOf('fuite mitrale') === 0) {
-                var sor = document.getElementById('ce_mi_fm_sor'); if (sor && sor.value) txt += ' (SOR=' + sor.value + 'cm²)';
+                var sor = document.getElementById('em_sor_mi'); if (sor && sor.value) txt += ' (SOR=' + sor.value + 'mm²)';
             }
-            // Rétrécissement tricuspidien + surf + grad
-            if (txt.indexOf('rétrécissement tricuspidien') === 0) {
+            if (txt.indexOf('maladie mitrale') === 0) {
                 var extras = [];
-                var s = document.getElementById('ce_tr_rt_surf'); if (s && s.value) extras.push('surface=' + s.value + 'cm²');
-                var g = document.getElementById('ce_tr_rt_grad'); if (g && g.value) extras.push('grad moy=' + g.value + 'mmHg');
+                var s   = document.getElementById('em_surf_mi'); if (s   && s.value)   extras.push('surface=' + s.value + 'cm²');
+                var sor = document.getElementById('em_sor_mi');  if (sor && sor.value) extras.push('SOR=' + sor.value + 'mm²');
                 if (extras.length) txt += ' (' + extras.join(', ') + ')';
             }
-            // Fuite tricuspidienne + HTAP
-            if (txt.indexOf('fuite tricuspidienne') === 0) {
-                var h = document.getElementById('ce_tr_ft_htap'); if (h && h.value) txt += ' (HTAP=' + h.value + 'mmHg)';
+            /* ─ Tricuspide ─ */
+            if (txt.indexOf('fuite tricuspide') === 0) {
+                var h = document.getElementById('em_htap_tr'); if (h && h.value) txt += ' (HTAP=' + h.value + 'mmHg)';
             }
-            // Rétrécissement pulmonaire + grad
-            if (txt.indexOf('rétrécissement pulmonaire') === 0) {
-                var g = document.getElementById('ce_pu_rp_grad'); if (g && g.value) txt += ' (grad moy=' + g.value + 'mmHg)';
+            /* ─ Pulmonaire ─ */
+            if (txt.indexOf('sténose valvulaire pulmonaire') === 0) {
+                var g = document.getElementById('em_grad_pu_valv'); if (g && g.value) txt += ' (grad moy=' + g.value + 'mmHg)';
             }
-            // Prothèses + grad transprothet.
-            if (txt.indexOf('prothèse') !== -1 || txt.indexOf('bioprothèse') !== -1) {
-                var ao = document.getElementById('ce_proth_ao_grad');
-                var mi = document.getElementById('ce_proth_mi_grad');
-                if (txt.indexOf('aortique') !== -1 && ao && ao.value) txt += ' (grad moy=' + ao.value + 'mmHg)';
-                if (txt.indexOf('mitrale') !== -1 && mi && mi.value) txt += ' (grad moy=' + mi.value + 'mmHg)';
+            if (txt.indexOf('sténose infundibulaire pulmonaire') === 0) {
+                var g = document.getElementById('em_grad_pu_infund'); if (g && g.value) txt += ' (grad moy=' + g.value + 'mmHg)';
             }
-            // FEVG
-            if (txt === 'FEVG conservée') { var v = document.getElementById('ce_fevg_cons'); if (v && v.value) txt += ' (' + v.value + '%)'; }
-            if (txt === 'FEVG altérée')   { var v = document.getElementById('ce_fevg_alt');  if (v && v.value) txt += ' (' + v.value + '%)'; }
-            if (txt === 'FEVG très altérée en bas débit') { var v = document.getElementById('ce_fevg_tres'); if (v && v.value) txt += ' (' + v.value + '%)'; }
-            // DTD/DTS-VG
-            if (txt === 'ventricule droit non dilaté' || txt === 'dilatation des cavités droites') {
-                var dtd = document.getElementById('ce_dtd'); var dts = document.getElementById('ce_dts');
-                var vd  = document.getElementById('ce_vd_diam');
-            }
-            // VCI
+            /* ─ VCI ─ */
             if (txt.indexOf('VCI') === 0) {
-                var d = document.getElementById('ce_vci_diam'); if (d && d.value) txt += ' (diam=' + d.value + 'mm)';
+                var d = document.getElementById('em_diam_vci'); if (d && d.value) txt += ' (diam=' + d.value + 'mm)';
             }
-            // Aorte initiale
-            if (txt.indexOf('aorte initiale') !== -1 || txt.indexOf('dilatation') !== -1) {
-                var d = document.getElementById('ce_aorte_diam'); if (d && d.value) txt += ' (diam=' + d.value + 'mm)';
+            /* ─ Aorte initiale ─ */
+            if (txt.indexOf('aorte initiale') !== -1 || txt.indexOf('dilatation') === 0) {
+                var d = document.getElementById('em_diam_ao_init'); if (d && d.value) txt += ' (diam=' + d.value + 'mm)';
             }
-            // Oreillettes non dilatées + OG
+            /* ─ Oreillettes ─ */
             if (txt === 'oreillettes non dilatées') {
-                var s = document.getElementById('ce_og_surf_nd'); if (s && s.value) txt += ' (OG=' + s.value + 'cm²)';
-            }
-            // Oreillettes dilatées + OG + OD
-            if (txt === 'massif auriculaire dilaté') {
-                var og = document.getElementById('ce_og_surf'); var od = document.getElementById('ce_od_surf');
                 var extras = [];
-                if (og && og.value) extras.push('OG=' + og.value + 'cm²');
-                if (od && od.value) extras.push('OD=' + od.value + 'cm²');
+                var og = document.getElementById('em_og_surf'); if (og && og.value) extras.push('OG=' + og.value + 'cm²');
                 if (extras.length) txt += ' (' + extras.join(', ') + ')';
             }
-            // Autres oreillettes
-            if (txt === 'oreillettes - autre') {
-                var a = document.getElementById('ce_oreil_autre'); if (a && a.value) txt = a.value;
+            if (txt === 'dilatées : massif auriculaire dilaté') {
+                var extras = [];
+                var og = document.getElementById('em_og_surf'); if (og && og.value) extras.push('OG=' + og.value + 'cm²');
+                var od = document.getElementById('em_od_surf'); if (od && od.value) extras.push('OD=' + od.value + 'cm²');
+                if (extras.length) txt += ' (' + extras.join(', ') + ')';
+            }
+            /* ─ Péricarde ─ */
+            if (txt.indexOf('péricarde') !== -1 || txt.indexOf('décollement') === 0 || txt.indexOf('épanchement') === 0) {
+                var d = document.getElementById('em_diam_peric'); if (d && d.value) txt += ' (diam=' + d.value + 'mm)';
+            }
+            /* ─ Cardiopathie hypertensive ─ */
+            if (txt === 'cardiopathie hypertensive') {
+                var siv = document.getElementById('em_siv_hta'); if (siv && siv.value) txt += ' (SIV=' + siv.value + 'mm)';
+            }
+            /* ─ IC FEVG ─ */
+            if (txt.indexOf('IC à FEVG') !== -1 || txt === 'IC droite' || txt === 'IC globale') {
+                var extras = [];
+                var fv = document.getElementById('em_fevg2'); if (fv && fv.value) extras.push('FEVG=' + fv.value + '%');
+                var dtd = document.getElementById('em_DTD');  if (dtd && dtd.value) extras.push('DTD-VG=' + dtd.value + 'mm');
+                var dts = document.getElementById('em_DTS');  if (dts && dts.value) extras.push('DTS-VG=' + dts.value + 'mm');
+                var gs  = document.getElementById('em_gstrain'); if (gs && gs.value) extras.push('GS=' + gs.value + '%');
+                if (extras.length) txt += ' (' + extras.join(', ') + ')';
+            }
+            /* ─ Cardiopathie hypertrophique ─ */
+            if (txt.indexOf('cardiopathie hypertrophique') === 0 || txt === 'cardiopathie restrictive' || txt === 'amylose cardiaque') {
+                var extras = [];
+                var siv = document.getElementById('em_siv_hypert');  if (siv && siv.value) extras.push('SIV=' + siv.value + 'mm');
+                var grd = document.getElementById('em_grad_hypert'); if (grd && grd.value) extras.push('grad moy=' + grd.value + 'mmHg');
+                if (extras.length) txt += ' (' + extras.join(', ') + ')';
             }
             if (txt) parties.push(txt);
         });
-
-        // Ajouter DTD/DTS-VG si renseignés (cardiopathie dilatée)
-        var dtd = document.getElementById('ce_dtd'); var dts = document.getElementById('ce_dts');
-        if (dtd && dtd.value) parties.push('DTD-VG=' + dtd.value + 'mm');
-        if (dts && dts.value) parties.push('DTS-VG=' + dts.value + 'mm');
-
         if (parties.length === 0) parties.push('échodoppler cardiaque anormale');
     }
 
@@ -2481,6 +2421,13 @@ function restaurerTout() {
     if (catAutres) catAutres.value = '';
     var ct = document.getElementById('conduite_textarea');
     if (ct) ct.value = '';
+    /* Réinitialiser bouton/lien Conduite à tenir */
+    var bvc = document.getElementById('btn_valider_conduite');
+    var lmc = document.getElementById('lien_modifier_conduite');
+    if (bvc) bvc.style.display = 'inline-block';
+    if (lmc) lmc.style.display = 'none';
+    var pc = document.getElementById('panel_conduite');
+    if (pc) pc.style.display = 'none';
 }
 
 
