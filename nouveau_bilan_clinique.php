@@ -75,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  ONDE_T,TOPOGRAPHIE_T,
                  IDM,TOPOGRAPHIE_Q,
                  [C/C],
-                 [AUTRES Signes ECG],CMLM_ECG)
+                 [AUTRES Signes ECG],
+                 CMLM_ECG)
                 VALUES (?,CONVERT(datetime,?,120),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
             ->execute([$id,
                 $dEcg.' 00:00:00',
@@ -1657,20 +1658,19 @@ function enregistrerAjax(onglet) {
     var msgEl = document.getElementById('msg_'+onglet);
     if (msgEl){ msgEl.textContent='⏳...'; msgEl.style.display='inline'; msgEl.style.color='#888'; }
     var data = _collectForm(onglet);
-    // Forcer CMLM_EXAMEN pour l'onglet examen
-    if (onglet === 'examen') {
-        var apEx = document.getElementById('apercu_examen');
-        if (apEx) data.set('CMLM_EXAMEN', apEx.value || '');
-    }
-    // Forcer CMLM_ECG pour l'onglet ecg
-    if (onglet === 'ecg') {
-        var apEcg = document.getElementById('apercu_ecg');
-        if (apEcg) data.set('CMLM_ECG', apEcg.value || '');
-    }
     // Forcer CMLM_ECHO pour l'onglet echo
     if (onglet === 'echo') {
         var cmlmEl = document.getElementById('cmlm_echo_val');
         if (cmlmEl) data.set('CMLM_ECHO', cmlmEl.value || '');
+    }
+    // Forcer CMLM_EXAMEN et CMLM_ECG
+    if (onglet === 'examen') {
+        var apEx = document.getElementById('apercu_examen');
+        if (apEx) data.set('CMLM_EXAMEN', apEx.value || '');
+    }
+    if (onglet === 'ecg') {
+        var apEcg = document.getElementById('apercu_ecg');
+        if (apEcg) data.set('CMLM_ECG', apEcg.value || '');
     }
     fetch('nouveau_bilan_clinique.php?id=<?= $id ?>', {
         method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body:data
@@ -1739,20 +1739,23 @@ function naviguerBilan(type, dir) {
         if(type==='examen'){
             ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
              'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
-             'Autres_Symptomes','Conclusion','REMARQUE','Conduite_ATenir']
+             'Autres_Symptomes','Conclusion','REMARQUE','Conduite_ATenir','CMLM_EXAMEN']
             .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
         }
         if(type==='ecg'){
             ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
              'infrastructure_de_conduction','REPOLARISATION','SEGMENT_ST','TOPOGRAPHIE_ST',
-             'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES']
+             'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES','CMLM_ECG']
             .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-            majApercuECG();
+            
         }
         if(type==='echo'){
             ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
              'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1']
             .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+            // Recharger CMLM_ECHO dans le champ hidden
+            var cmlmEl = document.getElementById('cmlm_echo_val');
+            if(cmlmEl) cmlmEl.value = d['CMLM_ECHO'] || '';
         }
     }).catch(function(e){alert('Erreur : '+e.message);});
 }
