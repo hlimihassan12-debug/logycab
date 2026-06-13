@@ -2083,6 +2083,10 @@ function setEcgGlobal(val) {
     /* Réinitialiser lien Modifier si on change de mode */
     var lm = document.getElementById('lien_modifier_ecg');
     if (lm) lm.style.display = 'none';
+    var bgEcg = document.getElementById('btn_generer_ecg');
+    var bgEcgH = document.getElementById('btn_generer_ecg_h');
+    if (bgEcg) bgEcg.style.display = 'inline-block';
+    if (bgEcgH) bgEcgH.style.display = 'inline-block';
     var panel = document.getElementById('panel_ecg_cases');
     if (panel) panel.style.display = '';
     if (val === 'normal') {
