@@ -444,12 +444,13 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     </div>
     <!-- Bilans + Déco (spécifiques dossier) -->
     <a href="bilan.php?id=<?= $id ?>" class="btn-h blue">🧪 Bilans</a>
+    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:#27ae60;font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu bilan</a>
     <!-- Bascule vue -->
     <div style="display:inline-flex;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px;">
         <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🏠 Accueil</button>
         <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Consultation</button>
     </div>
-    <button type="button" onclick="ouvrirModalRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
+    <button type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
     <a href="logout.php" class="btn-h red">🚪 Déco</a>
     <!-- TITRE -->
     <h1 style="margin-left:4px;">🩺 Dossier médical</h1>
@@ -2536,53 +2537,46 @@ function calcNbrJAcc() {
 <!-- ══════════════════════════════════════════════════════════════════
      MODALE — Sélection dates rapport cardio-vasculaire
 ══════════════════════════════════════════════════════════════════ -->
-<div id="modal-rapports" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-     background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:10px;width:360px;max-width:96%;
+<!-- ══ MODALE MENU RAPPORTS ══════════════════════════════════════════════ -->
+<div id="modal-rapports-menu" style="display:none;position:fixed;top:42px;right:18px;
+     z-index:99999;">
+    <div style="background:white;border-radius:10px;width:320px;
                 box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
-        <div style="background:#c0392b;color:white;padding:10px 16px;
+        <div style="background:#c0392b;color:white;padding:8px 14px;
                     display:flex;align-items:center;justify-content:space-between;">
             <span style="font-weight:bold;font-size:13px;">📑 Rapports</span>
-            <button onclick="fermerModalRapports()" style="background:none;border:none;color:white;
-                    font-size:18px;cursor:pointer;line-height:1;">✕</button>
         </div>
-        <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
-            <button onclick="fermerModalRapports();ouvrirModalRapport();"
-                style="background:#c0392b;color:white;border:none;border-radius:6px;
-                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;text-align:left;">
-                📄 Compte rendu de l'examen cardio-vasculaire
-            </button>
+        <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
             <a href="print_cmlm.php?id=<?= $id ?>" target="_blank"
-                onclick="fermerModalRapports()"
-                style="background:#8e44ad;color:white;border:none;border-radius:6px;
-                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;
-                       text-decoration:none;display:block;">
+               style="display:block;background:#8e44ad;color:white;text-decoration:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 📋 Attestation de maladie de longue durée
             </a>
+            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#27ae60;color:white;text-decoration:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                🏅 Certificat médical d'aptitude physique
+            </a>
+            <button onclick="ouvrirModalRapport();"
+               style="display:block;width:100%;background:#c0392b;color:white;border:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
+                      cursor:pointer;text-align:left;">
+                📄 Compte rendu de l'examen cardio-vasculaire
+            </button>
             <a href="print_lettre.php?id=<?= $id ?>" target="_blank"
-                onclick="fermerModalRapports()"
-                style="background:#16a085;color:white;border:none;border-radius:6px;
-                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;
-                       text-decoration:none;display:block;">
+               style="display:block;background:#16a085;color:white;text-decoration:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 ✉️ Lettre de correspondance
             </a>
             <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank"
-                onclick="fermerModalRapports()"
-                style="background:#2e6da4;color:white;border:none;border-radius:6px;
-                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;
-                       text-decoration:none;display:block;">
+               style="display:block;background:#2e6da4;color:white;text-decoration:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 💊 Ordonnance
             </a>
-            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
-                onclick="fermerModalRapports()"
-                style="background:#1a7a3a;color:white;border:none;border-radius:6px;
-                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;
-                       text-decoration:none;display:block;">
-                🏅 Certificat médical d'aptitude physique
-            </a>
-            <button onclick="fermerModalRapports()"
-                style="background:#95a5a6;color:white;border:none;border-radius:6px;
-                       padding:8px 16px;font-size:12px;cursor:pointer;margin-top:4px;">
+            <button onclick="fermerMenuRapports()"
+               style="display:block;width:100%;background:#7f8c8d;color:white;border:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
+                      cursor:pointer;text-align:center;margin-top:2px;">
                 ✕ Fermer
             </button>
         </div>
@@ -2651,21 +2645,11 @@ function calcNbrJAcc() {
 /* ── Exclusions rubriques rapport ── */
 var rapportExclusions = { examen: false, ecg: false, echo: false };
 
-function scrollToCertificat() {
-    // Basculer en vue consultation si besoin, puis scroller vers le certificat
-    setVue('consultation');
-    setTimeout(function() {
-        var el = document.getElementById('section-certificat-cons');
-        if (!el) el = document.querySelector('[id*="cert"]');
-        if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
-    }, 150);
+function ouvrirMenuRapports() {
+    document.getElementById('modal-rapports-menu').style.display = 'flex';
 }
-
-function ouvrirModalRapports() {
-    document.getElementById('modal-rapports').style.display = 'flex';
-}
-function fermerModalRapports() {
-    document.getElementById('modal-rapports').style.display = 'none';
+function fermerMenuRapports() {
+    document.getElementById('modal-rapports-menu').style.display = 'none';
 }
 
 function ouvrirModalRapport() {
