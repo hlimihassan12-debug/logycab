@@ -378,7 +378,10 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <div style="font-size:11px;font-weight:bold;color:#e67e22;margin-bottom:4px;">Examen clinique anormal</div>
 
             <!-- ── 🫀 Examen cardiaque ── -->
-            <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-top:2px;margin-bottom:3px;">🫀 Examen cardiaque</div>
+            <div class="exam-section" onclick="toggleEcgSection('sub_exam_card','arr_exam_card')">
+                <span>🫀 Examen cardiaque</span><span id="arr_exam_card">▶</span>
+            </div>
+            <div id="sub_exam_card" style="display:block;">
 
             <!-- Angor — EXCLUSIF -->
             <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_angor" onchange="toggleSub(this)"> Symptomatologie douloureuse (angor)</label>
@@ -416,8 +419,12 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="bradycardie"> Bradycardie</label>
             </div>
 
+            </div><!-- fin sub_exam_card -->
             <!-- ── 🩸 Examen vasculaire ── -->
-            <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-top:6px;margin-bottom:3px;">🩸 Examen vasculaire</div>
+            <div class="exam-section" onclick="toggleEcgSection('sub_exam_vasc','arr_exam_vasc')">
+                <span>🩸 Examen vasculaire</span><span id="arr_exam_vasc">▶</span>
+            </div>
+            <div id="sub_exam_vasc" style="display:block;">
 
             <!-- Artéritique — EXCLUSIF -->
             <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_arterite" onchange="toggleSub(this)"> Symptomatologie artéritique des MI</label>
@@ -444,6 +451,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 </div>
                 <button type="button" onclick="appliquerMultiple('sub_phlebite')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
+
+            </div><!-- fin sub_exam_vasc -->
 
         </div><!-- fin sympto_cases -->
 
@@ -529,6 +538,11 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <span style="font-size:11px;">Autres :</span>
             <input type="text" id="cat_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;" oninput="majConduiteTextarea()">
         </div>
+        <div style="text-align:right;margin-top:6px;">
+            <button type="button"
+                onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
+                style="background:#27ae60;color:white;border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:bold;cursor:pointer;">&#9654; G&eacute;n&eacute;rer &amp; &#128190;</button>
+        </div>
     </div>
 
     <div class="champ">
@@ -597,8 +611,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <div id="ecg_detail" style="display:none;">
 
             <!-- Trouble de rythme -->
-            <div style="margin-top:4px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme" onchange="toggleSub(this)"> Trouble de rythme</label>
+            <div class="ecg-section" onclick="toggleEcgSection('sub_ecg_rythme','arr_ecg_rythme')">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme" onchange="toggleSub(this)"> Trouble de rythme</label>
+                <span id="arr_ecg_rythme">▶</span>
             </div>
             <div id="sub_ecg_rythme" style="display:none;margin-left:14px;margin-top:2px;">
                 <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
@@ -619,8 +634,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </div>
 
             <!-- Trouble de conduction -->
-            <div style="margin-top:4px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond" onchange="toggleSub(this)"> Trouble de conduction</label>
+            <div class="ecg-section" onclick="toggleEcgSection('sub_ecg_cond','arr_ecg_cond')">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond" onchange="toggleSub(this)"> Trouble de conduction</label>
+                <span id="arr_ecg_cond">▶</span>
             </div>
             <div id="sub_ecg_cond" style="display:none;margin-left:14px;margin-top:2px;">
                 <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
@@ -676,8 +692,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </div>
 
             <!-- Ondes Q de nécrose -->
-            <div style="margin-top:4px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_isch" onchange="toggleSub(this)"> Ondes Q de nécrose</label>
+            <div class="ecg-section" onclick="toggleEcgSection('sub_ecg_isch','arr_ecg_isch')">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_isch" onchange="toggleSub(this)"> Ondes Q de nécrose</label>
+                <span id="arr_ecg_isch">▶</span>
             </div>
             <div id="sub_ecg_isch" style="display:none;margin-left:14px;margin-top:2px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_isch')" value="ondes Q de nécrose absentes"> Absents</label>
@@ -693,8 +710,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </div>
 
             <!-- Segment ST -->
-            <div style="margin-top:4px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_repol" onchange="toggleSub(this)"> Segment ST</label>
+            <div class="ecg-section" onclick="toggleEcgSection('sub_ecg_repol','arr_ecg_repol')">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_repol" onchange="toggleSub(this)"> Segment ST</label>
+                <span id="arr_ecg_repol">▶</span>
             </div>
             <div id="sub_ecg_repol" style="display:none;margin-left:14px;margin-top:2px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol')" value="segment ST sans anomalie"> Absents</label>
@@ -714,8 +732,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </div>
 
             <!-- Ondes T -->
-            <div style="margin-top:4px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_ondeT" onchange="toggleSub(this)"> Ondes T</label>
+            <div class="ecg-section" onclick="toggleEcgSection('sub_ecg_ondeT','arr_ecg_ondeT')">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_ondeT" onchange="toggleSub(this)"> Ondes T</label>
+                <span id="arr_ecg_ondeT">▶</span>
             </div>
             <div id="sub_ecg_ondeT" style="display:none;margin-left:14px;margin-top:2px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_ondeT')" value="ondes T sans anomalie"> Absents</label>
@@ -823,6 +842,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <!-- style aide-mémoire sections -->
         <style>
         .echo-section { font-size:11px;font-weight:bold;color:#1a4a7a;background:#dce8f5;border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
+        .ecg-section  { font-size:11px;font-weight:bold;color:#1a4a7a;background:#dce8f5;border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
+        .exam-section { font-size:11px;font-weight:bold;color:#1a4a7a;background:#dce8f5;border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
         .echo-mesure  { font-size:10px;color:#555;margin:2px 0 3px 4px; }
         .echo-mesure input[type=text],
         .echo-mesure input[type=number] { width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px; }
@@ -833,7 +854,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </style>
 
         <!-- ══ VALVULAIRE AORTIQUE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_ao')">🔵 Valvulaire Aortique <span id="es_ao_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_ao')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_ao" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Valvulaire Aortique </label><span id="es_ao_arr">▶</span></div>
         <div id="es_ao" style="display:none;">
             <div class="echo-mesure">
                 Grad moy : <input type="number" id="em_grad_ao" name="GRAD_MOY_AO" placeholder="mmHg" step="0.1">
@@ -921,7 +942,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ VALVULAIRE MITRALE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_mi')">🔵 Valvulaire Mitrale <span id="es_mi_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_mi')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_mi" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Valvulaire Mitrale </label><span id="es_mi_arr">▶</span></div>
         <div id="es_mi" style="display:none;">
             <div class="echo-mesure">
                 Surface : <input type="number" id="em_surf_mi" name="SURF_MI" placeholder="cm²" step="0.01">
@@ -1003,7 +1024,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ VALVULAIRE TRICUSPIDE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_tr')">🔵 Valvulaire Tricuspide <span id="es_tr_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_tr')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_tr" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Valvulaire Tricuspide </label><span id="es_tr_arr">▶</span></div>
         <div id="es_tr" style="display:none;">
             <div class="echo-mesure">HTAP : <input type="number" id="em_htap_tr" name="HTAP_TR" placeholder="mmHg" step="0.1"></div>
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_tr_ft" onchange="exclusifGroup(this)" value="fuite tricuspide modérée"> Fuite tricuspide modérée</label>
@@ -1017,7 +1038,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ VALVULAIRE PULMONAIRE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_pu')">🔵 Valvulaire Pulmonaire <span id="es_pu_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_pu')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_pu" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Valvulaire Pulmonaire </label><span id="es_pu_arr">▶</span></div>
         <div id="es_pu" style="display:none;">
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ep" data-target="es_pu_valv" onchange="toggleCmlmSub(this)"> Sténose valvulaire pulmonaire</label>
             <div id="es_pu_valv" class="echo-sub2" style="display:none;">
@@ -1036,7 +1057,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ CARDIOPATHIE DILATÉE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_dil')">🔵 Cardiopathie Dilatée <span id="es_dil_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_dil')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_dil" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Cardiopathie Dilatée </label><span id="es_dil_arr">▶</span></div>
         <div id="es_dil" style="display:none;">
             <div class="echo-mesure">
                 FEVG : <input type="number" id="em_fevg2" name="FEVG" placeholder="%" step="0.1" oninput="reporterFEVG()">
@@ -1053,7 +1074,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ CARDIOPATHIE HYPERTROPHIQUE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_hypert')">🔵 Cardiopathie Hypertrophique <span id="es_hypert_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_hypert')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_hypert" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Cardiopathie Hypertrophique </label><span id="es_hypert_arr">▶</span></div>
         <div id="es_hypert" style="display:none;">
             <div class="echo-mesure">
                 SIV : <input type="number" id="em_siv_hypert" placeholder="mm" step="0.1">
@@ -1066,14 +1087,14 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ CARDIOPATHIE HYPERTENSIVE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_hta')">🔵 Cardiopathie Hypertensive <span id="es_hta_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_hta')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_hta" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Cardiopathie Hypertensive </label><span id="es_hta_arr">▶</span></div>
         <div id="es_hta" style="display:none;">
             <div class="echo-mesure">SIV : <input type="number" id="em_siv_hta" placeholder="mm" step="0.1" oninput="reporterSIV()"></div>
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ec" id="ce_hta_cb2" value="cardiopathie hypertensive"> Cardiopathie hypertensive</label>
         </div>
 
         <!-- ══ PÉRICARDE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_peri')">🔵 Péricarde <span id="es_peri_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_peri')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_peri" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Péricarde </label><span id="es_peri_arr">▶</span></div>
         <div id="es_peri" style="display:none;">
             <div class="echo-mesure">Diam. épanch. : <input type="number" id="em_diam_peric" name="DIAM_PERIC" placeholder="mm" step="0.1"></div>
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_peri" onchange="exclusifGroup(this)" value="péricarde sec"> sec</label>
@@ -1085,7 +1106,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ OREILLETTES ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_oreil')">🔵 Oreillettes <span id="es_oreil_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_oreil')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_oreil" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Oreillettes </label><span id="es_oreil_arr">▶</span></div>
         <div id="es_oreil" style="display:none;">
             <div class="echo-mesure">
                 OG : <input type="number" id="em_og_surf" name="OG_SURF" placeholder="cm²" step="0.01">
@@ -1099,7 +1120,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ VCI ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_vci')">🔵 VCI <span id="es_vci_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_vci')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_vci" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> VCI </label><span id="es_vci_arr">▶</span></div>
         <div id="es_vci" style="display:none;">
             <div class="echo-mesure">Diam. : <input type="number" id="em_diam_vci" name="DIAM_VCI" placeholder="mm" step="0.1"></div>
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_vci" onchange="exclusifGroup(this)" value="VCI non dilatée et compliante"> non dilatée et compliante</label>
@@ -1107,7 +1128,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ AORTE INITIALE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_aorte')">🔵 Aorte Initiale <span id="es_aorte_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_aorte')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_aorte" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Aorte Initiale </label><span id="es_aorte_arr">▶</span></div>
         <div id="es_aorte" style="display:none;">
             <div class="echo-mesure">Diam. : <input type="number" id="em_diam_ao_init" name="DIAM_AO_INIT" placeholder="mm" step="0.1"></div>
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_aorte" onchange="exclusifGroup(this)" value="aorte initiale de diamètre normal"> de diamètre normal</label>
@@ -1116,7 +1137,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div>
 
         <!-- ══ CARDIOPATHIE ISCHÉMIQUE ══ -->
-        <div class="echo-section" onclick="toggleEchoSub('es_isch')">🔵 Cardiopathie Ischémique <span id="es_isch_arr">▶</span></div>
+        <div class="echo-section" onclick="toggleEchoSub('es_isch')"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;"><input type="checkbox" class="cmlm-ep" data-target="es_isch" onchange="toggleCmlmSub(this)" style="width:12px;height:12px;cursor:pointer;"> Cardiopathie Ischémique </label><span id="es_isch_arr">▶</span></div>
         <div id="es_isch" style="display:none;">
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_isch_cin" onchange="exclusifGroup(this)" value="cinétique globale et régionale normale"> Cinétique normale</label>
             <label class="echo-lbl echo-sub"><input type="checkbox" class="cmlm-ep excl1" data-group="g2_isch_cin" data-target="es_isch_detail" onchange="exclusifGroup(this);toggleCmlmSub(this)"> Trouble de la cinétique</label>
@@ -1753,9 +1774,6 @@ function naviguerBilan(type, dir) {
             ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
              'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1']
             .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-            // Recharger CMLM_ECHO dans le champ hidden
-            var cmlmEl = document.getElementById('cmlm_echo_val');
-            if(cmlmEl) cmlmEl.value = d['CMLM_ECHO'] || '';
         }
     }).catch(function(e){alert('Erreur : '+e.message);});
 }
@@ -2436,6 +2454,16 @@ function restaurerTout() {
 }
 
 
+
+/* ── Sections dépliables ECG et Examen ── */
+function toggleEcgSection(subId, arrId) {
+    var sub = document.getElementById(subId);
+    var arr = document.getElementById(arrId);
+    if (!sub) return;
+    var visible = sub.style.display !== 'none' && sub.style.display !== '';
+    sub.style.display = visible ? 'none' : 'block';
+    if (arr) arr.textContent = visible ? '▶' : '▼';
+}
 /* ── Panneau Conduite à tenir ── */
 function toggleConduitePanel() {
     var p = document.getElementById('panel_conduite');
