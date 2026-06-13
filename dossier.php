@@ -2573,11 +2573,13 @@ function calcNbrJAcc() {
                        text-decoration:none;display:block;">
                 💊 Ordonnance
             </a>
-            <button onclick="fermerModalRapports();scrollToCertificat();"
+            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
+                onclick="fermerModalRapports()"
                 style="background:#1a7a3a;color:white;border:none;border-radius:6px;
-                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;text-align:left;">
+                       padding:10px 16px;font-size:12px;font-weight:bold;cursor:pointer;
+                       text-decoration:none;display:block;">
                 🏅 Certificat médical d'aptitude physique
-            </button>
+            </a>
             <button onclick="fermerModalRapports()"
                 style="background:#95a5a6;color:white;border:none;border-radius:6px;
                        padding:8px 16px;font-size:12px;cursor:pointer;margin-top:4px;">

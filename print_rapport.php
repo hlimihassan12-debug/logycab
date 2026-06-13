@@ -76,10 +76,10 @@ $conduiteATenir = htmlspecialchars(trim($examen['Conduite_ATenir'] ?? ''));
 $ecg = null;
 if (!$excl_ecg) {
     if ($date_ecg) {
-        $stmtECG = $db->prepare("SELECT TOP 1 *, [C/C] AS CC_texte FROM ecg WHERE CAST([N-PAT] AS INT) = ? AND CONVERT(varchar(8), [Date ECG], 112) = ? ORDER BY [N°] DESC");
+        $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? AND CONVERT(varchar(8), [Date ECG], 112) = ? ORDER BY [N°] DESC");
         $stmtECG->execute([$id, $date_ecg]);
     } else {
-        $stmtECG = $db->prepare("SELECT TOP 1 *, [C/C] AS CC_texte FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
+        $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
         $stmtECG->execute([$id]);
     }
     $ecg = $stmtECG->fetch();
@@ -122,7 +122,7 @@ if ($ecg) {
         $parties[] = '-' . $q;
     }
 
-    if (!empty($ecg['CC_texte']))           $parties[] = $ecg['CC_texte'];
+    if (!empty($ecg['C/C']))               $parties[] = $ecg['C/C'];
     if (!empty($ecg['AUTRES Signes ECG'])) $parties[] = $ecg['AUTRES Signes ECG'];
 
     $texteECG = implode("\n", $parties);
@@ -429,8 +429,10 @@ body {
 <?php endif; ?>
 
 <!-- ── Au total ── -->
-<div class="au-total-titre">Au total :</div>
-<div class="au-total-corps"><?= $conduiteATenir ?: '' ?></div>
+<div class="au-total-titre">Au total — Conduite à tenir :</div>
+<div class="au-total-corps">
+    <textarea class="editable-au-total" style="width:100%;min-height:50px;border:none;background:transparent;font-family:inherit;font-size:inherit;resize:vertical;padding:0;outline:none;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"><?= $conduiteATenir ?></textarea>
+</div>
 
 <script>
 window.addEventListener('afterprint', function() { window.close(); });

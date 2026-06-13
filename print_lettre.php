@@ -24,33 +24,26 @@ if (!empty($patient['DDN'])) {
     }
 }
 
-// ── Diagnostics ───────────────────────────────────────────────────────────
-$stmtD1 = $db->prepare("SELECT diagnostic FROM t_diagnostic WHERE id = ? ORDER BY N_dic");
-$stmtD1->execute([$id]);
-$diag1 = $stmtD1->fetchAll(PDO::FETCH_COLUMN);
-
-$stmtD2 = $db->prepare("SELECT DicII FROM T_dianstcII WHERE id = ? ORDER BY N_DIC_II");
-$stmtD2->execute([$id]);
-$diag2 = $stmtD2->fetchAll(PDO::FETCH_COLUMN);
-
-$stmtD3 = $db->prepare("SELECT dic_non_cardio FROM T_id_dic_non_cardio WHERE id = ? ORDER BY N_dic_non_cardio");
-$stmtD3->execute([$id]);
-$diag3 = $stmtD3->fetchAll(PDO::FETCH_COLUMN);
-
-$tousLesdiags = array_filter(array_merge($diag1, $diag2, $diag3));
-$diagTexte = implode(', ', $tousLesdiags);
+// ── Diagnostic depuis ID.diagnostic ──────────────────────────────────────
+$stmtDiag = $db->prepare("SELECT diagnostic, ATCD, [MOTIF CONSULTATION] FROM ID WHERE [N°PAT] = ?");
+$stmtDiag->execute([$id]);
+$rowDiag  = $stmtDiag->fetch();
+$diagTexte = htmlspecialchars(trim($rowDiag['diagnostic'] ?? ''));
+$atcd      = htmlspecialchars(trim($rowDiag['ATCD'] ?? ''));
+$motifConsult = trim($rowDiag['MOTIF CONSULTATION'] ?? $motifConsult ?? '');
 
 // ── Dernier examen ────────────────────────────────────────────────────────
 $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC, N1 DESC");
 $stmtEx->execute([$id]);
 $examen = $stmtEx->fetch();
-$texteExamen = trim($examen['Conclusion'] ?? '');
+$texteExamen    = $examen ? htmlspecialchars(trim($examen['CMLM_EXAMEN'] ?? '')) : '';
+$conduiteATenir = $examen ? htmlspecialchars(trim($examen['Conduite_ATenir'] ?? '')) : '';
 
 // ── Dernier ECG ───────────────────────────────────────────────────────────
 $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
 $stmtECG->execute([$id]);
 $ecg = $stmtECG->fetch();
-$texteECG = $ecg ? trim($ecg['C/C'] ?? '') : '';
+$texteECG = $ecg ? htmlspecialchars(trim($ecg['CMLM_ECG'] ?? '')) : '';
 
 // ── Dernier Echo ──────────────────────────────────────────────────────────
 $stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC, [N°] DESC");
@@ -299,9 +292,12 @@ body {
 
 <!-- ══ 2. ANTÉCÉDENTS & DIAGNOSTIC ═══════════════════════════════════════ -->
 <div class="section">
-    <div class="section-titre">Antécédents et diagnostic :</div>
+    <div class="section-titre">C'est un(e) patient(e) qui présente :</div>
     <div class="section-corps">
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($diagTexte ?: '—') ?></div>
+        <div class="sous-label">Antécédents :</div>
+        <div class="editable" contenteditable="true"><?= $atcd ?: '—' ?></div>
+        <div class="sous-label" style="margin-top:4px;">Diagnostic :</div>
+        <div class="editable" contenteditable="true"><?= $diagTexte ?: '—' ?></div>
     </div>
 </div>
 
@@ -354,11 +350,11 @@ body {
 </div>
 <?php endif; ?>
 
-<!-- ══ 5. CONCLUSION ═════════════════════════════════════════════════════ -->
+<!-- ══ 5. AU TOTAL ═══════════════════════════════════════════════════════ -->
 <div class="section">
-    <div class="section-titre">Conclusion :</div>
+    <div class="section-titre">Au total — Conduite à tenir :</div>
     <div class="section-corps">
-        <div class="editable" contenteditable="true">Je vous adresse ce patient pour avis et prise en charge.</div>
+        <div class="editable" contenteditable="true"><?= $conduiteATenir ?: 'Je vous adresse ce patient pour avis et prise en charge.' ?></div>
     </div>
 </div>
 
