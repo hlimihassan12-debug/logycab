@@ -45,16 +45,16 @@ function concat_champs_cmlm(array $vals): string {
     return implode("\n", $parts);
 }
 
-// Clinique CMLM : uniquement le champ Conclusion
-$texteExamen = trim($examen['Conclusion'] ?? '');
+// Clinique CMLM : aperçu généré depuis les cases à cocher du bilan
+$texteExamen = trim($examen['CMLM_EXAMEN'] ?? '');
 
 // ── Dernier ECG ───────────────────────────────────────────────────────────
 $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
 $stmtECG->execute([$id]);
 $ecg = $stmtECG->fetch();
 
-// ECG CMLM : uniquement le champ C/C
-$texteECG = $ecg ? trim($ecg['C/C'] ?? '') : '';
+// ECG CMLM : aperçu généré depuis les cases à cocher du bilan
+$texteECG = $ecg ? trim($ecg['CMLM_ECG'] ?? '') : '';
 
 // ── Dernier Echo ─────────────────────────────────────────────────────────
 $stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC, [N°] DESC");

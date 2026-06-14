@@ -358,9 +358,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <button type="button" id="btn_generer_examen"
                 onclick="if(document.getElementById('bloc_normal')&&document.getElementById('bloc_normal').style.display!=='none'){genererConclusionNormal();}else{genererConclusion();} document.getElementById('bloc_normal').style.display='none'; document.getElementById('sympto_cases').style.display='none'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');"
                 style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
-            <span id="lien_modifier_sympto" style="display:none;font-size:11px;">
-                <a href="#" onclick="modifierExamen(); return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
-            </span>
+            <button type="button" id="lien_modifier_sympto" onclick="modifierExamen()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <!-- ══ BLOC NORMAL (affiché par ✅) ══ -->
@@ -511,7 +509,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport Examen</label>
         <textarea id="apercu_examen" name="CMLM_EXAMEN"
-            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
 
     <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
@@ -592,9 +590,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <button type="button" id="btn_generer_ecg"
                 onclick="genererRapportECG(); document.getElementById('ecg_normal_detail').style.display='none'; document.getElementById('ecg_detail').style.display='none'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');"
                 style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
-            <span id="lien_modifier_ecg" style="display:none;font-size:11px;">
-                <a href="#" onclick="modifierECG(); return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
-            </span>
+            <button type="button" id="lien_modifier_ecg" onclick="modifierECG()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
         <!-- champ radio caché pour compatibilité avec le reste du JS -->
         <input type="radio" name="ecg_global" value="normal"  id="ecg_r_normal"  style="display:none;" checked onchange="toggleECGAnormal(false)">
@@ -775,7 +771,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport ECG</label>
         <textarea id="apercu_ecg" name="CMLM_ECG"
-            style="min-height:65px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:65px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
     </form>
 </div>
@@ -819,9 +815,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <button type="button" id="btn_generer_echo"
                 onclick="genererCmlmEcho(); document.getElementById('echo_normale_detail').style.display='none'; document.getElementById('cmlm_echo_detail').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');"
                 style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
-            <span id="lien_modifier_echo" style="display:none;font-size:11px;">
-                <a href="#" onclick="modifierEcho(); return false;" style="color:#2e6da4;">↺ Modifier les cases</a>
-            </span>
+            <button type="button" id="lien_modifier_echo" onclick="modifierEcho()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <!-- ══ NORMALE ══ -->
@@ -1196,8 +1190,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <button type="button" class="btn-excl" onclick="toggleExcl('CONCLUSION1')" title="Exclure du rapport">−</button>
         </div>
         <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:80px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:vertical;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
-            oninput="majApercuEcho()"></textarea>
+            style="min-height:80px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+            oninput="majApercuEcho(); autoResize(this)"></textarea>
     </div>
     </form>
 </div>
@@ -1423,7 +1417,7 @@ function majConcatEcho() {
     if (!exclusions['DOPPLER']) { var d=g('DOPPLER'); if(d) p.push('Doppler : '+d); }
     if (!exclusions['DTSA'])    { var t=g('DTSA');    if(t) p.push('DTSA : '+t); }
     var c1 = document.getElementById('conclusion1_echo');
-    if (c1) c1.value = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : '';
+    if (c1) { c1.value = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : ''; autoResize(c1); }
     majApercuEcho();
 }
 
@@ -1480,7 +1474,7 @@ function genererConclusionNormal() {
         if(cb && cb.checked) parties.push(cb.value);
     });
     var ap = document.getElementById('apercu_examen');
-    if(ap) ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—';
+    if(ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
     var condParts = [];
     var ecvn = document.getElementById('cat_ecvn');
     var apte = document.getElementById('cat_apte');
@@ -1524,6 +1518,13 @@ function viderExamen() {
 function setConclusionECVN() {}
 function viderConclusionRemarque() {}
 
+/* ── Auto-resize des zones Aperçu ── */
+function autoResize(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+}
+
 /* ── Focus clavier TAS → TAD → FC ── */
 document.addEventListener('DOMContentLoaded', function() {
     var ordre = ['inp_TAS','inp_TAD','inp_FC'];
@@ -1546,6 +1547,10 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             if(idx + 1 < ordre.length) { var next = document.getElementById(ordre[idx+1]); if(next) next.focus(); }
         });
+    });
+    /* Auto-resize au chargement pour valeurs pré-remplies depuis la base */
+    ['apercu_examen','apercu_ecg','conclusion1_echo'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) autoResize(el);
     });
 });
 
@@ -1977,7 +1982,7 @@ function genererCmlmEcho() {
     var result = parties.map(function(p){ return '- ' + p; }).join('\n');
     document.getElementById('cmlm_echo_val').value = result;
     var ap = document.getElementById('conclusion1_echo');
-    if (ap) ap.value = result;
+    if (ap) { ap.value = result; autoResize(ap); }
 }
 
 
@@ -2053,6 +2058,8 @@ function setEcgGlobal(val) {
     /* Réinitialiser lien Modifier si on change de mode */
     var lm = document.getElementById('lien_modifier_ecg');
     if (lm) lm.style.display = 'none';
+    var bg = document.getElementById('btn_generer_ecg');
+    if (bg) bg.style.display = 'inline-block';
     var panel = document.getElementById('panel_ecg_cases');
     if (panel) panel.style.display = '';
     if (val === 'normal') {
@@ -2075,7 +2082,7 @@ function setEcgGlobal(val) {
             'Repolarisation normale',
             'Absence d\'ondes Q de nécrose'];
         var ap = document.getElementById('apercu_ecg');
-        if (ap) ap.value = lignes.join('\n');
+        if (ap) { ap.value = lignes.join('\n'); autoResize(ap); }
     } else {
         modeECG = 'anormal';
         if (ba) { ba.style.background = '#e67e22'; ba.style.color = 'white'; }
@@ -2238,7 +2245,7 @@ function genererConclusion() {
 
     /* Remplit l'Aperçu rapport Examen */
     var ap = document.getElementById('apercu_examen');
-    if (ap) ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—';
+    if (ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
 }
 
 /* exclusifVisible : dans un groupe, masque les non-sélectionnés sauf si on décoche tout */
@@ -2308,7 +2315,7 @@ function genererRapportECG() {
         txt = parties.map(function(l){ return '- ' + l; }).join('\n');
     }
     var ap = document.getElementById('apercu_ecg');
-    if (ap) ap.value = txt;
+    if (ap) { ap.value = txt; autoResize(ap); }
 }
 /* Alias conservé pour compatibilité interne */
 function genererCC() { genererRapportECG(); }
