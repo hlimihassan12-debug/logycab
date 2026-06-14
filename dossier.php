@@ -426,6 +426,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
     <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
+    <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
     <span                               class="btn-h grey"  >🏠 Dossier</span>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
@@ -1232,7 +1233,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 </div>
                 <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
                     style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
-                ><?= htmlspecialchars($patient['diagnostic'] ?? (isset($diagnostics[0]) ? $diagnostics[0]['diagnostic'] : '')) ?></textarea>
+                ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
             </div>
 
         </div><!-- fin grille MAD -->
@@ -1253,8 +1254,42 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
     </div><!-- FIN card ordonnance -->
 </div><!-- FIN col-mid -->
-<!-- ══ COLONNE DROITE : EXAMEN title="Valeurs normales">✅</button> ══ -->
+<?php
+/* ── Navigation globale colonne droite ── */
+$eFirst = $examens ? $examens[0]['N1'] : 0;
+$eLast  = $examens ? $examens[count($examens)-1]['N1'] : 0;
+$ePrev  = ($examens && $idxExam > 0) ? $examens[$idxExam-1]['N1'] : $nExam;
+$eNext  = ($examens && $idxExam < count($examens)-1) ? $examens[$idxExam+1]['N1'] : $nExam;
+$gFirst = $ecgs ? $ecgs[0]['N°'] : 0;
+$gLast  = $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0;
+$gPrev  = ($ecgs && $idxECG > 0) ? $ecgs[$idxECG-1]['N°'] : $nECG;
+$gNext  = ($ecgs && $idxECG < count($ecgs)-1) ? $ecgs[$idxECG+1]['N°'] : $nECG;
+$oFirst = $echos ? $echos[0]['N°'] : 0;
+$oLast  = $echos ? $echos[count($echos)-1]['N°'] : 0;
+$oPrev  = ($echos && $idxEcho > 0) ? $echos[$idxEcho-1]['N°'] : $nEcho;
+$oNext  = ($echos && $idxEcho < count($echos)-1) ? $echos[$idxEcho+1]['N°'] : $nEcho;
+$urlBase  = "?id=$id";
+$urlFirst = "$urlBase&exam=$eFirst&ecg=$gFirst&echo=$oFirst";
+$urlPrev  = "$urlBase&exam=$ePrev&ecg=$gPrev&echo=$oPrev";
+$urlNext  = "$urlBase&exam=$eNext&ecg=$gNext&echo=$oNext";
+$urlLast  = "$urlBase&exam=$eLast&ecg=$gLast&echo=$oLast";
+$labelNav = $examen ? date('d/m/Y', strtotime($examen['DateExam'])) : '—';
+$posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
+?>
+<!-- ══ COLONNE DROITE ══ -->
 <div class="col-right" id="col-right-exam">
+
+    <!-- Barre navigation globale — en tête de col-right -->
+    <div style="background:#e8f0fa;border:1px solid #c5d8ed;border-radius:5px;padding:4px 8px;display:flex;align-items:center;gap:3px;">
+        <span style="font-size:10px;font-weight:bold;color:#1a4a7a;white-space:nowrap;margin-right:4px;">🔀</span>
+        <a href="<?= $urlFirst ?>" class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus récent (tous)">|◀</a>
+        <a href="<?= $urlPrev ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Précédent (tous)">◀</a>
+        <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;flex:1;text-align:center;"><?= $labelNav ?> <span style="color:#888;font-weight:normal;">(<?= $posExam ?>)</span></span>
+        <a href="<?= $urlNext ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Suivant (tous)">▶</a>
+        <a href="<?= $urlLast ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus ancien (tous)">▶|</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 5px;font-size:11px;margin-left:2px;" title="Nouveau bilan">✚</a>
+        <button type="button" onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;margin-left:4px;" title="Biologie → plus récent">🧪</button>
+    </div>
     <div class="card">
         <?php if ($examen): ?>
         <?php
@@ -1275,60 +1310,15 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
             <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🩺 Examen</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($examen): ?><button type="button" onclick="toggleApercu('apercu-examen-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
                 <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
             </div>
         </div>
-        <?php
-        $tas = (int)($examen['TAS'] ?? 0); $tad = (int)($examen['TAD'] ?? 0);
-        $coulTA = '#333';
-        if ($tas >= 140 || $tad >= 90) $coulTA = '#e74c3c';
-        elseif ($tas >= 130 || $tad >= 80) $coulTA = '#f39c12';
-        elseif ($tas > 0) $coulTA = '#27ae60';
-        ?>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div class="champ"><label>TAS/TAD</label><span class="ta-val" style="color:<?= $coulTA ?>"><?= ($tas && $tad) ? $tas.'/'.$tad : '—' ?></span></div>
-            <div class="champ"><label>FC</label><span><?= htmlspecialchars($examen['FC'] ?? '—') ?></span></div>
-            <div class="champ"><label>Poids</label><span><?= htmlspecialchars($examen['POIDS'] ?? '—') ?> kg</span></div>
-            <div class="champ"><label>Taille</label><span><?= htmlspecialchars($examen['TAILLE'] ?? '—') ?> cm</span></div>
+        <?php if ($examen && !empty($examen['CMLM_EXAMEN'])): ?>
+        <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;">
+            <?= nl2br(htmlspecialchars($examen['CMLM_EXAMEN'])) ?>
         </div>
-        <?php if (!empty($examen['Conclusion'])): ?>
-        <div class="champ" style="margin-top:4px;">
-            <label>Conclusion</label>
-            <span style="font-size:11px;color:#1a4a7a;"><?= htmlspecialchars($examen['Conclusion']) ?></span>
-        </div>
-        <?php endif; ?>
-        <?php if (!empty($examen['REMARQUE'])): ?>
-        <div class="champ" style="margin-top:2px;">
-            <label>Remarque</label>
-            <span style="font-size:11px;color:#555;"><?= htmlspecialchars($examen['REMARQUE']) ?></span>
-        </div>
-        <?php endif; ?>
-        <?php
-        // Aperçu rapport Examen — même logique que print_rapport.php
-        $apercuExamen = '';
-        if ($examen) {
-            $parts = array_filter([
-                $examen['S_Fonctionnels']     ?? '',
-                $examen['Auscult_Cardiaque']  ?? '',
-                $examen['Auscult_Pulmonaire'] ?? '',
-                $examen['Examen_Vasculaire']  ?? '',
-                (!empty($examen['Signes_IVG']) && $examen['Signes_IVG'] !== 'Absents') ? 'Signes IVG : '.$examen['Signes_IVG'] : '',
-                (!empty($examen['Signes_IVD']) && $examen['Signes_IVD'] !== 'Absents') ? 'Signes IVD : '.$examen['Signes_IVD'] : '',
-                $examen['Autres_Symptomes']   ?? '',
-                $examen['Conclusion']         ?? '',
-                $examen['REMARQUE']           ?? '',
-            ], fn($v) => trim((string)$v) !== '');
-            $apercuExamen = implode(' ; ', $parts);
-        }
-        ?>
-        <?php if ($apercuExamen): ?>
-        <div id="apercu-examen-dossier" style="display:none;margin-top:6px;">
-            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
-                <?= htmlspecialchars($apercuExamen) ?>
-            </div>
-        </div>
-        <?php endif; ?>
+        <?php elseif ($examen): ?>
+            <p style="color:#999;font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
             <p style="color:#999;font-size:12px;">Aucun examen enregistré</p>
         <?php endif; ?>
@@ -1341,136 +1331,25 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
         </div>
-	 <!-- ══ BIOLOGIE COMPACT ══ -->
-        <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🧪 Biologie</span>
-                <div style="display:flex;align-items:center;gap:5px;">
-                    <span id="bio-nb-anormal" style="font-size:10px;font-weight:bold;color:#e74c3c;display:none;"></span>
-                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:#1a4a7a;">—</span>
-                    <button type="button" onclick="toggleApercu('apercu-bio-dossier',this)"
-                        id="bio-btn-apercu"
-                        style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;"
-                        title="Aperçu rapport">👁</button>
-                </div>
-            </div>
- 
-            <!-- Zone résultats — remplie par PHP au chargement, puis par JS à la navigation -->
-            <div id="bio-resultats" style="font-size:11px;min-height:20px;">
-                <?php if ($bilanCourantData): ?>
-                <?php foreach ($lignesBioActuel as $bl):
-                    $v = trim($bl['resultat']);
-                    $anormal = ($v !== '' && strtoupper($v) !== 'N');
-                ?>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1px 0;border-bottom:1px solid #f5f5f5;">
-                    <span style="color:<?= $anormal ? '#e74c3c' : '#aaa' ?>;font-weight:<?= $anormal ? 'bold' : 'normal' ?>;font-size:<?= $anormal ? '11px' : '10px' ?>;">
-                        <?= htmlspecialchars($bl['nom']) ?>
-                    </span>
-                    <span style="color:<?= $anormal ? '#e74c3c' : '#bbb' ?>;font-weight:<?= $anormal ? 'bold' : 'normal' ?>;font-size:<?= $anormal ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
-                        <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
-                    </span>
-                </div>
-                <?php endforeach; ?>
-                <?php else: ?>
-                <span style="color:#999;font-size:11px;">Aucun bilan</span>
-                <?php endif; ?>
-            </div>
- 
-            <!-- Aperçu rapport biologie (caché par défaut, bouton 👁) -->
-            <div id="apercu-bio-dossier" style="display:none;margin-top:6px;">
-                <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;" id="apercu-bio-texte">
-                    <?php
-                    $apercuBioLignes = [];
-                    foreach ($lignesBioActuel as $bl) {
-                        $v = trim($bl['resultat']);
-                        if ($v !== '' && strtoupper($v) !== 'N') {
-                            $apercuBioLignes[] = htmlspecialchars($bl['nom'])
-                                . ' : <strong style="color:#e74c3c;">'
-                                . htmlspecialchars($v) . '</strong>';
-                        }
-                    }
-                    echo $apercuBioLignes
-                        ? implode('<br>', $apercuBioLignes)
-                        : '<span style="color:#999;">Aucun résultat anormal</span>';
-                    ?>
-                </div>
-            </div>
- 
-            <!-- Navigation entre bilans -->
-            <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
-                <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</button>
-                <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent">◀</button>
-                <span id="bio-nav-pos" style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;">
-                    <?= $bilansListe ? '1 / '.count($bilansListe) : '0' ?>
-                </span>
-                <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant">▶</button>
-                <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</button>
-                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:10px;" title="Ouvrir module Biologie">✚</a>
-            </div>
-        </div><!-- FIN card biologie -->	
-		<!-- ══ ECG COMPACT ══ -->
+        <?php endif; ?>
+<!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
             <span>⚡ ECG</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($ecgCourant): ?><button type="button" onclick="toggleApercu('apercu-ecg-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
                 <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
                 <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
-        <?php if ($ecgCourant): ?>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Fréquence</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['FREQUENCE'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Rythme</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['trouble de rythme'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Supra vent.</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['RYTHME SUPRA VENTRICULAIRE'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Seg. ST</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['SEGMENT ST'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Repolarisation</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['LA REPOLARISATION'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">IDM</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['IDM'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">C/C</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($ecgCourant['C/C'] ?? '—') ?></span></div>
+        <?php if ($ecgCourant && !empty($ecgCourant['CMLM_ECG'])): ?>
+        <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;">
+            <?= nl2br(htmlspecialchars($ecgCourant['CMLM_ECG'])) ?>
         </div>
+        <?php elseif ($ecgCourant): ?>
+            <p style="color:#999;font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun ECG enregistré</p>
-        <?php endif; ?>
-        <?php
-        // Aperçu rapport ECG
-        $apercuECG = '';
-        if ($ecgCourant) {
-            $p = [];
-            $rsv  = $ecgCourant['RYTHME SUPRA VENTRICULAIRE'] ?? '';
-            $trv  = $ecgCourant['trouble de rythme'] ?? '';
-            $freq = $ecgCourant['FREQUENCE'] ?? '';
-            $r = '';
-            if ($rsv) $r .= 'Rythme : '.$rsv;
-            if ($trv) $r .= ($r ? ', ' : '').$trv;
-            if ($freq) $r .= ($r ? ', ' : '').'FC : '.$freq.' bat/min';
-            if ($r) $p[] = $r;
-            $cn = $ecgCourant['LA CONDUCTION NODALE'] ?? '';
-            if ($cn) $p[] = 'Conduction AV : '.$cn;
-            $qrs = $ecgCourant['QRS'] ?? '';
-            if ($qrs) $p[] = 'QRS : '.$qrs;
-            $inf = $ecgCourant['LA CONDUCTION INFRANODALE'] ?? '';
-            if ($inf) $p[] = $inf;
-            $rep = $ecgCourant['LA REPOLARISATION'] ?? '';
-            if ($rep) $p[] = 'Repolarisation : '.$rep;
-            $cc  = $ecgCourant['C/C'] ?? '';
-            if ($cc) $p[] = $cc;
-            $apercuECG = implode(' ; ', $p);
-        }
-        ?>
-        <?php if ($apercuECG): ?>
-        <div id="apercu-ecg-dossier" style="display:none;margin-top:6px;">
-            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
-                <?= htmlspecialchars($apercuECG) ?>
-            </div>
-        </div>
         <?php endif; ?>
         <!-- Navigation ECG en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
@@ -1488,41 +1367,19 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div class="card-title" style="font-size:11px;margin-bottom:4px;">
             <span>🫀 Echo-Doppler</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($echoCourant): ?><button type="button" onclick="toggleApercu('apercu-echo-dossier',this)" style="background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;" title="Aperçu rapport">👁</button><?php endif; ?>
                 <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
                 <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
-        <?php if ($echoCourant): ?>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">FEVG</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['FEVG'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">DTD-VG</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['DTD-VG'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">S,OG</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['S,OG'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Cinétique</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['CINETIQUE'] ?? '—') ?></span></div>
-            <div><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">AO ASC</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['AO ASC,'] ?? '—') ?></span></div>
-            <div style="grid-column:1/-1;"><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">Doppler</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['DOPPLER'] ?? '—') ?></span></div>
-            <div style="grid-column:1/-1;"><span style="font-size:9px;color:#888;text-transform:uppercase;display:block;">DTSA</span>
-                <span style="font-size:11px;"><?= htmlspecialchars($echoCourant['DOPPLER DES TRONCS SUPRA AORTIQUES'] ?? '—') ?></span></div>
+        <?php if ($echoCourant && !empty($echoCourant['CMLM_ECHO'])): ?>
+        <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;">
+            <?= nl2br(htmlspecialchars($echoCourant['CMLM_ECHO'])) ?>
         </div>
+        <?php elseif ($echoCourant): ?>
+            <p style="color:#999;font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
             <p style="color:#999;font-size:11px;">Aucun Echo enregistré</p>
-        <?php endif; ?>
-        <?php
-        $apercuEcho = htmlspecialchars(trim($echoCourant['CONCLUSION1'] ?? ''));
-        ?>
-        <?php if ($apercuEcho): ?>
-        <div id="apercu-echo-dossier" style="display:none;margin-top:6px;">
-            <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.5;">
-                <?= $apercuEcho ?>
-            </div>
-        </div>
         <?php endif; ?>
         <!-- Navigation Echo en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
@@ -1534,6 +1391,54 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
         </div>
     </div>
+
+<!-- ══ BIOLOGIE COMPACT ══ -->
+        <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
+                <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🧪 Biologie</span>
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <span id="bio-nb-anormal" style="font-size:10px;font-weight:bold;color:#e74c3c;display:none;"></span>
+                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:#1a4a7a;">—</span>
+                    <button type="button" onclick="toggleApercu('apercu-bio-dossier',this)"
+                        id="bio-btn-apercu"
+                        style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;"
+                        title="Aperçu rapport">👁</button>
+                </div>
+            </div>
+ 
+            <!-- Aperçu biologie anormale — visible directement -->
+            <div id="apercu-bio-dossier" style="margin-top:4px;">
+                <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;" id="apercu-bio-texte">
+                    <?php
+                    $apercuBioLignes = [];
+                    foreach ($lignesBioActuel as $bl) {
+                        $v = trim($bl['resultat']);
+                        if ($v !== '' && strtoupper($v) !== 'N') {
+                            $apercuBioLignes[] = htmlspecialchars($bl['nom'])
+                                . ' : <strong style="color:#e74c3c;">'
+                                . htmlspecialchars($v) . '</strong>';
+                        }
+                    }
+                    echo $apercuBioLignes
+                        ? implode('<br>', $apercuBioLignes)
+                        : '<span style="color:#999;font-style:italic;">Aucun résultat anormal</span>';
+                    ?>
+                </div>
+            </div>
+ 
+            <!-- Navigation entre bilans -->
+            <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
+                <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</button>
+                <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent">◀</button>
+                <span id="bio-nav-pos" style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;">
+                    <?= $bilansListe ? '1 / '.count($bilansListe) : '0' ?>
+                </span>
+                <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant">▶</button>
+                <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</button>
+                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:10px;" title="Ouvrir module Biologie">✚</a>
+            </div>
+        </div><!-- FIN card biologie -->
+
     </div>
 	
 </div>
@@ -2969,7 +2874,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
         <!-- Header -->
         <div style="background:#1a4a7a;color:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-            <span style="font-weight:bold;font-size:13px;">📋 Motif — Antécédents — Diagnostic — Facteurs de risque</span>
+            <span style="font-weight:bold;font-size:13px;">📋 Motif — Antécédents — Facteurs de risque</span>
             <button onclick="fermerPopupMAD()" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
         </div>
 
@@ -3089,6 +2994,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
                     <input type="text" id="mad_autrechir_detail" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
                 </label>
             </div>
+
 
             <!-- ── Onglet Diagnostic ── -->
             <div id="tab_diag" style="display:none;">

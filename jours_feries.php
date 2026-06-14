@@ -129,6 +129,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
     <span                               class="btn-h grey"  >📅 Fériés</span>
     <!-- TITRE -->

@@ -206,7 +206,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     cursor: pointer; font-size: 11px; text-decoration: none;
 }
 
-.cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
+.cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
 
 .col-card { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 
@@ -307,28 +307,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
            style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
            📄 Rapport
         </a>
-        <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
         <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="margin-left:0;">← Retour dossier</a>
     </div>
-</div>
-
-<!-- ══ BARRE NAVIGATION GLOBALE ══ -->
-<div style="background:#e8f0fa;border-bottom:2px solid #c5d8ed;padding:4px 12px;display:flex;align-items:center;gap:6px;">
-    <span style="font-size:10px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🔀 Navigation globale</span>
-    <div style="display:flex;align-items:center;gap:3px;margin-left:6px;">
-        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#1a4a7a;padding:0 8px;white-space:nowrap;">— nouveau —</span>
-        <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
-        <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
-            style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
-    </div>
-    <span style="font-size:10px;color:#888;margin-left:4px;">← agit simultanément sur Examen · ECG · Echo</span>
 </div>
 
 <div class="cols">
@@ -346,8 +326,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <input type="date" name="DateExam" value="<?= $today ?>" id="date_examen" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
 
-   <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
-      <div style="margin-bottom:2px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
+   <div style="min-height:16px;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
+      <div style="min-height:14px;margin-bottom:4px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('examen','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('examen','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
@@ -567,77 +547,6 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <textarea name="Conduite_ATenir" id="conduite_textarea" style="min-height:70px;" placeholder="Cliquez 📋 pour choisir, ou saisie directe…"></textarea>
     </div>
     </form>
-
-
-    <!-- ══ 🧪 Biologie ══ -->
-    <div style="margin-top:8px;padding-top:6px;border-top:2px solid #e0e0e0;">
-    <div class="col-title">
-        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🧪 Biologie</span>
-        <a href="biologie.php?id=<?= $id ?>" target="_blank"
-           style="background:#e67e22;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:bold;text-decoration:none;white-space:nowrap;">✚ Saisir</a>
-    </div>
-
-    <?php if (empty($bilansNBC)): ?>
-        <p style="color:#999;font-size:11px;">Aucun bilan enregistré</p>
-    <?php else: ?>
-
-    <!-- Historique compact : date + anormaux en surbrillance -->
-    <div style="margin-bottom:10px;">
-        <div class="sec" style="margin-top:0;">Historique (3 derniers)</div>
-        <?php foreach ($bilansNBC as $bNBC):
-            $anormaux = array_filter($bNBC['lignes'], fn($l) => trim($l['resultat']) !== '' && strtoupper(trim($l['resultat'])) !== 'N');
-        ?>
-        <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
-            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
-            <?php if (!empty($anormaux)): ?>
-            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
-            <?php foreach ($anormaux as $an): ?>
-            <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
-                <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
-            </span>
-            <?php endforeach; ?>
-            <?php else: ?>
-            <span style="font-size:10px;color:#27ae60;margin-left:4px;">— Normal</span>
-            <?php endif; ?>
-        </div>
-        <?php endforeach; ?>
-    </div>
-
-    <!-- Détail du bilan sélectionné (navigation) -->
-    <div class="sec">Détail bilan</div>
-
-    <!-- Barre de navigation bilans -->
-    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">
-            <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
-        </span>
-        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
-    </div>
-
-    <!-- Zone résultats du bilan sélectionné -->
-    <div id="bio-nbc-resultats" style="font-size:11px;display:block;">
-        <?php if ($bilansNBC): ?>
-        <?php foreach ($bilansNBC[0]['lignes'] as $lig):
-            $v = trim($lig['resultat']);
-            $an = ($v !== '' && strtoupper($v) !== 'N');
-        ?>
-        <div style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #f8f8f8;">
-            <span style="color:<?= $an ? '#c0392b' : '#aaa' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;">
-                <?= htmlspecialchars($lig['nom']) ?>
-            </span>
-            <span style="color:<?= $an ? '#c0392b' : '#bbb' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
-                <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
-            </span>
-        </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-    <?php endif; ?>
-    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -652,8 +561,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <span style="flex:1;"></span>
         <input type="date" name="Date_ECG" value="<?= $today ?>" id="date_ecg" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
-    <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
-    <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
+    <div style="min-height:16px;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
+    <div style="min-height:14px;margin-bottom:4px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('ecg','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('ecg','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
@@ -839,14 +748,14 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         </div><!-- fin ecg_detail -->
     </div><!-- fin panel_ecg_cases -->
 
-    <!-- 12. C/C + Autres signes ECG côte à côte -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-        <div class="champ" id="wrap_CC"><div class="label-excl"><label>C/C</label><button type="button" class="btn-excl" onclick="toggleExcl('CC')" title="Exclure du rapport">−</button></div>
-            <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:36px;resize:vertical;"></textarea>
-        </div>
-        <div class="champ"><label>Autres signes ECG</label>
-            <input type="text" name="AUTRES_SIGNES">
-        </div>
+    <!-- 12. C/C -->
+    <div class="champ" id="wrap_CC"><div class="label-excl"><label>C/C</label><button type="button" class="btn-excl" onclick="toggleExcl('CC')" title="Exclure du rapport">−</button></div>
+        <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:48px;resize:vertical;"></textarea>
+    </div>
+
+    <!-- Autres signes ECG -->
+    <div class="champ"><label>Autres signes ECG</label>
+        <input type="text" name="AUTRES_SIGNES">
     </div>
 
     <!-- Champs cachés exclusion ECG -->
@@ -865,10 +774,12 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             style="min-height:65px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
     </form>
+</div>
 
-
-    <!-- ══ 🫀 Echo-Doppler ══ -->
-    <div style="margin-top:8px;padding-top:6px;border-top:2px solid #e0e0e0;">
+<!-- ══════════════════════════════════════════════
+     COLONNE 3 : ECHO-DOPPLER
+══════════════════════════════════════════════ -->
+<div class="col-card">
     <form id="form-echo">
     <input type="hidden" name="onglet" value="echo">
     <input type="hidden" name="ajax" value="1">
@@ -877,8 +788,8 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <span style="flex:1;"></span>
         <input type="date" name="DATEchog" value="<?= $today ?>" id="date_echo" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
     </div>
-    <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
-    <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
+    <div style="min-height:16px;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
+    <div style="min-height:14px;margin-bottom:4px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('echo','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
@@ -1283,52 +1194,81 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             oninput="majApercuEcho(); autoResize(this)"></textarea>
     </div>
     </form>
-    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
-     COLONNE 3 : SYNTHÈSE CLINIQUE (lecture seule)
+     COLONNE 4 : BIOLOGIE (lecture seule)
 ══════════════════════════════════════════════ -->
-<div class="col-card">
-
-    <!-- Motif -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">📋 Motif</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+<div class="col-card" id="card-bio-nbc">
+    <div class="col-title">
+        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🧪 Biologie</span>
+        <a href="biologie.php?id=<?= $id ?>" target="_blank"
+           style="background:#e67e22;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:bold;text-decoration:none;white-space:nowrap;">✚ Saisir</a>
     </div>
 
-    <!-- Antécédents -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">📂 Antécédents</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+    <?php if (empty($bilansNBC)): ?>
+        <p style="color:#999;font-size:11px;">Aucun bilan enregistré</p>
+    <?php else: ?>
+
+    <!-- Historique compact : date + anormaux en surbrillance -->
+    <div style="margin-bottom:10px;">
+        <div class="sec" style="margin-top:0;">Historique (3 derniers)</div>
+        <?php foreach ($bilansNBC as $bNBC):
+            $anormaux = array_filter($bNBC['lignes'], fn($l) => trim($l['resultat']) !== '' && strtoupper(trim($l['resultat'])) !== 'N');
+        ?>
+        <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
+            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
+            <?php if (!empty($anormaux)): ?>
+            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
+            <?php foreach ($anormaux as $an): ?>
+            <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
+                <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
+            </span>
+            <?php endforeach; ?>
+            <?php else: ?>
+            <span style="font-size:10px;color:#27ae60;margin-left:4px;">— Normal</span>
+            <?php endif; ?>
+        </div>
+        <?php endforeach; ?>
     </div>
 
-    <!-- Facteurs de risque -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">⚠️ Facteurs de risque</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+    <!-- Détail du bilan sélectionné (navigation) -->
+    <div class="sec">Détail bilan</div>
+
+    <!-- Barre de navigation bilans -->
+    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">
+            <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
+        </span>
+        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
     </div>
 
-    <!-- Diagnostic -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">🩺 Diagnostic</div>
-        <div style="font-size:11px;color:#1a4a7a;font-weight:bold;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-weight:normal;font-style:italic;">—</span>' ?></div>
-    </div>
-
-    <!-- Au total — Conduite à tenir -->
-    <div>
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">🎯 Au total — Conduite à tenir</div>
-        <?php $cat = trim($examen['Conduite_ATenir'] ?? ''); if ($cat): ?>
-        <div style="font-size:11px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:3px;padding:4px 6px;line-height:1.5;white-space:pre-wrap;"><?= htmlspecialchars($cat) ?></div>
-        <?php else: ?>
-        <div style="color:#bbb;font-size:11px;font-style:italic;">—</div>
+    <!-- Zone résultats du bilan sélectionné -->
+    <div id="bio-nbc-resultats" style="font-size:11px;display:block;">
+        <?php if ($bilansNBC): ?>
+        <?php foreach ($bilansNBC[0]['lignes'] as $lig):
+            $v = trim($lig['resultat']);
+            $an = ($v !== '' && strtoupper($v) !== 'N');
+        ?>
+        <div style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #f8f8f8;">
+            <span style="color:<?= $an ? '#c0392b' : '#aaa' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;">
+                <?= htmlspecialchars($lig['nom']) ?>
+            </span>
+            <span style="color:<?= $an ? '#c0392b' : '#bbb' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
+                <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
+            </span>
+        </div>
+        <?php endforeach; ?>
         <?php endif; ?>
     </div>
 
+    <?php endif; ?>
 </div>
 
 </div><!-- FIN cols -->
-
 
 <script>
 /* ══════════════════════════════════════════════════════
@@ -1842,26 +1782,6 @@ function naviguerBilan(type, dir) {
         }
     }).catch(function(e){alert('Erreur : '+e.message);});
 }
-/* ══ Navigation globale (Examen + ECG + Echo simultanément) ══ */
-function naviguerTout(dir) {
-    ['examen','ecg','echo'].forEach(function(type) {
-        naviguerBilan(type, dir);
-    });
-    // Mettre à jour le label global après un court délai (les fetch sont async)
-    setTimeout(function() {
-        var labelEx = document.getElementById('navdate_examen');
-        var lbl = document.getElementById('nav_global_label');
-        if (lbl && labelEx) lbl.textContent = labelEx.textContent;
-    }, 400);
-}
-function nouveauTout() {
-    ['examen','ecg','echo'].forEach(function(type) {
-        nouveauBilan(type);
-    });
-    var lbl = document.getElementById('nav_global_label');
-    if (lbl) lbl.textContent = '— nouveau —';
-}
-
 function nouveauBilan(type) {
     bilanRef[type]=0;
     bilanRang[type] = 0;
@@ -2622,8 +2542,6 @@ function modifierEcho() {
         document.getElementById('cmlm_echo_detail').style.display = 'block';
     }
 }
-
-
 </script>
 
 </body>
