@@ -539,27 +539,63 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     </div>
 
     <!-- Panneau Conduite à tenir (caché par défaut) -->
-    <div id="panel_conduite" style="display:none;border:1px solid #b0c8e8;border-radius:4px;padding:6px 8px;background:#f5f9ff;margin-bottom:4px;">
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal, Apte à l'emploi sollicité"> Examen cardio-vasculaire normal, Apte à l'emploi sollicité</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Contrôle régulier de la TA"> Contrôle régulier de la TA</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Contrôle ECG"> Contrôle ECG</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Adaptation du traitement"> Adaptation du traitement</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Bilan biologique de contrôle"> Bilan biologique de contrôle</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Écho de contrôle à 6 mois"> Écho de contrôle à 6 mois</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="ECG de contrôle"> ECG de contrôle</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Consultation cardiologique trimestrielle"> Consultation cardiologique trimestrielle</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Hospitalisation pour bilan complémentaire"> Hospitalisation pour bilan complémentaire</label>
-        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
-        <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
-            <span style="font-size:11px;">Autres :</span>
-            <input type="text" id="cat_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;" oninput="majConduiteTextarea()">
-        </div>
+    <div id="panel_conduite" style="display:none;border:1px solid #b0c8e8;border-radius:4px;padding:6px 8px;background:#f5f9ff;margin-bottom:4px;max-height:340px;overflow-y:auto;">
+        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:6px 0 2px;border-bottom:1px solid #c5d8ed;padding-bottom:2px;">📋 CMLM</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Son état nécessite"> Son état nécessite</label>
+        <div style="font-size:11px;font-weight:bold;color:#2e6da4;margin:3px 0 1px 10px;">Traitement médical</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Un traitement médical au long cours"> Un traitement médical au long cours</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:30px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Actuellement sous :"> Actuellement sous :</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:30px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Aucun médicament ajouté — cliquez sur [ALD]"> Aucun médicament ajouté — cliquez sur [ALD]</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:30px;"><span style="font-size:11px;white-space:nowrap;">Traitement retenu :</span><input type="text" id="cat_traitement_retenu" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <div style="font-size:11px;font-weight:bold;color:#2e6da4;margin:3px 0 1px 10px;">Une surveillance</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance clinique trimestrielle"> Clinique — trimestrielle</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Clinique — contrôle dans :</span><input type="text" id="cat_surv_clin" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance ECG trimestrielle"> Électrocardiographique — trimestrielle</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">ECG — contrôle dans :</span><input type="text" id="cat_surv_ecg" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle"> Échographique — annuelle</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Écho — contrôle dans :</span><input type="text" id="cat_surv_echo" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance biologique"> Biologique</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Biologie — détail :</span><input type="text" id="cat_surv_bio" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <div style="font-size:11px;font-weight:bold;color:#2e6da4;margin:3px 0 1px 10px;">Avis spécialiste</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis Endocrinologue"> Endocrinologue</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis Neurologue"> Neurologue</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis Néphrologue"> Néphrologue</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis Gastro-entérologue"> Gastro-entérologue</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis Pneumologue"> Pneumologue</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis Chirurgien cardiaque"> Chirurgien cardiaque</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Autre :</span><input type="text" id="cat_avis_autre" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <div style="height:1px;background:#d0dcea;margin:5px 0;"></div>
+        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:6px 0 2px;border-bottom:1px solid #c5d8ed;padding-bottom:2px;">✉️ Lettre de correspondance</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Je vous adresse ce patient pour avis et prise en charge"> Je vous adresse ce patient pour avis et prise en charge</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:10px;"><span style="font-size:11px;white-space:nowrap;">Autre :</span><input type="text" id="cat_lettre_autre" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <div style="height:1px;background:#d0dcea;margin:5px 0;"></div>
+        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:6px 0 2px;border-bottom:1px solid #c5d8ed;padding-bottom:2px;">📋 Compte rendu de l'examen cardio-vasculaire</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Contrôle régulier de la TA"> Contrôle régulier de la TA</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
+        <div style="font-size:11px;font-weight:bold;color:#2e6da4;margin:3px 0 1px 10px;">Adaptation du traitement (voir protocole)</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Patient sous antiagrégants plaquettaires"> Patient sous antiagrégants plaquettaires</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Patient sous AVK (voir protocole)"> Patient sous AVK (voir protocole)</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Patient sous anticoagulants directs"> Patient sous anticoagulants directs</label>
+        <div style="font-size:11px;font-weight:bold;color:#2e6da4;margin:3px 0 1px 10px;">Une surveillance</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance clinique trimestrielle (CR)"> Clinique — trimestrielle</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Clinique — contrôle dans :</span><input type="text" id="cat_cr_clin" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance ECG trimestrielle (CR)"> Électrocardiographique — trimestrielle</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">ECG — contrôle dans :</span><input type="text" id="cat_cr_ecg" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle (CR)"> Échographique — annuelle</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Écho — contrôle dans :</span><input type="text" id="cat_cr_echo" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:20px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Surveillance biologique (CR)"> Biologique</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:20px;"><span style="font-size:11px;white-space:nowrap;">Biologie — détail :</span><input type="text" id="cat_cr_bio" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
+        <div style="height:1px;background:#d0dcea;margin:5px 0;"></div>
+        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:6px 0 2px;border-bottom:1px solid #c5d8ed;padding-bottom:2px;">🏅 Certificat médical d'aptitude physique</div>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
+        <label style="font-size:11px;display:block;margin-bottom:1px;margin-left:10px;cursor:pointer;"><input type="checkbox" class="cat-item" value="Apte à l'emploi sollicité"> Apte à l'emploi sollicité</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;margin-left:10px;"><span style="font-size:11px;white-space:nowrap;">Autre :</span><input type="text" id="cat_apt_autre" placeholder="préciser…" style="flex:1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px;" oninput="majConduiteTextarea()"></div>
         <div style="text-align:right;margin-top:6px;">
             <button type="button"
                 onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
-                style="background:#27ae60;color:white;border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:bold;cursor:pointer;">&#9654; G&eacute;n&eacute;rer &amp; &#128190;</button>
+                style="background:#27ae60;color:white;border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:bold;cursor:pointer;">&#9654; Générer &amp; 💾</button>
         </div>
     </div>
 
@@ -2562,10 +2598,22 @@ function majConduiteTextarea() {
     document.querySelectorAll('.cat-item:checked').forEach(function(cb) {
         if (cb.value) items.push('- ' + cb.value);
     });
-    var autres = document.getElementById('cat_autres');
-    if (autres && autres.value.trim()) items.push('- ' + autres.value.trim());
+    // Champs texte libres
+    var champs = [
+        'cat_traitement_retenu','cat_surv_clin','cat_surv_ecg','cat_surv_echo','cat_surv_bio',
+        'cat_avis_autre','cat_lettre_autre',
+        'cat_cr_clin','cat_cr_ecg','cat_cr_echo','cat_cr_bio',
+        'cat_apt_autre','cat_autres'
+    ];
+    champs.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.value.trim()) items.push('- ' + el.value.trim());
+    });
     var ta = document.getElementById('conduite_textarea');
     if (ta) ta.value = items.join('\n');
+    // Synchroniser avec col 3
+    var ta3 = document.getElementById('conduite_col3');
+    if (ta3) ta3.value = ta ? ta.value : '';
 }
 // Déclencher majConduiteTextarea au changement de chaque case
 document.addEventListener('DOMContentLoaded', function() {

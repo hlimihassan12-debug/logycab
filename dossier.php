@@ -2999,182 +2999,150 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
             <!-- ── Onglet Diagnostic ── -->
             <div id="tab_diag" style="display:none;">
 
-                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_coro" onchange="madToggle(this)"> ▶ Maladies coronaires</label>
-                <div id="md_coro" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angine de poitrine stable"> Angine de poitrine stable</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angine de poitrine instable (suspectée)"> Angine de poitrine instable</label>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syndrome coronarien aigu (suspecté)"> Syndrome coronarien aigu</label>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_idm" onchange="madToggle(this)"> ▶ IDM ancien</label>
-                    <div id="md_idm" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien antérieur"> Antérieur</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien inférieur"> Inférieur</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien latéral"> Latéral</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien — sans séquelles"> Sans séquelles</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien — avec séquelles antérieures"> Séquelles antérieures</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien — avec séquelles inférieures"> Séquelles inférieures</label>
-                    </div>
-                </div>
+                <!-- Cardiopathies ischémiques -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_isch" onchange="madToggle(this)"> ▶ Cardiopathies ischémiques</label>
+                <div id="md_isch" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Coronaropathie"> Coronaropathie</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angor stable"> Angor stable</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angor instable"> Angor instable</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM — STEMI"> IDM — STEMI</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM — NSTEMI"> IDM — NSTEMI</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angor de Prinzmetal"> Angor de Prinzmetal</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Cardiopathie ischémique chronique"> Cardiopathie ischémique chronique</label>
+                </div></div>
 
-                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_ic" onchange="madToggle(this)"> ▶ Insuffisance cardiaque</label>
+                <!-- Insuffisance cardiaque -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_ic" onchange="madToggle(this)"> ▶ Insuffisance cardiaque</label>
                 <div id="md_ic" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_icfer" onchange="madToggle(this)"> ▶ IC-FEr</label>
-                    <div id="md_icfer" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — FE < 40%"> FE &lt; 40%</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — FE 40-49%"> FE 40–49%</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA I"> NYHA I</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA II"> NYHA II</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA III"> NYHA III</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA IV"> NYHA IV</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_icfep" onchange="madToggle(this)"> ▶ IC-FEp</label>
-                    <div id="md_icfep" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — FE ≥ 50%"> FE ≥ 50%</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA I"> NYHA I</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA II"> NYHA II</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA III"> NYHA III</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA IV"> NYHA IV</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_icd" onchange="madToggle(this)"> ▶ IC droite / gauche</label>
-                    <div id="md_icd" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite légère"> IC droite légère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite modérée"> IC droite modérée</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite sévère"> IC droite sévère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche légère"> IC gauche légère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche modérée"> IC gauche modérée</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche sévère"> IC gauche sévère</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_acc" onchange="madToggle(this)"> ▶ Stades ACC/AHA</label>
-                    <div id="md_acc" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade A (à risque)"> Stade A : à risque</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade B (préclinique)"> Stade B : préclinique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade C (symptomatique)"> Stade C : symptomatique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade D (avancée)"> Stade D : avancée</label>
-                    </div>
-                </div>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC à FE réduite"> IC à FE réduite</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC à FE préservée"> IC à FE préservée</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Stade NYHA I"> Stade NYHA I</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Stade NYHA II"> Stade NYHA II</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Stade NYHA III"> Stade NYHA III</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Stade NYHA IV"> Stade NYHA IV</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite"> IC droite</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche"> IC gauche</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC globale"> IC globale</label>
+                </div></div>
 
-                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_valv" onchange="madToggle(this)"> ▶ Maladies valvulaires</label>
+                <!-- Valvulopathies -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_valv" onchange="madToggle(this)"> ▶ Valvulopathies</label>
                 <div id="md_valv" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_sa" onchange="madToggle(this)"> ▶ Sténose aortique</label>
-                    <div id="md_sa" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose aortique légère (grad. < 20 mmHg)"> Légère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose aortique modérée (grad. 20–40 mmHg)"> Modérée</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose aortique sévère (grad. > 40 mmHg)"> Sévère</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_ia" onchange="madToggle(this)"> ▶ Insuffisance aortique</label>
-                    <div id="md_ia" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade I"> Grade I</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade II"> Grade II</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade III"> Grade III</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade IV"> Grade IV</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_sm" onchange="madToggle(this)"> ▶ Sténose mitrale</label>
-                    <div id="md_sm" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose mitrale légère"> Légère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose mitrale modérée"> Modérée</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose mitrale sévère"> Sévère</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_im" onchange="madToggle(this)"> ▶ Insuffisance mitrale</label>
-                    <div id="md_im" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM légère"> Légère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM modérée"> Modérée</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM sévère"> Sévère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM organique — prolapsus"> Organique — prolapsus</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM organique — rhumatismale"> Organique — rhumatismale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM fonctionnelle (secondaire)"> Fonctionnelle</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_it" onchange="madToggle(this)"> ▶ Insuffisance tricuspide</label>
-                    <div id="md_it" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT légère"> Légère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT modérée"> Modérée</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT sévère"> Sévère</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT primitive"> Primitive</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT secondaire (post-HTP)"> Secondaire</label>
-                    </div>
-                </div>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement aortique serré"> Rétrécissement aortique — serré</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement aortique modéré"> Rétrécissement aortique — modéré</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement aortique minime"> Rétrécissement aortique — minime</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance aortique sévère"> Insuffisance aortique — sévère</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance aortique modérée"> Insuffisance aortique — modérée</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance aortique minime"> Insuffisance aortique — minime</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement mitral serré"> Rétrécissement mitral — serré</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement mitral modéré"> Rétrécissement mitral — modéré</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement mitral minime"> Rétrécissement mitral — minime</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance mitrale sévère"> Insuffisance mitrale — sévère</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance mitrale modérée"> Insuffisance mitrale — modérée</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance mitrale minime"> Insuffisance mitrale — minime</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance tricuspide"> Insuffisance tricuspide</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Valvulopathie pulmonaire"> Valvulopathie pulmonaire</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Prothèse valvulaire mécanique"> Prothèse valvulaire — mécanique</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Prothèse valvulaire biologique"> Prothèse valvulaire — biologique</label>
+                </div></div>
 
-                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_myoc" onchange="madToggle(this)"> ▶ Myocardiopathies</label>
-                <div id="md_myoc" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mcd" onchange="madToggle(this)"> ▶ Dilatée</label>
-                    <div id="md_mcd" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — FE < 40%"> FE &lt; 40%</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — FE 40-49%"> FE 40–49%</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — génétique"> Génétique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — toxique"> Toxique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — idiopathique"> Idiopathique</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mch" onchange="madToggle(this)"> ▶ Hypertrophique</label>
-                    <div id="md_mch" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH asymétrique (septale)"> Asymétrique septale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH concentrique"> Concentrique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH apicale"> Apicale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH avec obstruction"> Avec obstruction</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH sans obstruction"> Sans obstruction</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mcr" onchange="madToggle(this)"> ▶ Restrictive</label>
-                    <div id="md_mcr" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCR infiltrative (amylose)"> Infiltrative</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCR non infiltrative"> Non infiltrative</label>
-                    </div>
-                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie arythmogène (suspectée)"> Arythmogène</label>
-                </div>
-
-                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_rythme" onchange="madToggle(this)"> ▶ Troubles du rythme</label>
+                <!-- Troubles du rythme -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_rythme" onchange="madToggle(this)"> ▶ Troubles du rythme</label>
                 <div id="md_rythme" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_fa" onchange="madToggle(this)"> ▶ Fibrillation atriale</label>
-                    <div id="md_fa" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA paroxystique (< 7 j)"> Paroxystique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA persistante (> 7 j)"> Persistante</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA permanente"> Permanente</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA valvulaire"> Valvulaire</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA non valvulaire"> Non valvulaire</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_flutter" onchange="madToggle(this)"> ▶ Flutter atrial</label>
-                    <div id="md_flutter" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter typique (cavotricuspide)"> Typique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter atypique"> Atypique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter gauche"> Gauche</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter droit"> Droit</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_tsv" onchange="madToggle(this)"> ▶ TSV</label>
-                    <div id="md_tsv" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV paroxystique"> Paroxystique</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV nodale"> Nodale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV atriale"> Atriale</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV par WPW"> Par WPW</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_esv" onchange="madToggle(this)"> ▶ ESV / ESA</label>
-                    <div id="md_esv" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV isolées"> ESV isolées</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV bigéminisme"> Bigéminisme</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV trigéminisme"> Trigéminisme</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV couplets"> Couplets</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA isolées"> ESA isolées</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA en salves"> ESA en salves</label>
-                    </div>
-                </div>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Fibrillation auriculaire paroxystique"> FA paroxystique</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Fibrillation auriculaire persistante"> FA persistante</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Fibrillation auriculaire permanente"> FA permanente</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter auriculaire"> Flutter auriculaire</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Tachycardie supraventriculaire"> Tachycardie supraventriculaire</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Tachycardie ventriculaire"> Tachycardie ventriculaire</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Fibrillation ventriculaire"> Fibrillation ventriculaire</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Extrasystoles auriculaires"> Extrasystoles auriculaires</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Extrasystoles ventriculaires"> Extrasystoles ventriculaires</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syndrome de Wolf-Parkinson-White"> Sd de Wolf-Parkinson-White</label>
+                </div></div>
 
-                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_brady" onchange="madToggle(this)"> ▶ Bradyarythmies / conduction</label>
-                <div id="md_brady" style="display:none;margin-left:10px;">
-                    <label style="font-size:10px;display:flex;align-items:center;gap:3px;margin-bottom:1px;">
-                        <input type="checkbox" class="mad-diag" value="Bradycardie sinusale"> Bradycardie sinusale —
-                        FC moy: <input type="text" id="md_fc_moy" placeholder="/min" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                        min: <input type="text" id="md_fc_min" placeholder="/min" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
-                    </label>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bav" onchange="madToggle(this)"> ▶ BAV</label>
-                    <div id="md_bav" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 1er degré (PR > 200 ms)"> 1er degré</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 2e degré Mobitz I (Wenckebach)"> 2e Mobitz I</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 2e degré Mobitz II"> 2e Mobitz II</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 3e degré (complet)"> 3e degré (complet)</label>
-                    </div>
-                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bb" onchange="madToggle(this)"> ▶ Bloc de branche</label>
-                    <div id="md_bb" style="display:none;margin-left:10px;">
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBBD"> BBBD</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBBG"> BBBG</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HBAG"> HBAG</label>
-                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HBAPG"> HBAPG</label>
-                    </div>
-                </div>
+                <!-- Troubles de la conduction -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_cond" onchange="madToggle(this)"> ▶ Troubles de la conduction</label>
+                <div id="md_cond" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV I"> Bloc auriculo-ventriculaire I</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV II"> Bloc auriculo-ventriculaire II</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV III"> Bloc auriculo-ventriculaire III</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Bloc de branche gauche"> Bloc de branche gauche</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Bloc de branche droit"> Bloc de branche droit</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Dysfonction sinusale"> Dysfonction sinusale</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Appareillage : PM"> Appareillage : PM</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Appareillage : DAI"> Appareillage : DAI</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Appareillage : CRT"> Appareillage : CRT</label>
+                </div></div>
+
+                <!-- Myocardiopathies -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_myo" onchange="madToggle(this)"> ▶ Myocardiopathies</label>
+                <div id="md_myo" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie dilatée"> Myocardiopathie dilatée</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie hypertrophique obstructive"> Myocardiopathie hypertrophique obstructive</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie hypertrophique non obstructive"> Myocardiopathie hypertrophique non obstructive</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie restrictive"> Myocardiopathie restrictive</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie de Tako-Tsubo"> Myocardiopathie de Tako-Tsubo</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie péri-partum"> Myocardiopathie péri-partum</label>
+                </div></div>
+
+                <!-- Péricardiopathies -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_peri" onchange="madToggle(this)"> ▶ Péricardiopathies</label>
+                <div id="md_peri" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Péricardite aiguë"> Péricardite aiguë</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Péricardite chronique constrictive"> Péricardite chronique constrictive</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Épanchement péricardique minime"> Épanchement péricardique — minime</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Épanchement péricardique modéré"> Épanchement péricardique — modéré</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Épanchement péricardique abondant"> Épanchement péricardique — abondant</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Tamponnade"> Tamponnade</label>
+                </div></div>
+
+                <!-- HTA -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_hta" onchange="madToggle(this)"> ▶ Hypertension artérielle</label>
+                <div id="md_hta" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA essentielle"> HTA essentielle</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA secondaire"> HTA secondaire</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTAP"> HTAP</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA résistante"> HTA résistante</label>
+                </div></div>
+
+                <!-- Pathologies vasculaires -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_vasc" onchange="madToggle(this)"> ▶ Pathologies vasculaires</label>
+                <div id="md_vasc" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Anévrisme de l'aorte"> Anévrisme de l'aorte</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Dissection aortique"> Dissection aortique</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Artériopathie oblitérante des membres inférieurs"> AOMI</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Thrombose veineuse profonde"> Thrombose veineuse profonde</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Embolie pulmonaire"> Embolie pulmonaire</label>
+                </div></div>
+
+                <!-- Autres -->
+                <div style="break-inside:avoid;margin-bottom:6px;">
+                <label style="font-size:10px;font-weight:bold;color:#1a4a7a;display:block;margin-bottom:2px;cursor:pointer;">
+                    <input type="checkbox" class="mad-parent" data-target="md_autres_diag" onchange="madToggle(this)"> ▶ Autres</label>
+                <div id="md_autres_diag" style="display:none;margin-left:10px;">
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Endocardite infectieuse"> Endocardite infectieuse</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Cardiopathie congénitale"> Cardiopathie congénitale</label>
+                    <label style="display:block;cursor:pointer;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syncope d'origine cardiaque"> Syncope d'origine cardiaque</label>
+                </div></div>
 
             </div><!-- fin tab_diag -->
 
