@@ -25,10 +25,17 @@ if (!empty($patient['DDN'])) {
 }
 
 // ── Diagnostic & ATCD ─────────────────────────────────────────────────────
-$stmtPat2 = $db->prepare("SELECT diagnostic, ATCD FROM ID WHERE [N°PAT] = ?");
+$stmtPat2 = $db->prepare("SELECT DIC1, DIC2, DIC3, DIC4, DIC5, ATCD FROM ID WHERE [N°PAT] = ?");
 $stmtPat2->execute([$id]);
 $patExtra = $stmtPat2->fetch();
-$diagTexte = trim($patExtra['diagnostic'] ?? '');
+$diagParts = array_filter([
+    trim($patExtra['DIC1'] ?? ''),
+    trim($patExtra['DIC2'] ?? ''),
+    trim($patExtra['DIC3'] ?? ''),
+    trim($patExtra['DIC4'] ?? ''),
+    trim($patExtra['DIC5'] ?? ''),
+]);
+$diagTexte = implode(', ', $diagParts);
 $atcdTexte = trim($patExtra['ATCD'] ?? '');
 
 // ── Dernier examen ────────────────────────────────────────────────────────
