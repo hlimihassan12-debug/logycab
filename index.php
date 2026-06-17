@@ -185,7 +185,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <span class="ico">👤</span> Gestion des patients
         </div>
         <div class="module-body">
-            <a href="recherche.php?action=nouveau" class="mod-link">
+            <a href="gestion_patient.php?mode=ajouter" class="mod-link">
                 <span class="ico-s">➕</span> Ajouter un patient
                 <span class="arrow">▶</span>
             </a>
