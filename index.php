@@ -203,13 +203,18 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             <span class="ico">💊</span> Gestion des ordonnances
         </div>
         <div class="module-body">
-            <a href="recherche.php?action=nouveau_medicament" class="mod-link">
+            <a href="gestion_ordonnances.php?ong=1" class="mod-link">
                 <span class="ico-s">➕</span> Ajouter un médicament
                 <span class="arrow">▶</span>
             </a>
             <div class="mod-sep"></div>
-            <a href="recherche.php?action=chercher_ordonnance" class="mod-link">
+            <a href="gestion_ordonnances.php?ong=2" class="mod-link">
                 <span class="ico-s">🔍</span> Chercher une ordonnance
+                <span class="arrow">▶</span>
+            </a>
+            <div class="mod-sep"></div>
+            <a href="gestion_ordonnances.php?ong=3" class="mod-link">
+                <span class="ico-s">📝</span> Rédiger une ordonnance
                 <span class="arrow">▶</span>
             </a>
         </div>
