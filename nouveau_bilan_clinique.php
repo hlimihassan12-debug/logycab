@@ -1379,7 +1379,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <!-- Motif -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
         <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">📋 Motif</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Antécédents -->

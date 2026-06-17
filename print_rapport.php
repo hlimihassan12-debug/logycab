@@ -24,14 +24,10 @@ if (!empty($patient['DDN'])) {
     $ts = strtotime($patient['DDN']);
     if ($ts && $ts > 86400) { $ddn = date('d/m/Y', $ts); $age = (new DateTime($patient['DDN']))->diff(new DateTime())->y; }
 }
-$motif = htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? ''));
-$atcd  = htmlspecialchars(trim($patient['ATCD'] ?? ''));
-$diagRaw = htmlspecialchars(trim($patient['diagnostic'] ?? ''));
-
-$stmtFDR = $db->prepare("SELECT FDR FROM patient_fdr WHERE id = ? ORDER BY N");
-$stmtFDR->execute([$id]);
-$fdrListe = $stmtFDR->fetchAll(PDO::FETCH_COLUMN);
-$fdrTexte = !empty($fdrListe) ? implode(' ; ', array_map('htmlspecialchars', $fdrListe)) : '';
+$motif    = htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? ''));
+$atcd     = htmlspecialchars(trim($patient['ATCD'] ?? ''));
+$diagRaw  = htmlspecialchars(trim($patient['diagnostic'] ?? ''));
+$fdrTexte = htmlspecialchars(trim($patient['CHAMP_FDR'] ?? ''));
 
 $examen = null;
 if (!$excl_examen) {

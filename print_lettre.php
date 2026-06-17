@@ -24,31 +24,22 @@ if (!empty($patient['DDN'])) {
     }
 }
 
-// ── Diagnostic & ATCD ─────────────────────────────────────────────────────
-$stmtPat2 = $db->prepare("SELECT DIC1, DIC2, DIC3, DIC4, DIC5, ATCD FROM ID WHERE [N°PAT] = ?");
-$stmtPat2->execute([$id]);
-$patExtra = $stmtPat2->fetch();
-$diagParts = array_filter([
-    trim($patExtra['DIC1'] ?? ''),
-    trim($patExtra['DIC2'] ?? ''),
-    trim($patExtra['DIC3'] ?? ''),
-    trim($patExtra['DIC4'] ?? ''),
-    trim($patExtra['DIC5'] ?? ''),
-]);
-$diagTexte = implode(', ', $diagParts);
-$atcdTexte = trim($patExtra['ATCD'] ?? '');
+// ── Diagnostic, ATCD, FDR (déjà dans $patient depuis la requête ID) ───────
+$diagTexte = trim($patient['diagnostic'] ?? '');
+$atcdTexte = trim($patient['ATCD'] ?? '');
+$fdrTexte  = trim($patient['CHAMP_FDR'] ?? '');
 
 // ── Dernier examen ────────────────────────────────────────────────────────
 $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC, N1 DESC");
 $stmtEx->execute([$id]);
 $examen = $stmtEx->fetch();
-$texteExamen = trim($examen['Conclusion'] ?? '');
+$texteExamen = trim($examen['CMLM_EXAMEN'] ?? '');
 
 // ── Dernier ECG ───────────────────────────────────────────────────────────
 $stmtECG = $db->prepare("SELECT TOP 1 * FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC, [N°] DESC");
 $stmtECG->execute([$id]);
 $ecg = $stmtECG->fetch();
-$texteECG = $ecg ? trim($ecg['C/C'] ?? '') : '';
+$texteECG = $ecg ? trim($ecg['CMLM_ECG'] ?? '') : '';
 
 // ── Dernier Echo ──────────────────────────────────────────────────────────
 $stmtEcho = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC, [N°] DESC");
@@ -337,6 +328,11 @@ body {
         <?php if ($bioTexte): ?>
         <div class="sous-label">Biologie :</div>
         <div class="editable" contenteditable="true"><?= htmlspecialchars($bioTexte) ?></div>
+        <?php endif; ?>
+
+        <?php if ($fdrTexte): ?>
+        <div class="sous-label">Facteurs de risque :</div>
+        <div class="editable" contenteditable="true"><?= htmlspecialchars($fdrTexte) ?></div>
         <?php endif; ?>
 
     </div>

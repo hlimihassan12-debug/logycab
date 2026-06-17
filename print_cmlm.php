@@ -19,21 +19,11 @@ if (!empty($patient['DDN'])) {
     if ($ts && $ts > 86400) $ddn = date('d/m/Y', $ts);
 }
 
-// ── Diagnostics ───────────────────────────────────────────────────────────
-$stmtD1 = $db->prepare("SELECT diagnostic FROM t_diagnostic WHERE id = ? ORDER BY N_dic");
-$stmtD1->execute([$id]);
-$diag1 = $stmtD1->fetchAll(PDO::FETCH_COLUMN);
+// ── Diagnostic (champ texte libre dans ID) ───────────────────────────────
+$diagTexte = trim($patient['diagnostic'] ?? '');
 
-$stmtD2 = $db->prepare("SELECT DicII FROM T_dianstcII WHERE id = ? ORDER BY N_DIC_II");
-$stmtD2->execute([$id]);
-$diag2 = $stmtD2->fetchAll(PDO::FETCH_COLUMN);
-
-$stmtD3 = $db->prepare("SELECT dic_non_cardio FROM T_id_dic_non_cardio WHERE id = ? ORDER BY N_dic_non_cardio");
-$stmtD3->execute([$id]);
-$diag3 = $stmtD3->fetchAll(PDO::FETCH_COLUMN);
-
-$tousLesdiags = array_filter(array_merge($diag1, $diag2, $diag3));
-$diagTexte = implode(', ', $tousLesdiags);
+// ── Facteurs de risque (CHAMP_FDR dans table ID) ─────────────────────────
+$fdrTexte = htmlspecialchars(trim($patient['CHAMP_FDR'] ?? ''));
 
 // ── Dernier examen ────────────────────────────────────────────────────────
 $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC, N1 DESC");
@@ -294,7 +284,7 @@ body {
 <!-- ── Barre boutons ── -->
 <div class="btn-bar">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
-    <span><?= htmlspecialchars($nomPatient) ?> — CMLM</span>
+    <span><?= htmlspecialchars($nomPatient) ?> — Attestation MLD</span>
     <button class="btn-close" onclick="window.close()">✕ Fermer</button>
 </div>
 
@@ -338,6 +328,13 @@ body {
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen Echo-doppler :</div>
             <textarea class="editable" id="txt_echo" rows="1"><?= htmlspecialchars($texteEcho ?: '—') ?></textarea>
         </div>
+
+        <?php if ($fdrTexte): ?>
+        <div style="margin-bottom:1px;">
+            <div style="font-size:11px;color:#555;margin-bottom:0px;">Facteurs de risque :</div>
+            <textarea class="editable" id="txt_fdr" rows="1"><?= $fdrTexte ?></textarea>
+        </div>
+        <?php endif; ?>
 
         <div style="margin-bottom:1px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen biologique :</div>
