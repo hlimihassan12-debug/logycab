@@ -299,6 +299,11 @@ if ($ordPrecedente && !empty($ordPrecedente['date_ordon'])) {
 
 $acteSugActuel = [];
 foreach ($actesSuggeres as $a) { $acteSugActuel[] = $a['acte']; }
+
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -306,17 +311,18 @@ foreach ($actesSuggeres as $a) { $acteSugActuel[] = $a['acte']; }
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dossier — <?= htmlspecialchars($patient['NOMPRENOM']) ?></title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
-.header { background: #1a4a7a; color: white; padding: 5px 12px; display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; }
+body { font-family: var(--th-font-body); background: var(--th-bg-page); font-size: 13px; color: var(--th-color-text); }
+.header { background: var(--th-bg-header-s); color: white; padding: 5px 12px; display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; }
 .header h1 { font-size: 14px; font-weight: 700; white-space: nowrap; }
 .btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
          padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 24px; white-space: nowrap; }
 .btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; border: 1px solid rgba(255,255,255,0.3); }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.navy   { background: var(--th-btn-navy); border: 1px solid rgba(255,255,255,0.3); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.red    { background: #e74c3c; }
@@ -333,7 +339,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
                 padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
-.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 .patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
@@ -343,15 +349,15 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .col-left { display: flex; flex-direction: column; gap: 8px; }
 .col-mid  { display: flex; flex-direction: column; gap: 8px; }
 .col-right{ display: flex; flex-direction: column; gap: 8px; }
-.card { background: white; border-radius: 6px; padding: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-.card-title { color: #1a4a7a; font-size: 12px; font-weight: bold; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+.card { background: var(--th-bg-card); border-radius: 6px; padding: 10px; box-shadow: 0 1px 4px var(--th-border-card); }
+.card-title { color: var(--th-color-primary); font-size: 12px; font-weight: bold; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid var(--th-border-statsbar); display: flex; justify-content: space-between; align-items: center; }
 .nav-btns { display: flex; gap: 3px; }
-.nav-btn { background: #1a4a7a; color: white; border: none; padding: 3px 7px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
-.nav-btn:hover { background: #2e6da4; }
-.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 3px; margin-top: 14px; padding-top: 10px; border-top: 2px solid #e0e0e0; }
+.nav-btn { background: var(--th-btn-navy); color: white; border: none; padding: 3px 7px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
+.nav-btn:hover { background: var(--th-color-secondary); }
+.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 3px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); }
 .champ { margin-bottom: 6px; }
-.champ label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
-.champ input, .champ select, .champ textarea { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; }
+.champ label { font-size: 10px; color: var(--th-color-text-muted); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
+.champ input, .champ select, .champ textarea { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; color: #222; background:var(--th-bg-card); }
 .champ textarea { resize: vertical; height: auto; overflow: hidden; field-sizing: content; }
 .diag-bloc { display:flex; flex-direction:column; gap:3px; margin-bottom:4px; }
 .diag-ligne { display:flex; gap:4px; align-items:center; }
@@ -362,9 +368,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .creneau-btn.libre  { background: #27ae60; color: white; border-color: #1e8449; }
 .creneau-btn.moyen  { background: #f39c12; color: white; border-color: #d68910; }
 .creneau-btn.plein  { background: #e74c3c; color: #fdd; border-color: #c0392b; cursor: not-allowed; opacity: 0.7; }
-.creneau-btn.selectionne { border-color: #1a4a7a !important; box-shadow: 0 0 0 3px rgba(26,74,122,0.35); transform: scale(1.1); }
+.creneau-btn.selectionne { border-color: var(--th-btn-navy) !important; box-shadow: 0 0 0 3px rgba(26,74,122,0.35); transform: scale(1.1); }
 .creneaux-msg     { font-size: 11px; color: #e74c3c; margin-top: 4px; font-weight: bold; }
-.creneaux-loading { font-size: 11px; color: #888; font-style: italic; margin-top: 4px; }
+.creneaux-loading { font-size: 11px; color: var(--th-color-text-muted); font-style: italic; margin-top: 4px; }
 .jauge-jour { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; }
 .jauge-bar  { flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
 .jauge-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
@@ -374,12 +380,12 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .row-bottom { padding: 0 8px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ta-val { font-size: 16px; font-weight: bold; }
 .fdr-badge { background: #ffe0e0; color: #c0392b; padding: 1px 6px; border-radius: 8px; font-size: 11px; margin: 1px; display: inline-block; }
-.delai-btn-rdv { padding: 3px 8px; border: 1px solid #8e44ad; border-radius: 3px; cursor: pointer; font-size: 11px; background: white; color: #8e44ad; }
+.delai-btn-rdv { padding: 3px 8px; border: 1px solid #8e44ad; border-radius: 3px; cursor: pointer; font-size: 11px; background:var(--th-bg-card); color: #8e44ad; }
 .delai-btn-rdv:hover, .delai-btn-rdv.actif { background: #8e44ad; color: white; }
 .tableau-rdv { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 .tableau-rdv th { padding: 7px 6px; text-align: center; font-size: 11px; }
-.tableau-rdv td { padding: 5px 6px; border-bottom: 1px solid #e8e8e8; }
-.tableau-rdv td:first-child { background: #f0f4f8; font-size: 11px; font-weight: bold; color: #1a4a7a; text-align: right; white-space: nowrap; }
+.tableau-rdv td { padding: 5px 6px; border-bottom: 1px solid var(--th-sep-color); color: var(--th-color-text); }
+.tableau-rdv td:first-child { background: var(--th-bg-link-hover); font-size: 11px; font-weight: bold; color: var(--th-color-primary); text-align: right; white-space: nowrap; }
 .tableau-rdv tr:last-child td { border-bottom: none; }
 .col-visite   { background: #e8f8ee; }
 .col-rdv-fixe { background: #e8f0fb; }
@@ -388,7 +394,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
 /* ── Vue bascule ── */
 .btn-vue { padding:3px 10px; border-radius:4px; border:none; cursor:pointer; font-size:11px; font-weight:bold; color:white; height:24px; }
-.btn-vue.actif  { background:#1a4a7a; opacity:1; }
+.btn-vue.actif  { background:var(--th-btn-navy); opacity:1; }
 .btn-vue.inactif{ background:rgba(255,255,255,0.25); opacity:0.7; }
 .btn-vue.inactif:hover { opacity:1; }
 #btn-vue-consultation { display: none; }
@@ -396,10 +402,10 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 /* ── Tableau accueil ── */
 .tbl-acc { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; border-radius:6px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.12); }
 .tbl-acc th { padding:6px 8px; text-align:center; font-size:11px; }
-.tbl-acc td { padding:5px 7px; border-bottom:1px solid #e8e8e8; text-align:center; font-size:12px; }
-.tbl-acc td:first-child { background:#f0f4f8; font-size:11px; font-weight:bold; color:#1a4a7a; text-align:right; white-space:nowrap; }
+.tbl-acc td { padding:5px 7px; border-bottom:1px solid var(--th-sep-color); text-align:center; font-size:12px; color: var(--th-color-text); }
+.tbl-acc td:first-child { background:var(--th-bg-link-hover); font-size:11px; font-weight:bold; color:var(--th-color-primary); text-align:right; white-space:nowrap; }
 .tbl-acc tr:last-child td { border-bottom:none; }
-.cell-rdv-prochain { background:#f3eafb; cursor:pointer; transition:background 0.2s; }
+.cell-rdv-prochain { background:#f3eafb; cursor:pointer; transition:background 0.2s; color:#333; }
 .cell-rdv-prochain:hover { background:#e8d5f5; }
 .cell-rdv-vide { color:#ccc; font-size:18px; }
 
@@ -407,21 +413,21 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .popup-rdv-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; }
 .popup-rdv-ov.ouvert { display:flex !important; }
-.popup-rdv-box { background:white; border-radius:10px; padding:0; max-width:420px; width:96%;
+.popup-rdv-box { background:var(--th-bg-card); border-radius:10px; padding:0; max-width:420px; width:96%;
     box-shadow:0 10px 40px rgba(0,0,0,0.3); overflow:hidden; }
 .popup-rdv-header { background:#8e44ad; color:white; padding:12px 16px;
     display:flex; justify-content:space-between; align-items:center; }
-.popup-rdv-body { padding:14px 16px; }
+.popup-rdv-body { padding:14px 16px; color:#222; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- HEADER -->
 <div class="header">
     <!-- GAUCHE : recherche globale avec suggestions -->
     <div class="search-hdr-wrap">
         <input class="search-hdr" type="text" id="rech-patient" placeholder="🔍 Rechercher patient...">
-        <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:white;
+        <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:var(--th-bg-card);
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
@@ -503,7 +509,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
     <!-- Remarque patient -->
     <div class="card" style="flex:1;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:4px;">📝 Remarque</div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">📝 Remarque</div>
         <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
             style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:80px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
@@ -605,7 +611,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         ?>
 
         <!-- Recrutement accueil -->
-        <div style="font-size:11px;color:#555;margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--th-color-text-muted);margin-bottom:6px;">
             <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
         </div>
 
@@ -693,16 +699,16 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <!-- MÉDICAMENTS (identique) -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
                 <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
                 <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
             </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
-                <span style="font-size:10px;color:#888;text-transform:uppercase;">Médicament</span>
-                <span style="font-size:10px;color:#888;text-transform:uppercase;">Posologie</span>
-                <span style="font-size:10px;color:#888;text-transform:uppercase;">Durée</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Médicament</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Posologie</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Durée</span>
             </div>
             <?php foreach ($medicaments as $m): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
@@ -711,7 +717,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
             </div>
             <?php endforeach; ?>
-            <?php else: ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
+            <?php else: ?><p style="color:var(--th-color-text-muted);font-size:12px;">Aucun médicament</p><?php endif; ?>
         </div>
 
         </div><!-- FIN COL GAUCHE ACCUEIL -->
@@ -720,7 +726,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <!-- FACTURATION ACCUEIL (sans colonne Prix) -->
         <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:bold;color:#1a4a7a;">💰 Facturation</span>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">💰 Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php $tsFA=strtotime($factCourante['date_facture']??''); $dfA=($tsFA&&$tsFA>86400)?date('d/m/Y',$tsFA):'—'; $estAujFA=($tsFA&&date('Y-m-d',$tsFA)===date('Y-m-d')); ?>
                 <div style="text-align:right;">
@@ -742,7 +748,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tbody>
                 <?php foreach ($detailActes as $da): ?>
                 <tr style="border-bottom:1px solid #eee;">
-                    <td style="padding:4px 6px;color:#555;font-size:11px;"><?= $da['date-H'] ? date('d/m/Y',strtotime($da['date-H'])) : '—' ?></td>
+                    <td style="padding:4px 6px;color:var(--th-color-text-muted);font-size:11px;"><?= $da['date-H'] ? date('d/m/Y',strtotime($da['date-H'])) : '—' ?></td>
                     <td style="padding:4px 6px;"><?= htmlspecialchars($da['nom_acte'] ?? 'Acte '.$da['ACTE']) ?></td>
                     <td style="padding:4px 6px;text-align:right;"><?= number_format($da['Versé'],0,',',' ') ?></td>
                     <td style="padding:4px 6px;text-align:right;color:<?=$da['dette']>0?'#e74c3c':'#27ae60'?>;"><?= number_format($da['dette'],0,',',' ') ?></td>
@@ -760,13 +766,13 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;">
                 <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
-                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
+                <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
                 <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
             </div>
             <?php else: ?>
-            <p style="color:#999;font-size:12px;">Aucune facture</p>
+            <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
             <div style="display:flex;justify-content:center;margin-top:8px;">
                 <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
             </div>
@@ -775,8 +781,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <!-- FORMULAIRE NOUVELLE FACTURE — vue Accueil -->
             <div id="formNouvelleFacture_acc" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
+                    <strong style="color:var(--th-color-primary);font-size:12px;">Nouvelle facture</strong>
+                    <button type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
@@ -815,7 +821,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
             <button type="button"
                 onclick="var z=document.getElementById('cert-zone-acc');z.style.display=z.style.display==='none'?'block':'none'"
-                style="background:white;color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
+                style="background:var(--th-bg-card);color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
                 Certificat médical
             </button>
             <div id="cert-zone-acc" style="display:none;background:#f0f4f8;border-radius:6px;padding:8px;margin-top:8px;border:1px solid #dde3ea;">
@@ -839,7 +845,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div class="nav-ord-barre">
             <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
-            <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
+            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
             <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;" title="Nouvelle ordonnance">✚</button>
@@ -855,7 +861,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div id="section-consultation" style="display:none;">
 
         <!-- Recrutement consultation -->
-        <div style="font-size:11px;color:#555;margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--th-color-text-muted);margin-bottom:6px;">
             <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
         </div>
 
@@ -934,7 +940,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                             </div>
                         </div>
                         <div class="jauge-jour" id="rdv_jauge_cons" style="display:none;">
-                            <span id="rdv_jauge_txt_cons" style="white-space:nowrap;color:#555;font-size:10px;"></span>
+                            <span id="rdv_jauge_txt_cons" style="white-space:nowrap;color:var(--th-color-text-muted);font-size:10px;"></span>
                             <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill_cons" style="width:0%"></div></div>
                         </div>
                         <div class="creneaux-wrap">
@@ -982,7 +988,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <!-- MÉDICAMENTS -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:#1a4a7a;margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
                 <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
                 <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
@@ -1004,9 +1010,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;margin-top:4px;">
-                <span style="font-size:10px;color:#888;text-transform:uppercase;">Médicament</span>
-                <span style="font-size:10px;color:#888;text-transform:uppercase;">Posologie</span>
-                <span style="font-size:10px;color:#888;text-transform:uppercase;">Durée</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Médicament</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Posologie</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Durée</span>
             </div>
             <?php foreach ($medicaments as $m): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
@@ -1015,7 +1021,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
             </div>
             <?php endforeach; ?>
-            <?php else: ?><p style="color:#999;font-size:12px;">Aucun médicament</p><?php endif; ?>
+            <?php else: ?><p style="color:var(--th-color-text-muted);font-size:12px;">Aucun médicament</p><?php endif; ?>
         </div>
         </div><!-- FIN COL GAUCHE -->
 
@@ -1080,14 +1086,14 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <div style="display:flex;justify-content:center;gap:2px;margin-top:6px;">
                 <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
-                <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
+                <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
                 <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
             </div>
             <?php else: ?>
-                <p style="color:#999;font-size:12px;">Aucune facture</p>
+                <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
                 <div style="display:flex;justify-content:center;margin-top:8px;">
                     <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
                 </div>
@@ -1097,8 +1103,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <!-- FORMULAIRE NOUVELLE FACTURE -->
             <div id="formNouvelleFacture_cons" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <strong style="color:#1a4a7a;font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:#999;font-size:14px;">✕</button>
+                    <strong style="color:var(--th-color-primary);font-size:12px;">Nouvelle facture</strong>
+                    <button type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
@@ -1139,7 +1145,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- BOUTON CERTIFICAT -->
                 <button type="button"
                     onclick="var z=document.getElementById('cert-zone');z.style.display=z.style.display==='none'?'block':'none'"
-                    style="background:white;color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
+                    style="background:var(--th-bg-card);color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
                     Certificat médical
                 </button>
 
@@ -1167,7 +1173,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div class="nav-ord-barre">
             <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
-            <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
+            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
             <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;" title="Nouvelle ordonnance">✚</button>
@@ -1183,7 +1189,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <!-- Motif de consultation -->
             <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">📋 Motif</span>
+                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">📋 Motif</span>
                     <div style="display:flex;gap:3px;">
                         <button type="button" onclick="ouvrirPopupMAD('motif')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Motif">📋</button>
                         <button type="button" onclick="viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
@@ -1197,7 +1203,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <!-- Antécédents -->
             <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">📂 Antécédents</span>
+                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">📂 Antécédents</span>
                     <div style="display:flex;gap:3px;">
                         <button type="button" onclick="ouvrirPopupMAD('atcd')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Antécédents">📋</button>
                         <button type="button" onclick="viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
@@ -1211,7 +1217,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <!-- Facteurs de risque -->
             <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">⚠️ Facteurs de risque</span>
+                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">⚠️ Facteurs de risque</span>
                     <div style="display:flex;gap:3px;">
                         <button type="button" onclick="ouvrirPopupMAD('fdr')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Facteurs de risque">📋</button>
                         <button type="button" onclick="viderChamp('champ_fdr','CHAMP_FDR')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
@@ -1225,7 +1231,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <!-- Diagnostic -->
             <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:#1a4a7a;">🩺 Diagnostic</span>
+                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">🩺 Diagnostic</span>
                     <div style="display:flex;gap:3px;">
                         <button type="button" onclick="ouvrirPopupMAD('diag')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Diagnostic">📋</button>
                         <button type="button" onclick="viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
@@ -1241,11 +1247,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         </div><!-- FIN section-consultation -->
 
         <?php else: ?>
-            <p style="color:#999;font-size:12px;">Aucune ordonnance</p>
+            <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune ordonnance</p>
             <div class="nav-ord-barre">
                 <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn">|◀</a>
                 <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn">◀</a>
-                <span style="font-size:12px;color:#1a4a7a;font-weight:bold;padding:3px 10px;white-space:nowrap;background:#f0f4f8;border-radius:4px;border:1px solid #dde3ea;">0 / 0</span>
+                <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);">0 / 0</span>
                 <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
                 <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
                 <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;">✚</button>
@@ -1281,10 +1287,10 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 
     <!-- Barre navigation globale — en tête de col-right -->
     <div style="background:#e8f0fa;border:1px solid #c5d8ed;border-radius:5px;padding:4px 8px;display:flex;align-items:center;gap:3px;">
-        <span style="font-size:10px;font-weight:bold;color:#1a4a7a;white-space:nowrap;margin-right:4px;">🔀</span>
+        <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;margin-right:4px;">🔀</span>
         <a href="<?= $urlFirst ?>" class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus récent (tous)">|◀</a>
         <a href="<?= $urlPrev ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Précédent (tous)">◀</a>
-        <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;flex:1;text-align:center;"><?= $labelNav ?> <span style="color:#888;font-weight:normal;">(<?= $posExam ?>)</span></span>
+        <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;flex:1;text-align:center;"><?= $labelNav ?> <span style="color:var(--th-color-text-muted);font-weight:normal;">(<?= $posExam ?>)</span></span>
         <a href="<?= $urlNext ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Suivant (tous)">▶</a>
         <a href="<?= $urlLast ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus ancien (tous)">▶|</a>
         <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 5px;font-size:11px;margin-left:2px;" title="Nouveau bilan">✚</a>
@@ -1295,7 +1301,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
         <?php
             $dateExamRaw = $examen['DateExam'] ?? null;
             $dateExamAff = '—';
-            $dateExamStyle = 'font-size:11px;font-weight:bold;color:#1a4a7a;';
+            $dateExamStyle = 'font-size:11px;font-weight:bold;color:var(--th-color-primary);';
             if ($dateExamRaw) {
                 $tsExam = strtotime($dateExamRaw);
                 if ($tsExam && $tsExam > 86400) {
@@ -1308,25 +1314,25 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             }
         ?>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🩺 Examen</span>
+            <span style="color:var(--th-color-primary);font-size:12px;font-weight:bold;">🩺 Examen</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
             </div>
         </div>
         <?php if ($examen && !empty($examen['CMLM_EXAMEN'])): ?>
-        <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($examen['CMLM_EXAMEN'])) ?>
         </div>
         <?php elseif ($examen): ?>
-            <p style="color:#999;font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
+            <p style="color:var(--th-color-text-muted);font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
-            <p style="color:#999;font-size:12px;">Aucun examen enregistré</p>
+            <p style="color:var(--th-color-text-muted);font-size:12px;">Aucun examen enregistré</p>
         <?php endif; ?>
         <!-- Navigation Examen en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
+            <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
@@ -1338,24 +1344,24 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span>⚡ ECG</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
-                <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
+                <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <?php if ($ecgCourant && !empty($ecgCourant['CMLM_ECG'])): ?>
-        <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($ecgCourant['CMLM_ECG'])) ?>
         </div>
         <?php elseif ($ecgCourant): ?>
-            <p style="color:#999;font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
+            <p style="color:var(--th-color-text-muted);font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
-            <p style="color:#999;font-size:11px;">Aucun ECG enregistré</p>
+            <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun ECG enregistré</p>
         <?php endif; ?>
         <!-- Navigation ECG en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
+            <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
@@ -1368,24 +1374,24 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span>🫀 Echo-Doppler</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
-                <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
+                <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <?php if ($echoCourant && !empty($echoCourant['CMLM_ECHO'])): ?>
-        <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($echoCourant['CMLM_ECHO'])) ?>
         </div>
         <?php elseif ($echoCourant): ?>
-            <p style="color:#999;font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
+            <p style="color:var(--th-color-text-muted);font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
-            <p style="color:#999;font-size:11px;">Aucun Echo enregistré</p>
+            <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun Echo enregistré</p>
         <?php endif; ?>
         <!-- Navigation Echo en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
+            <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
@@ -1395,10 +1401,10 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 <!-- ══ BIOLOGIE COMPACT ══ -->
         <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:#1a4a7a;font-size:12px;font-weight:bold;">🧪 Biologie</span>
+                <span style="color:var(--th-color-primary);font-size:12px;font-weight:bold;">🧪 Biologie</span>
                 <div style="display:flex;align-items:center;gap:5px;">
                     <span id="bio-nb-anormal" style="font-size:10px;font-weight:bold;color:#e74c3c;display:none;"></span>
-                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:#1a4a7a;">—</span>
+                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:var(--th-color-primary);">—</span>
                     <button type="button" onclick="toggleApercu('apercu-bio-dossier',this)"
                         id="bio-btn-apercu"
                         style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;"
@@ -1408,7 +1414,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
  
             <!-- Aperçu biologie anormale — visible directement -->
             <div id="apercu-bio-dossier" style="margin-top:4px;">
-                <div style="background:#f0f7ff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#1a4a7a;line-height:1.6;" id="apercu-bio-texte">
+                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;" id="apercu-bio-texte">
                     <?php
                     $apercuBioLignes = [];
                     foreach ($lignesBioActuel as $bl) {
@@ -1421,7 +1427,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                     }
                     echo $apercuBioLignes
                         ? implode('<br>', $apercuBioLignes)
-                        : '<span style="color:#999;font-style:italic;">Aucun résultat anormal</span>';
+                        : '<span style="color:var(--th-color-text-muted);font-style:italic;">Aucun résultat anormal</span>';
                     ?>
                 </div>
             </div>
@@ -1430,7 +1436,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
                 <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</button>
                 <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent">◀</button>
-                <span id="bio-nav-pos" style="font-size:10px;color:#1a4a7a;font-weight:bold;padding:0 4px;white-space:nowrap;">
+                <span id="bio-nav-pos" style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;">
                     <?= $bilansListe ? '1 / '.count($bilansListe) : '0' ?>
                 </span>
                 <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant">▶</button>
@@ -1447,18 +1453,18 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 
 <!-- ══ POPUP NOUVELLE ORDONNANCE ══ -->
 <div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
-    <div style="background:white;border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
+    <div style="background:var(--th-bg-card);border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #27ae60;">
             <strong style="color:#27ae60;font-size:15px;">✚ Nouvelle ordonnance</strong>
             <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div>
-                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
+                <label style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
                 <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;">
             </div>
             <div>
-                <label style="font-size:10px;color:#555;font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
+                <label style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
                 <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
                        style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
@@ -1486,7 +1492,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <div id="no_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
             </div>
             <div class="jauge-jour" id="no_jauge" style="display:none;">
-                <span id="no_jauge_txt" style="white-space:nowrap;color:#555;font-size:11px;"></span>
+                <span id="no_jauge_txt" style="white-space:nowrap;color:var(--th-color-text-muted);font-size:11px;"></span>
                 <div class="jauge-bar"><div class="jauge-fill ok" id="no_jauge_fill" style="width:0%"></div></div>
             </div>
             <div class="creneaux-wrap">
@@ -1495,7 +1501,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <div class="creneaux-grille"  id="no_grille"></div>
             </div>
         </div>
-        <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin-bottom:8px;">💊 Médicaments :</div>
+        <div style="font-size:12px;font-weight:bold;color:var(--th-color-primary);margin-bottom:8px;">💊 Médicaments :</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
             <thead style="background:#1a4a7a;color:white;">
                 <tr>
@@ -1702,9 +1708,9 @@ function jfAfficher(data, onChoix) {
     document.body.insertAdjacentHTML('beforeend', `
     <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
          background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
-        <div style="background:white;border-radius:10px;padding:24px 28px;
+        <div style="background:var(--th-bg-card);border-radius:10px;padding:24px 28px;
                     max-width:500px;width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
-            <div style="font-size:14px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">${titre}</div>
+            <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">${titre}</div>
             <div style="font-size:12px;color:#666;margin-bottom:18px;">${sousTitre}</div>
             <div id="jf-btns" style="display:flex;flex-wrap:wrap;gap:8px;">${btns}</div>
             <div id="jf-datepicker" style="display:none;margin-top:14px;">
@@ -2325,7 +2331,7 @@ async function bioCharger(n_bilan, idx) {
     // Afficher toutes les lignes (anormaux en rouge, normaux en gris)
     const zone = document.getElementById('bio-resultats');
     if (!res.lignes.length) {
-        zone.innerHTML = '<span style="color:#999;font-size:11px;">Bilan vide</span>';
+        zone.innerHTML = '<span style="color:var(--th-color-text-muted);font-size:11px;">Bilan vide</span>';
     } else {
         zone.innerHTML = res.lignes.map(l => {
             const v  = l.resultat || '';
@@ -2346,7 +2352,7 @@ async function bioCharger(n_bilan, idx) {
         const lignesAn = res.lignes.filter(l => l.resultat && l.resultat.toUpperCase() !== 'N');
         apercuTexte.innerHTML = lignesAn.length
             ? lignesAn.map(l => `${l.nom} : <strong style="color:#e74c3c;">${l.resultat}</strong>`).join('<br>')
-            : '<span style="color:#999;">Aucun résultat anormal</span>';
+            : '<span style="color:var(--th-color-text-muted);">Aucun résultat anormal</span>';
     }
  
     // Afficher bouton aperçu 👁 si le bilan a des lignes
@@ -2412,7 +2418,7 @@ function calcNbrJAcc() {
             </div>
             <!-- Jauge -->
             <div class="jauge-jour" id="rdv_jauge" style="display:none;">
-                <span id="rdv_jauge_txt" style="white-space:nowrap;color:#555;font-size:10px;"></span>
+                <span id="rdv_jauge_txt" style="white-space:nowrap;color:var(--th-color-text-muted);font-size:10px;"></span>
                 <div class="jauge-bar"><div class="jauge-fill ok" id="rdv_jauge_fill" style="width:0%"></div></div>
             </div>
             <!-- Grille créneaux -->
@@ -2445,7 +2451,7 @@ function calcNbrJAcc() {
 <!-- ══ MODALE MENU RAPPORTS ══════════════════════════════════════════════ -->
 <div id="modal-rapports-menu" style="display:none;position:fixed;top:42px;right:18px;
      z-index:99999;">
-    <div style="background:white;border-radius:10px;width:320px;
+    <div style="background:var(--th-bg-card);border-radius:10px;width:320px;
                 box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
         <div style="background:#c0392b;color:white;padding:8px 14px;
                     display:flex;align-items:center;justify-content:space-between;">
@@ -2490,7 +2496,7 @@ function calcNbrJAcc() {
 
 <div id="modal-rapport" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
      background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:10px;width:380px;max-width:96%;
+    <div style="background:var(--th-bg-card);border-radius:10px;width:380px;max-width:96%;
                 box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
         <!-- Header -->
         <div style="background:#c0392b;color:white;padding:10px 16px;
@@ -2501,13 +2507,13 @@ function calcNbrJAcc() {
         </div>
         <!-- Corps -->
         <div style="padding:16px;">
-            <div id="rapport-loading" style="text-align:center;color:#888;font-size:12px;padding:20px 0;">
+            <div id="rapport-loading" style="text-align:center;color:var(--th-color-text-muted);font-size:12px;padding:20px 0;">
                 Chargement des dates…
             </div>
             <div id="rapport-contenu" style="display:none;">
                 <!-- Ligne Examen -->
                 <div id="ligne-examen" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#1a4a7a;">🩺 Examen clinique :</span>
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Examen clinique :</span>
                     <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
                     <button onclick="toggleExclusionRubrique('examen')" id="btn-excl-examen"
                         title="Exclure cette rubrique du rapport"
@@ -2516,7 +2522,7 @@ function calcNbrJAcc() {
                 </div>
                 <!-- Ligne ECG -->
                 <div id="ligne-ecg" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#1a4a7a;">📈 ECG :</span>
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">📈 ECG :</span>
                     <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
                     <button onclick="toggleExclusionRubrique('ecg')" id="btn-excl-ecg"
                         title="Exclure cette rubrique du rapport"
@@ -2525,7 +2531,7 @@ function calcNbrJAcc() {
                 </div>
                 <!-- Ligne Echo -->
                 <div id="ligne-echo" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#1a4a7a;">🫀 Echo-Doppler :</span>
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">🫀 Echo-Doppler :</span>
                     <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
                     <button onclick="toggleExclusionRubrique('echo')" id="btn-excl-echo"
                         title="Exclure cette rubrique du rapport"
@@ -2870,7 +2876,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
 <!-- ══ POPUP Motif / Antécédents / Diagnostic ══ -->
 <div id="popup-mad" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow:hidden;">
-    <div style="background:white;border-radius:8px;width:820px;max-width:98vw;max-height:92vh;margin:2vh auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+    <div style="background:var(--th-bg-card);border-radius:8px;width:820px;max-width:98vw;max-height:92vh;margin:2vh auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
 
         <!-- Header -->
         <div style="background:#1a4a7a;color:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -2880,10 +2886,10 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
         <!-- Onglets -->
         <div style="display:flex;border-bottom:2px solid #e0e0e0;flex-shrink:0;">
-            <button id="ong_motif" onclick="switchOnglet('motif')" style="flex:1;padding:7px 4px;border:none;background:#e8f0fa;font-size:11px;font-weight:bold;cursor:pointer;color:#1a4a7a;border-bottom:2px solid #1a4a7a;">Motif</button>
-            <button id="ong_atcd" onclick="switchOnglet('atcd')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:11px;cursor:pointer;color:#555;">Antécédents</button>
-            <button id="ong_diag" onclick="switchOnglet('diag')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:11px;cursor:pointer;color:#555;">Diagnostic</button>
-            <button id="ong_fdr" onclick="switchOnglet('fdr')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:11px;cursor:pointer;color:#555;">Fact. risque</button>
+            <button id="ong_motif" onclick="switchOnglet('motif')" style="flex:1;padding:7px 4px;border:none;background:#e8f0fa;font-size:11px;font-weight:bold;cursor:pointer;color:var(--th-color-primary);border-bottom:2px solid #1a4a7a;">Motif</button>
+            <button id="ong_atcd" onclick="switchOnglet('atcd')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:11px;cursor:pointer;color:var(--th-color-text-muted);">Antécédents</button>
+            <button id="ong_diag" onclick="switchOnglet('diag')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:11px;cursor:pointer;color:var(--th-color-text-muted);">Diagnostic</button>
+            <button id="ong_fdr" onclick="switchOnglet('fdr')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:11px;cursor:pointer;color:var(--th-color-text-muted);">Fact. risque</button>
         </div>
 
         <!-- Contenu scrollable -->
@@ -2906,7 +2912,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
             <!-- ── Onglet Antécédents ── -->
             <div id="tab_atcd" style="display:none;">
                 <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="Antécédents absents"> Absents</label>
-                <div style="font-size:9px;font-weight:bold;color:#1a4a7a;margin:4px 0 1px;">🏥 Antécédents médicaux</div>
+                <div style="font-size:9px;font-weight:bold;color:var(--th-color-primary);margin:4px 0 1px;">🏥 Antécédents médicaux</div>
 
                 <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_cardio" onchange="madToggle(this)"> ▶ Cardiovasculaires</label>
                 <div id="ma_cardio" style="display:none;margin-left:10px;">
@@ -2973,7 +2979,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
                     </label>
                 </div>
 
-                <div style="font-size:9px;font-weight:bold;color:#1a4a7a;margin:4px 0 1px;">🔪 Antécédents chirurgicaux</div>
+                <div style="font-size:9px;font-weight:bold;color:var(--th-color-primary);margin:4px 0 1px;">🔪 Antécédents chirurgicaux</div>
                 <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="ma_chir_card" onchange="madToggle(this)"> ▶ Chirurgie cardiaque</label>
                 <div id="ma_chir_card" style="display:none;margin-left:10px;">
                     <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-atcd" value="ATCD chir. : Pontage coronarien (CABG)"> Pontage coronarien (CABG)</label>
@@ -2999,299 +3005,184 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
             <!-- ── Onglet Diagnostic ── -->
             <div id="tab_diag" style="display:none;">
 
-    <!-- ══════════════════════════════════════════════════════
-         CARDIOPATHIES ISCHÉMIQUES
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_coro" onchange="madToggle(this)"> ▶ Cardiopathies ischémiques</label>
-    <div id="md_coro" style="display:none;margin-left:10px;">
+                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_coro" onchange="madToggle(this)"> ▶ Maladies coronaires</label>
+                <div id="md_coro" style="display:none;margin-left:10px;">
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angine de poitrine stable"> Angine de poitrine stable</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angine de poitrine instable (suspectée)"> Angine de poitrine instable</label>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syndrome coronarien aigu (suspecté)"> Syndrome coronarien aigu</label>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_idm" onchange="madToggle(this)"> ▶ IDM ancien</label>
+                    <div id="md_idm" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien antérieur"> Antérieur</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien inférieur"> Inférieur</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien latéral"> Latéral</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien — sans séquelles"> Sans séquelles</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien — avec séquelles antérieures"> Séquelles antérieures</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM ancien — avec séquelles inférieures"> Séquelles inférieures</label>
+                    </div>
+                </div>
 
-        <!-- Angine de poitrine -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_angor" onchange="madToggle(this)"> ▶ Angine de poitrine</label>
-        <div id="md_angor" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angine de poitrine stable"> Stable</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angine de poitrine instable"> Instable</label>
-        </div>
+                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_ic" onchange="madToggle(this)"> ▶ Insuffisance cardiaque</label>
+                <div id="md_ic" style="display:none;margin-left:10px;">
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_icfer" onchange="madToggle(this)"> ▶ IC-FEr</label>
+                    <div id="md_icfer" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — FE < 40%"> FE &lt; 40%</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — FE 40-49%"> FE 40–49%</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA I"> NYHA I</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA II"> NYHA II</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA III"> NYHA III</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEr — NYHA IV"> NYHA IV</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_icfep" onchange="madToggle(this)"> ▶ IC-FEp</label>
+                    <div id="md_icfep" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — FE ≥ 50%"> FE ≥ 50%</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA I"> NYHA I</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA II"> NYHA II</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA III"> NYHA III</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC-FEp — NYHA IV"> NYHA IV</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_icd" onchange="madToggle(this)"> ▶ IC droite / gauche</label>
+                    <div id="md_icd" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite légère"> IC droite légère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite modérée"> IC droite modérée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite sévère"> IC droite sévère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche légère"> IC gauche légère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche modérée"> IC gauche modérée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche sévère"> IC gauche sévère</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_acc" onchange="madToggle(this)"> ▶ Stades ACC/AHA</label>
+                    <div id="md_acc" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade A (à risque)"> Stade A : à risque</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade B (préclinique)"> Stade B : préclinique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade C (symptomatique)"> Stade C : symptomatique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade D (avancée)"> Stade D : avancée</label>
+                    </div>
+                </div>
 
-        <!-- IDM -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_idm" onchange="madToggle(this)"> ▶ Infarctus du myocarde</label>
-        <div id="md_idm" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM STEMI"> STEMI</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM NSTEMI"> NSTEMI</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM sans séquelles"> Sans séquelles</label>
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_idm_seq" onchange="madToggle(this)"> Avec séquelles</label>
-            <div id="md_idm_seq" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM avec séquelles — antérieur"> Antérieur</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM avec séquelles — inférieur"> Inférieur</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IDM avec séquelles — latéral"> Latéral</label>
-            </div>
-        </div>
+                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_valv" onchange="madToggle(this)"> ▶ Maladies valvulaires</label>
+                <div id="md_valv" style="display:none;margin-left:10px;">
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_sa" onchange="madToggle(this)"> ▶ Sténose aortique</label>
+                    <div id="md_sa" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose aortique légère (grad. < 20 mmHg)"> Légère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose aortique modérée (grad. 20–40 mmHg)"> Modérée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose aortique sévère (grad. > 40 mmHg)"> Sévère</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_ia" onchange="madToggle(this)"> ▶ Insuffisance aortique</label>
+                    <div id="md_ia" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade I"> Grade I</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade II"> Grade II</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade III"> Grade III</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IA grade IV"> Grade IV</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_sm" onchange="madToggle(this)"> ▶ Sténose mitrale</label>
+                    <div id="md_sm" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose mitrale légère"> Légère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose mitrale modérée"> Modérée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sténose mitrale sévère"> Sévère</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_im" onchange="madToggle(this)"> ▶ Insuffisance mitrale</label>
+                    <div id="md_im" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM légère"> Légère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM modérée"> Modérée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM sévère"> Sévère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM organique — prolapsus"> Organique — prolapsus</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM organique — rhumatismale"> Organique — rhumatismale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IM fonctionnelle (secondaire)"> Fonctionnelle</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_it" onchange="madToggle(this)"> ▶ Insuffisance tricuspide</label>
+                    <div id="md_it" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT légère"> Légère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT modérée"> Modérée</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT sévère"> Sévère</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT primitive"> Primitive</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IT secondaire (post-HTP)"> Secondaire</label>
+                    </div>
+                </div>
 
-        <!-- Cardiopathie ischémique chronique -->
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Cardiopathie ischémique chronique"> Cardiopathie ischémique chronique</label>
+                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_myoc" onchange="madToggle(this)"> ▶ Myocardiopathies</label>
+                <div id="md_myoc" style="display:none;margin-left:10px;">
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mcd" onchange="madToggle(this)"> ▶ Dilatée</label>
+                    <div id="md_mcd" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — FE < 40%"> FE &lt; 40%</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — FE 40-49%"> FE 40–49%</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — génétique"> Génétique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — toxique"> Toxique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCd — idiopathique"> Idiopathique</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mch" onchange="madToggle(this)"> ▶ Hypertrophique</label>
+                    <div id="md_mch" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH asymétrique (septale)"> Asymétrique septale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH concentrique"> Concentrique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH apicale"> Apicale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH avec obstruction"> Avec obstruction</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH sans obstruction"> Sans obstruction</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mcr" onchange="madToggle(this)"> ▶ Restrictive</label>
+                    <div id="md_mcr" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCR infiltrative (amylose)"> Infiltrative</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCR non infiltrative"> Non infiltrative</label>
+                    </div>
+                    <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie arythmogène (suspectée)"> Arythmogène</label>
+                </div>
 
-        <!-- Intervention -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_interv" onchange="madToggle(this)"> ▶ Intervention</label>
-        <div id="md_interv" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Angioplastie coronarienne"> Angioplastie coronarienne</label>
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                <span style="font-size:10px;">CR&nbsp;:</span>
-                <input type="text" id="diag_cr_angio" placeholder="compte rendu angioplastie..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;">
-            </div>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Pontage coronarien"> Pontage coronarien</label>
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                <span style="font-size:10px;">CR&nbsp;:</span>
-                <input type="text" id="diag_cr_pontage" placeholder="compte rendu pontage..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;">
-            </div>
-        </div>
-    </div>
+                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_rythme" onchange="madToggle(this)"> ▶ Troubles du rythme</label>
+                <div id="md_rythme" style="display:none;margin-left:10px;">
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_fa" onchange="madToggle(this)"> ▶ Fibrillation atriale</label>
+                    <div id="md_fa" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA paroxystique (< 7 j)"> Paroxystique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA persistante (> 7 j)"> Persistante</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA permanente"> Permanente</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA valvulaire"> Valvulaire</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA non valvulaire"> Non valvulaire</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_flutter" onchange="madToggle(this)"> ▶ Flutter atrial</label>
+                    <div id="md_flutter" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter typique (cavotricuspide)"> Typique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter atypique"> Atypique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter gauche"> Gauche</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter droit"> Droit</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_tsv" onchange="madToggle(this)"> ▶ TSV</label>
+                    <div id="md_tsv" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV paroxystique"> Paroxystique</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV nodale"> Nodale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV atriale"> Atriale</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV par WPW"> Par WPW</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_esv" onchange="madToggle(this)"> ▶ ESV / ESA</label>
+                    <div id="md_esv" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV isolées"> ESV isolées</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV bigéminisme"> Bigéminisme</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV trigéminisme"> Trigéminisme</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV couplets"> Couplets</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA isolées"> ESA isolées</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA en salves"> ESA en salves</label>
+                    </div>
+                </div>
 
-    <!-- ══════════════════════════════════════════════════════
-         INSUFFISANCE CARDIAQUE
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_ic" onchange="madToggle(this)"> ▶ Insuffisance cardiaque</label>
-    <div id="md_ic" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC gauche"> IC gauche</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC droite"> IC droite</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC globale"> IC globale</label>
-        <!-- Fonction VG -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_fevg" onchange="madToggle(this)"> Fonction VG</label>
-        <div id="md_fevg" style="display:none;margin-left:10px;">
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                <label style="font-size:10px;"><input type="checkbox" class="mad-diag" value="FEVG réduite"> FEVG réduite — FEVG&nbsp;:</label>
-                <input type="text" id="diag_fevg_r" placeholder="%" style="width:40px;border:1px solid #ccc;border-radius:3px;padding:2px 4px;font-size:10px;">
-                <span style="font-size:10px;">%</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                <label style="font-size:10px;"><input type="checkbox" class="mad-diag" value="FEVG préservée"> FEVG préservée — FEVG&nbsp;:</label>
-                <input type="text" id="diag_fevg_p" placeholder="%" style="width:40px;border:1px solid #ccc;border-radius:3px;padding:2px 4px;font-size:10px;">
-                <span style="font-size:10px;">%</span>
-            </div>
-        </div>
-        <!-- Stade NYHA -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_nyha" onchange="madToggle(this)"> Stade NYHA</label>
-        <div id="md_nyha" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade NYHA I"> Stade NYHA I</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade NYHA II"> Stade NYHA II</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade NYHA III"> Stade NYHA III</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="IC stade NYHA IV"> Stade NYHA IV</label>
-        </div>
-    </div>
+                <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:2px;"><input type="checkbox" class="mad-parent" data-target="md_brady" onchange="madToggle(this)"> ▶ Bradyarythmies / conduction</label>
+                <div id="md_brady" style="display:none;margin-left:10px;">
+                    <label style="font-size:10px;display:flex;align-items:center;gap:3px;margin-bottom:1px;">
+                        <input type="checkbox" class="mad-diag" value="Bradycardie sinusale"> Bradycardie sinusale —
+                        FC moy: <input type="text" id="md_fc_moy" placeholder="/min" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                        min: <input type="text" id="md_fc_min" placeholder="/min" style="width:40px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
+                    </label>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bav" onchange="madToggle(this)"> ▶ BAV</label>
+                    <div id="md_bav" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 1er degré (PR > 200 ms)"> 1er degré</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 2e degré Mobitz I (Wenckebach)"> 2e Mobitz I</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 2e degré Mobitz II"> 2e Mobitz II</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV 3e degré (complet)"> 3e degré (complet)</label>
+                    </div>
+                    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bb" onchange="madToggle(this)"> ▶ Bloc de branche</label>
+                    <div id="md_bb" style="display:none;margin-left:10px;">
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBBD"> BBBD</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBBG"> BBBG</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HBAG"> HBAG</label>
+                        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HBAPG"> HBAPG</label>
+                    </div>
+                </div>
 
-    <!-- ══════════════════════════════════════════════════════
-         MALADIES VALVULAIRES
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_valv" onchange="madToggle(this)"> ▶ Maladies valvulaires</label>
-    <div id="md_valv" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_ra" onchange="madToggle(this)"> ▶ Rétrécissement aortique</label>
-        <div id="md_ra" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement aortique serré"> Serré</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement aortique modéré"> Modéré</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement aortique minime"> Minime</label>
-        </div>
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_ia" onchange="madToggle(this)"> ▶ Insuffisance aortique</label>
-        <div id="md_ia" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance aortique sévère"> Sévère</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance aortique modérée"> Modérée</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance aortique minime"> Minime</label>
-        </div>
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_rm" onchange="madToggle(this)"> ▶ Rétrécissement mitral</label>
-        <div id="md_rm" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement mitral serré"> Serré</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement mitral modéré"> Modéré</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Rétrécissement mitral minime"> Minime</label>
-        </div>
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_im" onchange="madToggle(this)"> ▶ Insuffisance mitrale</label>
-        <div id="md_im" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance mitrale sévère"> Sévère</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance mitrale modérée"> Modérée</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance mitrale minime"> Minime</label>
-        </div>
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_it" onchange="madToggle(this)"> ▶ Insuffisance tricuspide</label>
-        <div id="md_it" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Insuffisance tricuspide"> Insuffisance tricuspide</label>
-        </div>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Valvulopathie pulmonaire"> Valvulopathie pulmonaire</label>
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_prot" onchange="madToggle(this)"> ▶ Prothèse valvulaire</label>
-        <div id="md_prot" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Prothèse valvulaire mécanique"> Mécanique</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Prothèse valvulaire biologique"> Biologique</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Plastie tricuspidienne"> Plastie tricuspidienne</label>
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_prot_pos" onchange="madToggle(this)"> Position</label>
-            <div id="md_prot_pos" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Prothèse — position aortique"> Aortique</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Prothèse — position mitrale"> Mitrale</label>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         TROUBLES DU RYTHME
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_rythme" onchange="madToggle(this)"> ▶ Troubles du rythme</label>
-    <div id="md_rythme" style="display:none;margin-left:10px;">
-        <!-- Supraventriculaire -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_sv" onchange="madToggle(this)"> Supraventriculaire</label>
-        <div id="md_sv" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_esa" onchange="madToggle(this)"> Extrasystoles</label>
-            <div id="md_esa" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA isolées"> ESA isolées</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA — bigéminisme"> Bigéminisme</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESA — trigéminisme"> Trigéminisme</label>
-            </div>
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_tsv" onchange="madToggle(this)"> Tachycardie supraventriculaire</label>
-            <div id="md_tsv" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV sinusale"> Sinusale</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="TSV par réentrée (Bouveret)"> Réentrée — Bouveret</label>
-            </div>
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_fa" onchange="madToggle(this)"> FA</label>
-            <div id="md_fa" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA paroxystique"> Paroxystique</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA persistante"> Persistante</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="FA permanente"> Permanente</label>
-            </div>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Flutter auriculaire"> Flutter auriculaire</label>
-        </div>
-        <!-- Ventriculaire -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_vt" onchange="madToggle(this)"> Ventriculaire</label>
-        <div id="md_vt" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_esv" onchange="madToggle(this)"> Extrasystoles ventriculaires</label>
-            <div id="md_esv" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV isolées"> ESV isolées</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV — bigéminisme"> Bigéminisme</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="ESV — trigéminisme"> Trigéminisme</label>
-            </div>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Tachycardie ventriculaire"> Tachycardie ventriculaire</label>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         TROUBLES DE LA CONDUCTION
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_cond" onchange="madToggle(this)"> ▶ Troubles de la conduction</label>
-    <div id="md_cond" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Dysfonction sinusale"> Dysfonction sinusale</label>
-        <!-- Nodal -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_nodal" onchange="madToggle(this)"> Nodal</label>
-        <div id="md_nodal" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV I"> BAV I</label>
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bav2" onchange="madToggle(this)"> BAV II</label>
-            <div id="md_bav2" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV II — Mobitz I"> Mobitz I</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV II — Mobitz II"> Mobitz II</label>
-            </div>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BAV III (complet)"> BAV III</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Sd de Wolf-Parkinson-White"> Sd de Wolf-Parkinson-White</label>
-        </div>
-        <!-- Infranodal -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_infranod" onchange="madToggle(this)"> Infranodal</label>
-        <div id="md_infranod" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bbg" onchange="madToggle(this)"> Bloc de branche gauche</label>
-            <div id="md_bbg" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBG complet"> Complet</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBG incomplet"> Incomplet</label>
-            </div>
-            <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_bbd" onchange="madToggle(this)"> Bloc de branche droit</label>
-            <div id="md_bbd" style="display:none;margin-left:10px;">
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBD complet"> Complet</label>
-                <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="BBD incomplet"> Incomplet</label>
-            </div>
-        </div>
-        <!-- Électro-entraîné -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_appareillage" onchange="madToggle(this)"> Électro-entraîné</label>
-        <div id="md_appareillage" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Appareillage : PM"> Appareillage : PM</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Appareillage : DAI"> Appareillage : DAI</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Appareillage : CRT"> Appareillage : CRT</label>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         MYOCARDIOPATHIES
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_myoc" onchange="madToggle(this)"> ▶ Myocardiopathies</label>
-    <div id="md_myoc" style="display:none;margin-left:10px;">
-        <!-- Dilatée -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mcd" onchange="madToggle(this)"> ▶ Dilatée</label>
-        <div id="md_mcd" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCD — FE < 40%"> FE &lt; 40%</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCD — FE 40–49%"> FE 40–49%</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCD génétique"> Génétique</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCD toxique"> Toxique</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCD idiopathique"> Idiopathique</label>
-        </div>
-        <!-- Hypertrophique -->
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_mch" onchange="madToggle(this)"> ▶ Hypertrophique</label>
-        <div id="md_mch" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH asymétrique septale"> Asymétrique septale</label>
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                <label style="font-size:10px;"><input type="checkbox" class="mad-diag" value="MCH concentrique"> Concentrique — SIV&nbsp;:</label>
-                <input type="text" id="diag_siv" placeholder="mm" style="width:35px;border:1px solid #ccc;border-radius:3px;padding:2px 4px;font-size:10px;">
-                <span style="font-size:10px;">mm</span>
-            </div>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH apicale"> Apicale</label>
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                <label style="font-size:10px;"><input type="checkbox" class="mad-diag" value="MCH avec obstruction"> Avec obstruction — gradient moyen intra-VG&nbsp;:</label>
-                <input type="text" id="diag_grad" placeholder="mmHg" style="width:40px;border:1px solid #ccc;border-radius:3px;padding:2px 4px;font-size:10px;">
-                <span style="font-size:10px;">mmHg</span>
-            </div>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="MCH sans obstruction"> Sans obstruction</label>
-        </div>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie restrictive"> Restrictive</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie de Tako-Tsubo"> Tako-Tsubo</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie péri-partum"> Péri-partum</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Myocardiopathie arythmogène"> Arythmogène</label>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         PÉRICARDIOPATHIES
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_peric" onchange="madToggle(this)"> ▶ Péricardiopathies</label>
-    <div id="md_peric" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Péricardite aiguë"> Péricardite aiguë</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Péricardite chronique constrictive"> Péricardite chronique constrictive</label>
-        <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-parent" data-target="md_epanch" onchange="madToggle(this)"> Épanchement péricardique</label>
-        <div id="md_epanch" style="display:none;margin-left:10px;">
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Épanchement péricardique minime"> Minime</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Épanchement péricardique modéré"> Modéré</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Épanchement péricardique abondant"> Abondant</label>
-            <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Tamponnade"> Tamponnade</label>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         HYPERTENSION ARTÉRIELLE
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_hta" onchange="madToggle(this)"> ▶ Hypertension artérielle</label>
-    <div id="md_hta" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA essentielle"> HTA essentielle</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA secondaire"> HTA secondaire</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTAP"> HTAP</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA résistante"> HTA résistante</label>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         PATHOLOGIES VASCULAIRES
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_vasc" onchange="madToggle(this)"> ▶ Pathologies vasculaires</label>
-    <div id="md_vasc" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Anévrisme de l'aorte"> Anévrisme de l'aorte</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Dissection aortique"> Dissection aortique</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="AOMI"> AOMI</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Thrombose veineuse profonde"> Thrombose veineuse profonde</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Embolie pulmonaire"> Embolie pulmonaire</label>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         AUTRES
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:10px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_autres" onchange="madToggle(this)"> ▶ Autres</label>
-    <div id="md_autres" style="display:none;margin-left:10px;">
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Endocardite infectieuse"> Endocardite infectieuse</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Cardiopathie congénitale"> Cardiopathie congénitale</label>
-        <label style="font-size:10px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syncope d'origine cardiaque"> Syncope d'origine cardiaque</label>
-    </div>
-
-</div><!-- fin tab_diag -->
+            </div><!-- fin tab_diag -->
 
             <!-- ── Onglet Facteurs de risque ── -->
             <div id="tab_fdr" style="display:none;">
@@ -3300,7 +3191,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
                 <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
 
                 <!-- Non modifiables -->
-                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Non modifiables</div>
+                <div style="font-size:10px;font-weight:bold;color:var(--th-color-primary);margin:4px 0 2px;">Non modifiables</div>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Âge > 50 ans (H) ou > 65 ans (F)"> Âge : &gt;50 ans chez H, 65 ans chez F</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Sexe masculin"> Sexe masculin</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="ATCD familiaux MCV précoce (H < 55 ans / F < 65 ans)"> ATCD familiaux (MCV précoce : H &lt; 55 ans / F &lt; 65 ans)</label>
@@ -3308,7 +3199,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
                 <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
 
                 <!-- Modifiables -->
-                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Modifiables</div>
+                <div style="font-size:10px;font-weight:bold;color:var(--th-color-primary);margin:4px 0 2px;">Modifiables</div>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="HTA (> 140/90 mmHg ou traitement)"> HTA (&gt; 140/90 mmHg ou traitement)</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Tabac (actif ou passif)"> Tabac (actif ou passif)</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="LDL-cholestérol élevé"> LDL-cholestérol</label>
@@ -3322,14 +3213,14 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
                 <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
 
                 <!-- Émergents -->
-                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Émergents (à évoquer si risque résiduel)</div>
+                <div style="font-size:10px;font-weight:bold;color:var(--th-color-primary);margin:4px 0 2px;">Émergents (à évoquer si risque résiduel)</div>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Pollution (PM2.5)"> Pollution PM2.5</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Score calcique élevé"> Score calcique élevé</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Inflammatoire (CRP us > 3 mg/L ou maladie auto-immune)"> Inflammatoire (CRP us &gt; 3 mg/L, ou maladie auto-immune)</label>
                 <hr style="margin:4px 0;border:none;border-top:1px solid #ddd;">
 
                 <!-- Additionnels -->
-                <div style="font-size:10px;font-weight:bold;color:#1a4a7a;margin:4px 0 2px;">Facteurs de risque additionnels</div>
+                <div style="font-size:10px;font-weight:bold;color:var(--th-color-primary);margin:4px 0 2px;">Facteurs de risque additionnels</div>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Sédentarité"> Sédentarité</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Alimentation pro-inflammatoire (gras trans, sucres rapides, sel)"> Alimentation pro-inflammatoire (gras trans, sucres rapides, sel)</label>
                 <label style="font-size:10px;display:block;margin-bottom:1px;padding-left:10px;"><input type="checkbox" class="mad-fdr" value="Alcool (excès chronique)"> Alcool (excès chronique)</label>

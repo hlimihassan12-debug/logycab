@@ -21,6 +21,11 @@ $posologies = [
 $durees = ['1 semaine','2 semaines','1 mois','2 mois','3 mois','6 mois'];
 
 // Onglet actif selon paramètre URL (1=catalogue, 2=chercher, 3=rédiger)
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
 $ongletActif = (int)($_GET['ong'] ?? 1);
 if ($ongletActif < 1 || $ongletActif > 3) $ongletActif = 1;
 ?>
@@ -29,13 +34,14 @@ if ($ongletActif < 1 || $ongletActif > 3) $ongletActif = 1;
 <head>
 <meta charset="UTF-8">
 <title>Logycab — Gestion des ordonnances</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color:#222; min-height:100vh; }
+body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-page); color:var(--th-color-text); min-height:100vh; }
 
 /* ── Header ── */
 .header {
-    background:linear-gradient(135deg,#1a4a7a,#2e6da4);
+    background:var(--th-bg-header);
     color:white; padding:10px 20px;
     display:flex; align-items:center; justify-content:space-between;
 }
@@ -51,7 +57,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
 /* ── Onglets ── */
 .onglets {
     display:flex; gap:0;
-    background:#1a4a7a; padding:0 20px;
+    background:var(--th-bg-header-s); padding:0 20px;
     border-bottom:3px solid #27ae60;
 }
 .ong-btn {
@@ -63,26 +69,26 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
 .ong-btn.actif { color:white; border-bottom:3px solid #27ae60; background:rgba(255,255,255,0.08); }
 
 /* ── Contenu ── */
-.contenu { padding:20px; max-width:960px; margin:0 auto; }
+.contenu { padding:20px; max-width:1400px; margin:0 auto; }
 .panel { display:none; }
 .panel.actif { display:block; }
 
 /* ── Cards ── */
 .card {
-    background:white; border-radius:8px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-    padding:18px 20px; margin-bottom:16px;
+    background:var(--th-bg-card); border-radius:8px;
+    box-shadow:0 2px 8px var(--th-border-card);
+    padding:12px 16px; margin-bottom:8px;
 }
 .card-titre {
     font-size:14px; font-weight:bold; color:#1a4a7a;
-    margin-bottom:14px; padding-bottom:8px;
-    border-bottom:2px solid #e8f0fa;
+    margin-bottom:8px; padding-bottom:6px;
+    border-bottom:2px solid var(--th-border-statsbar);
 }
 
 /* ── Formulaire ── */
 .form-row { display:flex; gap:10px; margin-bottom:10px; align-items:flex-end; flex-wrap:wrap; }
 .form-group { display:flex; flex-direction:column; gap:4px; }
-.form-group label { font-size:11px; color:#555; font-weight:bold; text-transform:uppercase; }
+.form-group label { font-size:11px; color:var(--th-color-text-muted); font-weight:bold; text-transform:uppercase; }
 .form-group input, .form-group select, .form-group textarea {
     border:1px solid #cdd5de; border-radius:5px; padding:6px 10px;
     font-size:13px; font-family:Arial,sans-serif;
@@ -94,7 +100,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
 /* ── Boutons ── */
 .btn { border:none; border-radius:5px; padding:7px 16px; cursor:pointer; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:5px; }
 .btn-vert   { background:#27ae60; color:white; }
-.btn-bleu   { background:#1a4a7a; color:white; }
+.btn-bleu   { background:var(--th-btn-navy); color:white; }
 .btn-orange { background:#e67e22; color:white; }
 .btn-rouge  { background:#e74c3c; color:white; }
 .btn-gris   { background:#95a5a6; color:white; }
@@ -106,15 +112,15 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
 
 /* ── Tableau résultats ── */
 .tbl { width:100%; border-collapse:collapse; font-size:11px; }
-.tbl th { background:#1a4a7a; color:white; padding:3px 8px; text-align:left; }
-.tbl td { padding:2px 8px; border-bottom:1px solid #eee; line-height:1.4; }
-.tbl tr:hover td { background:#f0f7ff; cursor:pointer; }
+.tbl th { background:var(--th-bg-header-s); color:white; padding:3px 8px; text-align:left; }
+.tbl td { padding:2px 8px; border-bottom:1px solid var(--th-sep-color); line-height:1.4; color:#222; }
+.tbl tr:hover td { background:var(--th-bg-link-hover); cursor:pointer; }
 .tbl tr.selectionne td { background:#e8f5e9; font-weight:600; }
 
 /* ── Lignes médicaments ── */
 .lig-med-tbl { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
-.lig-med-tbl th { background:#2e6da4; color:white; padding:5px 8px; text-align:left; }
-.lig-med-tbl td { padding:4px 6px; border-bottom:1px solid #eee; vertical-align:middle; }
+.lig-med-tbl th { background:var(--th-color-secondary); color:white; padding:5px 8px; text-align:left; }
+.lig-med-tbl td { padding:4px 6px; border-bottom:1px solid var(--th-sep-color); color:var(--th-color-text); vertical-align:middle; }
 .lig-med-tbl select, .lig-med-tbl input { width:100%; border:1px solid #ddd; border-radius:3px; padding:4px 6px; font-size:12px; }
 
 /* ── Autocomplete ── */
@@ -147,7 +153,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
 .creneau-btn.libre     { background:#eafaf1; border-color:#27ae60; color:#1a5e33; }
 .creneau-btn.occupe    { background:#fef9e7; border-color:#f39c12; color:#7d5a00; }
 .creneau-btn.plein     { background:#fdedec; border-color:#e74c3c; color:#922b21; cursor:default; opacity:.6; }
-.creneau-btn.selectionne { background:#1a4a7a; color:white; border-color:#1a4a7a; font-weight:bold; }
+.creneau-btn.selectionne { background:var(--th-btn-navy); color:white; border-color:var(--th-btn-navy); font-weight:bold; }
 
 /* ── Tags liste catalogue ── */
 .tag-med {
@@ -156,6 +162,51 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
     padding:3px 8px; font-size:12px; margin:2px;
 }
 .tag-med .del { cursor:pointer; color:#e74c3c; font-weight:bold; font-size:13px; }
+
+/* ── Boutons filtre tranche quantité ── */
+.btn-filtre-qte {
+    font-size:10px; padding:3px 9px; border-radius:12px; cursor:pointer;
+    border:1px solid var(--th-color-secondary); background:transparent; color:var(--th-color-secondary);
+    font-weight:bold;
+}
+.btn-filtre-qte:hover { background:var(--th-bg-link-hover); }
+.btn-filtre-qte.actif { background:var(--th-color-secondary); color:white; }
+
+.btn-tri {
+    font-size:10px; padding:3px 9px; border-radius:12px; cursor:pointer;
+    border:1px solid #8e44ad; background:transparent; color:#8e44ad;
+    font-weight:bold;
+}
+.btn-tri:hover { background:var(--th-bg-link-hover); }
+.btn-tri.actif { background:#8e44ad; color:white; }
+
+/* ── Grille catalogue 4 colonnes ── */
+.grille-catalogue {
+    display:grid; grid-template-columns:repeat(6, minmax(0, 220px));
+    grid-auto-flow:column; gap:1px;
+    justify-content:start;
+}
+.carte-med {
+    background:var(--th-bg-card); border:1px solid var(--th-sep-color); border-radius:3px;
+    padding:1px 5px; font-size:10px; line-height:1.1; display:flex; align-items:center; gap:4px;
+    cursor:pointer; transition:background 0.1s; width:100%; min-height:18px;
+}
+.carte-med:hover { background:var(--th-bg-link-hover); }
+.carte-med.orphelin { background:#fff8f0; border-color:#f39c12; }
+.carte-med .nom-med { color:var(--th-color-text); font-weight:600; line-height:1.25;
+                       min-width:0; flex-shrink:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.carte-med .nb-util { font-size:10px; font-weight:bold; flex-shrink:0; white-space:nowrap; margin-left:auto; padding-left:6px; }
+.carte-med .nb-util.zero { color:#e67e22; }
+.carte-med .nb-util.ok   { color:#27ae60; }
+.carte-med .btn-sup-med {
+    background:#e74c3c; color:white; border:none; border-radius:3px;
+    padding:1px 6px; font-size:10px; cursor:pointer; flex-shrink:0;
+}
+@media (max-width: 1500px) { .grille-catalogue { grid-template-columns:repeat(5, minmax(0, 220px)); } }
+@media (max-width: 1100px) { .grille-catalogue { grid-template-columns:repeat(4, minmax(0, 220px)); } }
+@media (max-width: 700px) { .grille-catalogue { grid-template-columns:repeat(3, minmax(0, 220px)); } }
+@media (max-width: 500px)  { .grille-catalogue { grid-template-columns:repeat(2, minmax(0, 220px)); } }
+
 
 /* ── Messages ── */
 .msg-ok  { color:#27ae60; font-size:12px; font-weight:600; }
@@ -166,7 +217,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
 .prod-recherche-row input { flex:1; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- ══ HEADER ══ -->
 <div class="header">
@@ -204,7 +255,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
                 <button class="btn btn-vert" onclick="p1Ajouter()">💾 Ajouter et enregistrer</button>
             </div>
         </div>
-        <div id="p1_msg" style="min-height:18px;font-size:12px;margin-top:4px;"></div>
+        <div id="p1_msg" style="min-height:0;font-size:12px;margin-top:2px;"></div>
     </div>
 
     <!-- Liste -->
@@ -214,6 +265,22 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
             <input type="text" id="p1_filtre" placeholder="🔍 Filtrer..." oninput="p1Filtrer()"
                    style="border:1px solid #cdd;border-radius:4px;padding:4px 8px;font-size:12px;width:200px;">
         </div>
+
+        <!-- Barre de tri -->
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--th-sep-color);">
+            <span style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;">TRIER :</span>
+            <button class="btn-tri actif" id="btn_tri_alpha" data-dir="az" onclick="p1ToggleTri('alpha')">A → Z</button>
+            <button class="btn-tri" id="btn_tri_nbr" data-dir="asc" onclick="p1ToggleTri('nbr')">Nbr ↑</button>
+            <button class="btn-tri" id="btn_tri_date" data-dir="asc" onclick="p1ToggleTri('date')">Date ↑</button>
+
+            <span style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin-left:10px;">FILTRER PAR QUANTITÉ :</span>
+            <button class="btn-filtre-qte" data-tranche="" onclick="p1FiltrerTranche('')">Tous</button>
+            <button class="btn-filtre-qte" data-tranche="0-10"   onclick="p1FiltrerTranche('0-10')">≤ 10</button>
+            <button class="btn-filtre-qte" data-tranche="11-100" onclick="p1FiltrerTranche('11-100')">11 – 100</button>
+            <button class="btn-filtre-qte" data-tranche="101-500" onclick="p1FiltrerTranche('101-500')">101 – 500</button>
+            <button class="btn-filtre-qte" data-tranche="501-99999" onclick="p1FiltrerTranche('501-99999')">&gt; 500</button>
+        </div>
+
         <div id="p1_liste_wrap">
             <p style="color:#999;font-size:12px;">Cliquez sur Actualiser pour charger la liste.</p>
         </div>
@@ -224,7 +291,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
          background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
         <div style="background:white;border-radius:8px;width:860px;max-width:96vw;
                     margin:40px auto;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-            <div style="background:#1a4a7a;color:white;padding:10px 16px;border-radius:8px 8px 0 0;
+            <div style="background:var(--th-bg-header-s);color:white;padding:10px 16px;border-radius:8px 8px 0 0;
                         display:flex;justify-content:space-between;align-items:center;">
                 <span id="p1_ord_titre" style="font-weight:bold;font-size:14px;">📋 Ordonnances</span>
                 <button onclick="document.getElementById('p1_ord_modal').style.display='none'"
@@ -304,7 +371,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
         </div>
 
         <!-- Médicaments -->
-        <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin:10px 0 6px;">💊 Médicaments :</div>
+        <div style="font-size:12px;font-weight:bold;color:var(--th-color-primary);margin:10px 0 6px;">💊 Médicaments :</div>
         <table class="lig-med-tbl">
             <thead>
                 <tr>
@@ -400,7 +467,7 @@ body { font-family: Arial, sans-serif; font-size:13px; background:#f0f4f8; color
         <input type="hidden" id="p3_id_patient">
 
         <!-- Médicaments -->
-        <div style="font-size:12px;font-weight:bold;color:#1a4a7a;margin:10px 0 6px;">💊 Médicaments :</div>
+        <div style="font-size:12px;font-weight:bold;color:var(--th-color-primary);margin:10px 0 6px;">💊 Médicaments :</div>
         <table class="lig-med-tbl">
             <thead>
                 <tr>
@@ -526,7 +593,7 @@ function p1Ajouter() {
             if (data.success) {
                 msgEl.innerHTML = `<span class="msg-ok">✅ "${data.nom}" ajouté au catalogue.</span>`;
                 document.getElementById('p1_nom').value = '';
-                p1Liste.push({id: data.id, nom: data.nom});
+                p1Liste.push({id: data.id, nom: data.nom, nb: 0, datePremiere: null});
                 p1AfficherListe(p1Liste);
             } else {
                 msgEl.innerHTML = `<span class="msg-err">❌ ${data.error}</span>`;
@@ -538,9 +605,70 @@ function p1ChargerListe() {
     document.getElementById('p1_liste_wrap').innerHTML = '<span style="color:#999;">Chargement…</span>';
     fetch('ajax_gestion_ord.php?action=liste_produits')
         .then(r => r.json()).then(data => {
-            p1Liste = data.map(d => ({id: d.NuméroPRODUIT, nom: d.PRODUIT, nb: parseInt(d.nb_utilisations)||0}));
+            p1Liste = data.map(d => ({
+                id: d.NuméroPRODUIT, nom: d.PRODUIT, nb: parseInt(d.nb_utilisations)||0,
+                datePremiere: d.premiere_prescription || null
+            }));
             p1AfficherListe(p1Liste);
         });
+}
+
+let p1TrancheActive = '';
+let p1TriActif = 'alpha_az';
+
+function p1ToggleTri(groupe) {
+    const btn = document.getElementById('btn_tri_' + groupe);
+    const etaitActif = btn.classList.contains('actif');
+
+    // Si déjà actif → on inverse sa direction. Sinon on garde sa direction actuelle.
+    if (etaitActif) {
+        if (groupe === 'alpha') btn.dataset.dir = (btn.dataset.dir === 'az') ? 'za' : 'az';
+        else btn.dataset.dir = (btn.dataset.dir === 'asc') ? 'desc' : 'asc';
+    }
+    const dir = btn.dataset.dir;
+
+    // Activer ce bouton, désactiver les autres
+    document.querySelectorAll('.btn-tri').forEach(b => b.classList.remove('actif'));
+    btn.classList.add('actif');
+
+    // Mettre à jour le libellé + le tri actif
+    if (groupe === 'alpha') {
+        btn.textContent = dir === 'az' ? 'A → Z' : 'Z → A';
+        p1TriActif = dir === 'az' ? 'alpha_az' : 'alpha_za';
+    } else if (groupe === 'nbr') {
+        btn.textContent = dir === 'asc' ? 'Nbr ↑' : 'Nbr ↓';
+        p1TriActif = dir === 'asc' ? 'util_asc' : 'util_desc';
+    } else if (groupe === 'date') {
+        btn.textContent = dir === 'asc' ? 'Date ↑' : 'Date ↓';
+        p1TriActif = dir === 'asc' ? 'date_asc' : 'date_desc';
+    }
+
+    p1Filtrer();
+}
+
+function p1Trier(liste) {
+    const triee = [...liste];
+    switch (p1TriActif) {
+        case 'alpha_az':  triee.sort((a,b) => a.nom.localeCompare(b.nom)); break;
+        case 'alpha_za':  triee.sort((a,b) => b.nom.localeCompare(a.nom)); break;
+        case 'util_desc': triee.sort((a,b) => b.nb - a.nb); break;
+        case 'util_asc':  triee.sort((a,b) => a.nb - b.nb); break;
+        case 'date_asc':
+            triee.sort((a,b) => (a.datePremiere||'9999') > (b.datePremiere||'9999') ? 1 : -1);
+            break;
+        case 'date_desc':
+            triee.sort((a,b) => (a.datePremiere||'0000') < (b.datePremiere||'0000') ? 1 : -1);
+            break;
+    }
+    return triee;
+}
+
+function p1FiltrerTranche(tranche) {
+    p1TrancheActive = tranche;
+    document.querySelectorAll('.btn-filtre-qte').forEach(b => {
+        b.classList.toggle('actif', b.dataset.tranche === tranche);
+    });
+    p1Filtrer();
 }
 
 function p1AfficherListe(liste) {
@@ -548,53 +676,46 @@ function p1AfficherListe(liste) {
     if (!liste.length) { wrap.innerHTML = '<p style="color:#999;font-size:12px;">Aucun résultat.</p>'; return; }
 
     const nbOrphelins = liste.filter(m => m.nb === 0).length;
+    const listeTriee = p1Trier(liste);
 
     let html = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
-        <span style="font-size:11px;color:#999;">${liste.length} médicament(s)</span>`;
+        <span style="font-size:11px;color:var(--th-color-text-muted);">${liste.length} médicament(s)</span>`;
     if (nbOrphelins > 0) {
         html += `<span style="font-size:11px;background:#fff3cd;border:1px solid #f39c12;border-radius:3px;padding:2px 8px;color:#856404;">
             ⚠️ ${nbOrphelins} non utilisé(s)</span>
         <button class="btn btn-orange" style="padding:2px 8px;font-size:11px;" onclick="p1SupprimerOrphelins()">
             🗑 Supprimer les non utilisés</button>`;
     }
-    html += `<span style="font-size:10px;color:#aaa;margin-left:auto;">💡 Double-clic sur une ligne → voir ses ordonnances</span></div>`;
+    html += `<span style="font-size:10px;color:var(--th-color-text-muted);margin-left:auto;">💡 Double-clic sur une carte → voir ses ordonnances</span></div>`;
+    const nbCols = window.innerWidth <= 500 ? 2 : (window.innerWidth <= 700 ? 3 : (window.innerWidth <= 1100 ? 4 : (window.innerWidth <= 1500 ? 5 : 6)));
+    const nbLignes = Math.ceil(listeTriee.length / nbCols);
+    html += `<div class="grille-catalogue" id="p1_grille" style="grid-template-rows:repeat(${nbLignes}, auto);"></div>`;
     wrap.innerHTML = html;
 
-    const tbl = document.createElement('table');
-    tbl.className = 'tbl';
-    tbl.innerHTML = `<thead><tr>
-        <th style="width:40px;">#</th>
-        <th>Médicament</th>
-        <th style="width:80px;text-align:center;">Utilisations</th>
-        <th style="width:55px;text-align:center;">Suppr.</th>
-    </tr></thead>`;
-    const tbody = document.createElement('tbody');
-    liste.forEach(m => {
+    const grille = document.getElementById('p1_grille');
+    listeTriee.forEach(m => {
         const orphelin = m.nb === 0;
-        const tr = document.createElement('tr');
-        tr.style.background = orphelin ? '#fff8f0' : '';
-        tr.title = 'Double-clic pour voir les ordonnances';
-        tr.innerHTML = `
-            <td style="color:#bbb;width:40px;font-size:10px;">${m.id}</td>
-            <td style="font-size:11px;">
-                ${m.nom}
-                ${orphelin ? '<span style="font-size:9px;background:#f39c12;color:white;border-radius:3px;padding:1px 5px;margin-left:5px;">non utilisé</span>' : ''}
-            </td>
-            <td style="text-align:center;font-size:11px;color:${orphelin ? '#e67e22' : '#27ae60'};">${m.nb}</td>
-            <td style="text-align:center;">
-                <button class="btn btn-rouge" style="padding:1px 5px;font-size:10px;"
-                    onclick="event.stopPropagation();p1Supprimer(${m.id},'${m.nom.replace(/'/g, "\\'")}')">🗑</button>
-            </td>`;
-        tr.addEventListener('dblclick', () => p1VoirOrdonnances(m.id, m.nom));
-        tbody.appendChild(tr);
+        const carte = document.createElement('div');
+        carte.className = 'carte-med' + (orphelin ? ' orphelin' : '');
+        carte.title = m.nom + ' — Double-clic pour voir les ordonnances';
+        carte.innerHTML = `
+            <span class="nom-med">${m.nom}</span>
+            <span class="nb-util ${orphelin ? 'zero' : 'ok'}">${m.nb}</span>
+            <button class="btn-sup-med" onclick="event.stopPropagation();p1Supprimer(${m.id},'${m.nom.replace(/'/g, "\\'")}')">🗑</button>`;
+        carte.addEventListener('dblclick', () => p1VoirOrdonnances(m.id, m.nom));
+        grille.appendChild(carte);
     });
-    tbl.appendChild(tbody);
-    wrap.appendChild(tbl);
 }
 
 function p1Filtrer() {
     const q = document.getElementById('p1_filtre').value.toLowerCase();
-    const filtree = p1Liste.filter(m => m.nom.toLowerCase().includes(q));
+    let filtree = p1Liste.filter(m => m.nom.toLowerCase().includes(q));
+
+    if (p1TrancheActive) {
+        const [min, max] = p1TrancheActive.split('-').map(Number);
+        filtree = filtree.filter(m => m.nb >= min && m.nb <= max);
+    }
+
     p1AfficherListe(filtree);
 }
 

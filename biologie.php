@@ -12,6 +12,11 @@ $patient = $stmt->fetch();
 if (!$patient) { die("❌ Patient introuvable"); }
 
 setcookie('dernier_patient', $id, time() + 86400*30, '/');
+
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -19,13 +24,14 @@ setcookie('dernier_patient', $id, time() + 86400*30, '/');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Biologie — <?= htmlspecialchars($patient['NOMPRENOM']) ?></title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-size: 13px;
-       height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--th-bg-page); font-size: 13px;
+       height: 100vh; overflow: hidden; display: flex; flex-direction: column; color: var(--th-color-text); }
 
 /* ── HEADER ── */
-.header { background: linear-gradient(135deg, #1a4a7a 0%, #0f3460 100%);
+.header { background: var(--th-bg-header);
           color: white; padding: 5px 12px; flex-shrink: 0;
           display: flex; align-items: center; gap: 7px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
@@ -34,8 +40,8 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
          padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 24px; white-space: nowrap; }
 .btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; border: 1px solid rgba(255,255,255,0.3); }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.navy   { background: var(--th-btn-navy); border: 1px solid rgba(255,255,255,0.3); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
@@ -47,34 +53,34 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
                 padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
-.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
 /* ── BANDEAU PATIENT ── */
-.patient-bar { background: #0f3460; color: white; padding: 4px 14px; flex-shrink: 0;
+.patient-bar { background: var(--th-bg-header-s); color: white; padding: 4px 14px; flex-shrink: 0;
                display: flex; align-items: center; gap: 12px; }
 .patient-bar .nom { font-size: 13px; font-weight: bold; color: #FFD700; }
 .patient-bar .num { font-size: 11px; color: rgba(255,255,255,0.7); }
 
 /* ── BARRE BILANS ── */
-.bilans-bar { background: white; padding: 6px 10px; flex-shrink: 0;
+.bilans-bar { background: var(--th-bg-card); padding: 6px 10px; flex-shrink: 0;
               display: flex; align-items: center; gap: 8px;
-              border-bottom: 2px solid #d0dce8; }
-.bilans-bar label { font-size: 11px; color: #666; font-weight: bold; }
-.select-bilan { padding: 3px 8px; border: 1px solid #2e6da4; border-radius: 4px;
-                font-size: 12px; cursor: pointer; min-width: 140px; }
+              border-bottom: 2px solid var(--th-border-statsbar); }
+.bilans-bar label { font-size: 11px; color: var(--th-color-text-muted); font-weight: bold; }
+.select-bilan { padding: 3px 8px; border: 1px solid var(--th-color-secondary); border-radius: 4px;
+                font-size: 12px; cursor: pointer; min-width: 140px; color: #222; background: white; }
 .btn-bar { border: none; border-radius: 4px; padding: 3px 10px; cursor: pointer;
            font-size: 11px; font-weight: bold; color: white; height: 26px;
            display: inline-flex; align-items: center; }
 .btn-bar.green  { background: #27ae60; }
 .btn-bar.red    { background: #e74c3c; }
 .btn-bar.purple { background: #8e44ad; }
-.btn-bar.blue   { background: #2e6da4; }
+.btn-bar.blue   { background: var(--th-color-secondary); }
 .btn-bar:hover  { opacity: 0.85; }
 input.date-bilan { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
-                   font-size: 12px; cursor: pointer; }
+                   font-size: 12px; cursor: pointer; color: #222; background: white; }
 input.obs-bilan  { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
-                   font-size: 12px; width: 160px; }
+                   font-size: 12px; width: 160px; color: #222; background: white; }
 
 /* ── LAYOUT 4 COLONNES ── */
 .layout { display: grid;
@@ -82,33 +88,33 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
           flex: 1; overflow: hidden; min-height: 0; }
 
 /* En-tête commun */
-.col-hdr { background: #1a4a7a; color: white; padding: 6px 10px;
+.col-hdr { background: var(--th-bg-header-s); color: white; padding: 6px 10px;
            font-size: 11px; font-weight: bold; flex-shrink: 0;
            display: flex; align-items: center; justify-content: space-between; }
-.col-body { flex: 1; overflow-y: auto; min-height: 0; }
+.col-body { flex: 1; overflow-y: auto; min-height: 0; background: var(--th-bg-card); }
 
 /* ════ COL 1 : PROFILS ════ */
 .col-profils { display: flex; flex-direction: column; overflow: hidden;
-               border-right: 2px solid #d0dce8; background: #f8fafc; }
+               border-right: 2px solid var(--th-border-statsbar); background: var(--th-bg-card); }
 
-.profil-item { padding: 5px 10px; border-bottom: 1px solid #eef2f7;
-               cursor: pointer; background: white;
-               font-size: 12px; color: #2e6da4; font-weight: bold;
+.profil-item { padding: 5px 10px; border-bottom: 1px solid var(--th-sep-color);
+               cursor: pointer; background: var(--th-bg-card);
+               font-size: 12px; color: var(--th-color-secondary); font-weight: bold;
                transition: background 0.1s; }
-.profil-item:hover { background: #e8f0fb; }
-.profil-item.actif { background: #2e6da4; color: white; }
+.profil-item:hover { background: var(--th-bg-link-hover); }
+.profil-item.actif { background: var(--th-color-secondary); color: white; }
 /* Bouton "TOUS LES BILANS" en bas */
-.profil-item.tous { background: #1a4a7a; color: #FFD700;
+.profil-item.tous { background: var(--th-btn-navy); color: #FFD700;
                     font-weight: 900; text-align: center;
                     border-top: 2px solid #0f3460; position: sticky; bottom: 0; }
 .profil-item.tous:hover { background: #0f3460; }
 
 /* ════ COL 2 : ANALYSES DU PROFIL ════ */
 .col-analyses { display: flex; flex-direction: column; overflow: hidden;
-                border-right: 2px solid #d0dce8; background: #f8fafc; }
+                border-right: 2px solid var(--th-border-statsbar); background: var(--th-bg-card); }
 
-.analyse-item { padding: 5px 10px; border-bottom: 1px solid #eef2f7;
-                cursor: pointer; background: white; font-size: 12px;
+.analyse-item { padding: 5px 10px; border-bottom: 1px solid var(--th-sep-color);
+                cursor: pointer; background: var(--th-bg-card); font-size: 12px; color: var(--th-color-text);
                 display: flex; align-items: center; gap: 6px;
                 transition: background 0.1s; }
 .analyse-item:hover { background: #eafaf1; }
@@ -118,7 +124,7 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
 
 /* ════ COL 3 : PANIER / SÉLECTION ════ */
 .col-panier { display: flex; flex-direction: column; overflow: hidden;
-              border-right: 2px solid #d0dce8; background: #fffef0; }
+              border-right: 2px solid var(--th-border-statsbar); background: #fffef0; }
 
 .panier-item { padding: 4px 8px; border-bottom: 1px solid #eef2f7;
                background: white; font-size: 12px; font-weight: bold; color: #1a4a7a;
@@ -128,30 +134,30 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
 .panier-item .del:hover { color: #e74c3c; }
 
 /* Boutons panier — EN HAUT */
-.panier-header { padding: 6px 8px; border-bottom: 2px solid #d0dce8;
+.panier-header { padding: 6px 8px; border-bottom: 2px solid var(--th-border-statsbar);
                  display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
                  background: #fffef0; }
 
 /* ════ COL 4 : RÉSULTATS ════ */
-.col-resultats { display: flex; flex-direction: column; overflow: hidden; background: white; }
+.col-resultats { display: flex; flex-direction: column; overflow: hidden; background: var(--th-bg-card); }
 
 /* Toolbar résultats */
-.toolbar-res { background: #f8fafc; padding: 6px 10px; flex-shrink: 0;
+.toolbar-res { background: var(--th-bg-card); padding: 6px 10px; flex-shrink: 0;
                display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-               border-bottom: 2px solid #e0e8f0; }
+               border-bottom: 2px solid var(--th-border-statsbar); }
 
 .tbl-wrap { flex: 1; overflow-y: auto; }
 table.bio { width: 100%; border-collapse: collapse; }
-table.bio thead th { background: #1a4a7a; color: white; padding: 7px 10px;
+table.bio thead th { background: var(--th-bg-header-s); color: white; padding: 7px 10px;
                      font-size: 11px; text-align: left; position: sticky; top: 0; z-index: 2; }
-table.bio tbody tr { border-bottom: 1px solid #f0f4f8; }
-table.bio tbody tr:hover { background: #fafcff; }
-table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
+table.bio tbody tr { border-bottom: 1px solid var(--th-sep-color); }
+table.bio tbody tr:hover { background: var(--th-bg-link-hover); }
+table.bio tbody td { padding: 2px 8px; vertical-align: middle; color: var(--th-color-text); }
 .td-rubrique { background: #f0eafa !important; font-size: 10px;
                color: #7d3c98; font-weight: bold; padding: 2px 8px !important; }
-.td-analyse  { font-size: 12px; font-weight: bold; color: #1a4a7a; }
+.td-analyse  { font-size: 12px; font-weight: bold; color: var(--th-color-primary); }
 .inp-res { width: 130px; padding: 1px 5px; border: 1px solid #ddd;
-           border-radius: 3px; font-size: 11px; height: 22px; }
+           border-radius: 3px; font-size: 11px; height: 22px; color: #222; background: white; }
 .inp-res:focus   { border-color: #2e6da4; outline: none; background: #f5f9ff; }
 .inp-res.normal  { border-color: #27ae60; color: #27ae60; font-weight: bold; background: #f0fff5; }
 .inp-res.anormal { border-color: #e74c3c; color: #e74c3c; font-weight: bold; background: #fff5f5; }
@@ -159,8 +165,8 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 .btn-del-l:hover { color: #e74c3c; }
 
 .placeholder { flex: 1; display: flex; align-items: center; justify-content: center;
-               color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
-.empty { padding: 16px; text-align: center; color: #bbb; font-size: 12px; }
+               color: var(--th-color-text-muted); font-size: 13px; text-align: center; padding: 20px; }
+.empty { padding: 16px; text-align: center; color: var(--th-color-text-muted); font-size: 12px; }
 
 /* Toast */
 .toast { position: fixed; bottom: 20px; right: 20px; padding: 9px 16px;
@@ -175,15 +181,16 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
     .header, .patient-bar, .bilans-bar, .col-profils, .col-analyses,
     .col-panier, .toolbar-res, .btn-del-l { display: none !important; }
     .layout { display: block; }
-    body { overflow: visible; height: auto; }
-    .col-resultats { overflow: visible; }
+    body { overflow: visible; height: auto; background: white !important; color: #222 !important; }
+    .col-resultats { overflow: visible; background: white !important; }
     .tbl-wrap { overflow: visible; }
-    table.bio thead th { background: #1a4a7a !important;
+    table.bio thead th { background: #1a4a7a !important; color: white !important;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    table.bio tbody td { color: #222 !important; }
 }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- HEADER -->
 <script src="home.js"></script>

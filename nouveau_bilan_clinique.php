@@ -19,6 +19,11 @@ if ($urlMsg === 'examen_ok') $msgs['examen'] = '✅ Examen enregistré';
 if ($urlMsg === 'ecg_ok')    $msgs['ecg']    = '✅ ECG enregistré';
 if ($urlMsg === 'echo_ok')   $msgs['echo']   = '✅ Echo-Doppler enregistré';
 
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
 function toSqlDate($d) {
     if (!$d) return null;
     $ts = strtotime($d);
@@ -188,12 +193,13 @@ foreach ($bilansList3 as $b) {
 <head>
 <meta charset="UTF-8">
 <title>Bilan clinique — <?= htmlspecialchars($nom) ?></title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; color: #222; }
+body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-bg-page); color: var(--th-color-text); }
 
 .header {
-    background: linear-gradient(135deg, #1a4a7a, #2e6da4);
+    background: var(--th-bg-header);
     color: white; padding: 8px 16px;
     display: flex; align-items: center; gap: 12px;
 }
@@ -208,30 +214,31 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 .cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
 
-.col-card { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.col-card { background: var(--th-bg-card); border-radius: 6px; padding: 12px; box-shadow: 0 1px 4px var(--th-border-card); }
 
 .col-title {
-    font-size: 12px; font-weight: bold; color: #1a4a7a;
+    font-size: 12px; font-weight: bold; color: var(--th-color-primary);
     margin-bottom: 10px; padding-bottom: 6px;
-    border-bottom: 2px solid #e0e8f0;
+    border-bottom: 2px solid var(--th-border-statsbar);
     display: flex; align-items: center; justify-content: space-between;
 }
 
 .msg { padding: 6px 10px; border-radius: 4px; margin-bottom: 10px;
        font-size: 11px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 
-.sec { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase;
+.sec { font-size: 10px; font-weight: bold; color: var(--th-color-text-muted); text-transform: uppercase;
        letter-spacing: 0.5px; margin: 10px 0 6px; }
 
 .champ { margin-bottom: 7px; }
-.champ label { font-size: 10px; color: #888; display: block; margin-bottom: 2px; }
+.champ label { font-size: 10px; color: var(--th-color-text-muted); display: block; margin-bottom: 2px; }
 .champ input, .champ textarea, .champ select {
     width: 100%; padding: 4px 6px;
     border: 1px solid #ddd; border-radius: 3px;
     font-size: 11px; font-family: Arial, sans-serif;
+    color: #222; background: white;
 }
 .champ input:focus, .champ textarea:focus, .champ select:focus {
-    outline: none; border-color: #2e6da4;
+    outline: none; border-color: var(--th-color-secondary);
     box-shadow: 0 0 0 2px rgba(46,109,164,0.12);
 }
 .champ textarea { resize: vertical; min-height: 48px; }
@@ -243,7 +250,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 }
 .date-enreg input[type=date] {
     border: 1px solid #ddd; border-radius: 3px;
-    padding: 2px 5px; font-size: 11px; color: #1a4a7a;
+    padding: 2px 5px; font-size: 11px; color: var(--th-color-primary);
 }
 /* Boutons icônes ✅ ✏️ 💾 — transparents, taille fixe, centrés */
 .btn-preset, .btn-save {
@@ -258,7 +265,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 .btn-preset:hover, .btn-save:hover { background: rgba(0,0,0,0.07); }
 .btn-normal { color: #27ae60; }
 .btn-anormal { color: #e67e22; }
-.btn-save { color: #2e6da4; }
+.btn-save { color: var(--th-color-secondary); }
 
 
 /* Champs réduits */
@@ -270,7 +277,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 .btn-excl {
     flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px;
     border: 1px solid #ccc; border-radius: 3px; background: #f5f5f5;
-    color: #888; font-size: 12px; font-weight: bold;
+    color:var(--th-color-text-muted); font-size: 12px; font-weight: bold;
     cursor: pointer; line-height: 18px; text-align: center; padding: 0;
     transition: all 0.15s;
 }
@@ -283,10 +290,10 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 .champ.exclu-champ input[type=number] { opacity: 0.4; }
 /* Label avec bouton excl inline */
 .label-excl { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
-.label-excl label { font-size:10px; color:#888; margin:0; }
+.label-excl label { font-size:10px; color:var(--th-color-text-muted); margin:0; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <div class="header">
     <div>
@@ -314,13 +321,13 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 <!-- ══ BARRE NAVIGATION GLOBALE ══ -->
 <div style="background:#e8f0fa;border-bottom:2px solid #c5d8ed;padding:4px 12px;display:flex;align-items:center;gap:6px;">
-    <span style="font-size:10px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🔀 Navigation globale</span>
+    <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🔀 Navigation globale</span>
     <div style="display:flex;align-items:center;gap:3px;margin-left:6px;">
         <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#1a4a7a;padding:0 8px;white-space:nowrap;">— nouveau —</span>
+        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:var(--th-color-primary);padding:0 8px;white-space:nowrap;">— nouveau —</span>
         <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
@@ -328,7 +335,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
             style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
-    <span style="font-size:10px;color:#888;margin-left:4px;">← agit simultanément sur Examen · ECG · Echo</span>
+    <span style="font-size:10px;color:var(--th-color-text-muted);margin-left:4px;">← agit simultanément sur Examen · ECG · Echo</span>
 </div>
 
 <div class="cols">
@@ -341,9 +348,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="onglet" value="examen">
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
-        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🩺 Examen clinique</span>
+        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🩺 Examen clinique</span>
         <span style="flex:1;"></span>
-        <input type="date" name="DateExam" value="<?= $today ?>" id="date_examen" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
+        <input type="date" name="DateExam" value="<?= $today ?>" id="date_examen" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:var(--th-color-primary);">
     </div>
 
    <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
@@ -351,7 +358,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('examen','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('examen','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
+        <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('examen','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('examen','first')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -359,7 +366,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
     <!-- ── Panel cases Examen ── -->
     <div id="panel_sympto" style="margin-bottom:6px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">🩺 Examen — cochez pour générer le rapport Examen</div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">🩺 Examen — cochez pour générer le rapport Examen</div>
 
         <!-- Boutons Normal / Anormal -->
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -487,15 +494,15 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         #inp_TAS,#inp_TAD,#inp_FC,#inp_POIDS { -moz-appearance:textfield; }
     </style>
     <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
-        <label style="font-size:10px;color:#888;">TAS <span style="color:red;">*</span></label>
+        <label style="font-size:10px;color:var(--th-color-text-muted);">TAS <span style="color:red;">*</span></label>
         <input type="number" id="inp_TAS" name="TAS" placeholder="TAS" required style="width:50px;padding:3px 5px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
-        <label style="font-size:10px;color:#888;">TAD <span style="color:red;">*</span></label>
+        <label style="font-size:10px;color:var(--th-color-text-muted);">TAD <span style="color:red;">*</span></label>
         <input type="number" id="inp_TAD" name="TAD" placeholder="TAD" required style="width:50px;padding:3px 5px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
-        <label style="font-size:10px;color:#888;">FC <span style="color:red;">*</span></label>
+        <label style="font-size:10px;color:var(--th-color-text-muted);">FC <span style="color:red;">*</span></label>
         <input type="number" id="inp_FC"  name="FC"  placeholder="FC"  required style="width:50px;padding:3px 5px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
-        <label style="font-size:10px;color:#888;">Poids</label>
+        <label style="font-size:10px;color:var(--th-color-text-muted);">Poids</label>
         <input type="number" id="inp_POIDS" step="0.1" name="POIDS" placeholder="kg" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-        <label style="font-size:10px;color:#888;">Taille</label>
+        <label style="font-size:10px;color:var(--th-color-text-muted);">Taille</label>
         <input type="text" name="TAILLE" placeholder="cm" readonly tabindex="-1" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f5f5f5;color:#aaa;cursor:not-allowed;">
     </div>
 
@@ -527,9 +534,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
     <!-- Zone prévisualisation concaténation Examen -->
     <div class="champ" style="margin-top:6px;">
-        <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport Examen</label>
+        <label style="font-size:10px;color:var(--th-color-stat);font-weight:bold;">👁 Aperçu rapport Examen</label>
         <textarea id="apercu_examen" name="CMLM_EXAMEN"
-            style="min-height:45px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:45px;background:#ffffff;border:1px solid #2e6da4;font-size:11px;color:#0d2b4e;font-weight:500;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
 
     <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
@@ -543,22 +550,22 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
         <!-- ══ SECTION 1 : Maladie chronique (ex-CMLM) ══ -->
         <div class="cat-section">
-            <div class="cat-header" onclick="toggleCatSection('sec_maladie','arr_maladie')" style="cursor:pointer;font-size:11px;font-weight:bold;color:#1a4a7a;background:#ddeeff;padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
+            <div class="cat-header" onclick="toggleCatSection('sec_maladie','arr_maladie')" style="cursor:pointer;font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
                 <span id="arr_maladie">▶</span> 📋 Maladie chronique
             </div>
             <div id="sec_maladie" style="display:none;padding-left:10px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Son état nécessite une prise en charge au long cours"> Son état nécessite</label>
 
-                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Traitement médical</div>
+                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Traitement médical</div>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Un traitement médical au long cours"> Un traitement médical au long cours</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Actuellement sous traitement"> Actuellement sous :</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Aucun médicament ajouté"> Aucun médicament ajouté — cliquez sur [ALD]</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:12px;">
-                    <span style="font-size:10px;color:#555;">Traitement retenu :</span>
+                    <span style="font-size:10px;color:var(--th-color-text-muted);">Traitement retenu :</span>
                     <input type="text" id="cat_trait_retenu" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
 
-                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
+                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle)"> Clinique (trimestrielle)</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle"> Électrocardiographique trimestrielle</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle"> Échographique annuelle</label>
@@ -567,7 +574,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                     <input type="text" id="cat_bio_detail" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
 
-                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Avis spécialiste</div>
+                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Avis spécialiste</div>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis endocrinologue"> Endocrinologue</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis neurologue"> Neurologue</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis néphrologue"> Néphrologue</label>
@@ -575,7 +582,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis pneumologue"> Pneumologue</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis chirurgien cardiaque"> Chirurgien cardiaque</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
-                    <span style="font-size:10px;color:#555;">Autre :</span>
+                    <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
                     <input type="text" id="cat_avis_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -583,14 +590,14 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
         <!-- ══ SECTION 2 : Correspondance (ex-Lettre) ══ -->
         <div class="cat-section" style="margin-top:3px;">
-            <div class="cat-header" onclick="toggleCatSection('sec_corresp','arr_corresp')" style="cursor:pointer;font-size:11px;font-weight:bold;color:#1a4a7a;background:#ddeeff;padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
+            <div class="cat-header" onclick="toggleCatSection('sec_corresp','arr_corresp')" style="cursor:pointer;font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
                 <span id="arr_corresp">▶</span> ✉️ Correspondance
             </div>
             <div id="sec_corresp" style="display:none;padding-left:10px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Je vous adresse ce patient pour avis et prise en charge"> Je vous adresse ce patient pour avis et prise en charge</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
-                    <span style="font-size:10px;color:#555;">Autre :</span>
+                    <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
                     <input type="text" id="cat_corresp_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -598,19 +605,19 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
         <!-- ══ SECTION 3 : Compte rendu ══ -->
         <div class="cat-section" style="margin-top:3px;">
-            <div class="cat-header" onclick="toggleCatSection('sec_cr','arr_cr')" style="cursor:pointer;font-size:11px;font-weight:bold;color:#1a4a7a;background:#ddeeff;padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
+            <div class="cat-header" onclick="toggleCatSection('sec_cr','arr_cr')" style="cursor:pointer;font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
                 <span id="arr_cr">▶</span> 📋 Compte rendu
             </div>
             <div id="sec_cr" style="display:none;padding-left:10px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
 
-                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Adaptation du traitement (voir protocole)</div>
+                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Adaptation du traitement (voir protocole)</div>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous antiagrégants plaquettaires (voir protocole)"> Patient sous antiagrégants plaquettaires</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous AVK (voir protocole)"> Patient sous AVK (voir protocole)</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous anticoagulants directs"> Patient sous anticoagulants directs</label>
 
-                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
+                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle) — CR"> Clinique (trimestrielle)</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle — CR"> Électrocardiographique trimestrielle</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle — CR"> Échographique annuelle</label>
@@ -623,14 +630,14 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
         <!-- ══ SECTION 4 : Aptitude physique ══ -->
         <div class="cat-section" style="margin-top:3px;">
-            <div class="cat-header" onclick="toggleCatSection('sec_aptitude','arr_aptitude')" style="cursor:pointer;font-size:11px;font-weight:bold;color:#1a4a7a;background:#ddeeff;padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
+            <div class="cat-header" onclick="toggleCatSection('sec_aptitude','arr_aptitude')" style="cursor:pointer;font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);padding:3px 5px;border-radius:3px;margin-bottom:3px;user-select:none;">
                 <span id="arr_aptitude">▶</span> 🏅 Aptitude physique
             </div>
             <div id="sec_aptitude" style="display:none;padding-left:10px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal, apte à la pratique sportive"> Examen cardio-vasculaire normal</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Apte à l'emploi sollicité"> Apte à l'emploi sollicité</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
-                    <span style="font-size:10px;color:#555;">Autre :</span>
+                    <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
                     <input type="text" id="cat_apt_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -657,13 +664,13 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <!-- ══ 🧪 Biologie ══ -->
     <div style="margin-top:8px;padding-top:6px;border-top:2px solid #e0e0e0;">
     <div class="col-title">
-        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🧪 Biologie</span>
+        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🧪 Biologie</span>
         <a href="biologie.php?id=<?= $id ?>" target="_blank"
            style="background:#e67e22;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:bold;text-decoration:none;white-space:nowrap;">✚ Saisir</a>
     </div>
 
     <?php if (empty($bilansNBC)): ?>
-        <p style="color:#999;font-size:11px;">Aucun bilan enregistré</p>
+        <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun bilan enregistré</p>
     <?php else: ?>
 
     <!-- Historique compact : date + anormaux en surbrillance -->
@@ -673,9 +680,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             $anormaux = array_filter($bNBC['lignes'], fn($l) => trim($l['resultat']) !== '' && strtoupper(trim($l['resultat'])) !== 'N');
         ?>
         <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
-            <span style="font-size:10px;font-weight:bold;color:#1a4a7a;"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
+            <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
             <?php if (!empty($anormaux)): ?>
-            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
+            <span style="font-size:10px;color:var(--th-color-text-muted);margin-left:4px;">:</span>
             <?php foreach ($anormaux as $an): ?>
             <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
                 <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
@@ -695,7 +702,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">
+        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">
             <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
         </span>
         <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
@@ -733,23 +740,23 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="onglet" value="ecg">
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
-        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">⚡ ECG</span>
+        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">⚡ ECG</span>
         <span style="flex:1;"></span>
-        <input type="date" name="Date_ECG" value="<?= $today ?>" id="date_ecg" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
+        <input type="date" name="Date_ECG" value="<?= $today ?>" id="date_ecg" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:var(--th-color-primary);">
     </div>
     <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('ecg','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('ecg','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
+        <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('ecg','first')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
     <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:6px;">📈 ECG — cochez pour générer le rapport ECG</div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">📈 ECG — cochez pour générer le rapport ECG</div>
         <div style="display:flex;gap:6px;margin-bottom:4px;">
             <button type="button" id="btn_ecg_normal"
                 onclick="setEcgGlobal('normal')"
@@ -893,7 +900,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                     <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sous-décalage segment ST"> Sous-décalage segment ST</label>
                     <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sus-décalage segment ST"> Sus-décalage segment ST</label>
                     <div id="sub_ecg_repol_st"></div>
-                    <div style="font-size:10px;color:#555;margin-bottom:2px;">Dans le territoire :</div>
+                    <div style="font-size:10px;color:var(--th-color-text-muted);margin-bottom:2px;">Dans le territoire :</div>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST antérieur"> Antérieur</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST apical"> Apical</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST inférieur"> Inférieur</label>
@@ -945,9 +952,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
     <!-- Zone prévisualisation concaténation ECG -->
     <div class="champ" style="margin-top:6px;">
-        <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport ECG</label>
+        <label style="font-size:10px;color:var(--th-color-stat);font-weight:bold;">👁 Aperçu rapport ECG</label>
         <textarea id="apercu_ecg" name="CMLM_ECG"
-            style="min-height:65px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:65px;background:#ffffff;border:1px solid #2e6da4;font-size:11px;color:#0d2b4e;font-weight:500;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
     </form>
 
@@ -958,16 +965,16 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <input type="hidden" name="onglet" value="echo">
     <input type="hidden" name="ajax" value="1">
     <div class="col-title">
-        <span style="font-size:12px;font-weight:bold;color:#1a4a7a;white-space:nowrap;">🫀 Echo-Doppler</span>
+        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🫀 Echo-Doppler</span>
         <span style="flex:1;"></span>
-        <input type="date" name="DATEchog" value="<?= $today ?>" id="date_echo" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:#1a4a7a;">
+        <input type="date" name="DATEchog" value="<?= $today ?>" id="date_echo" style="border:1px solid #ddd;border-radius:3px;padding:2px 5px;font-size:11px;color:var(--th-color-primary);">
     </div>
     <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
         <button type="button" onclick="naviguerBilan('echo','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:#1a4a7a;font-size:11px;">— nouveau —</span>
+        <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('echo','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('echo','first')" title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -1009,10 +1016,10 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
         <!-- style aide-mémoire sections -->
         <style>
-        .echo-section { font-size:11px;font-weight:bold;color:#1a4a7a;background:#dce8f5;border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
-        .ecg-section  { font-size:11px;font-weight:bold;color:#1a4a7a;background:#dce8f5;border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
-        .exam-section { font-size:11px;font-weight:bold;color:#1a4a7a;background:#dce8f5;border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
-        .echo-mesure  { font-size:10px;color:#555;margin:2px 0 3px 4px; }
+        .echo-section { font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
+        .ecg-section  { font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
+        .exam-section { font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
+        .echo-mesure  { font-size:10px;color:var(--th-color-text-muted);margin:2px 0 3px 4px; }
         .echo-mesure input[type=text],
         .echo-mesure input[type=number] { width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px; }
         .echo-sub     { margin-left:12px; }
@@ -1100,7 +1107,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                         <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse aortique sévère"> Sévère</label>
                     </div>
                     <!-- Conclusion prothèse Ao -->
-                    <div style="font-size:10px;color:#1a4a7a;font-weight:bold;margin-top:3px;">Conclusion :</div>
+                    <div style="font-size:10px;color:var(--th-color-primary);font-weight:bold;margin-top:3px;">Conclusion :</div>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse aortique non significative"> Dysfonction non significative</label>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse aortique significative"> Dysfonction significative</label>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_ao_concl" onchange="exclusifGroup(this)" value="dysfonction sévère prothèse aortique nécessitant avis spécialisé"> Dysfonction sévère — avis spécialisé</label>
@@ -1182,7 +1189,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
                         <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse mitrale modérée"> Modérée</label>
                         <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_discord" onchange="exclusifGroup(this)" value="discordance patient–prothèse mitrale sévère"> Sévère</label>
                     </div>
-                    <div style="font-size:10px;color:#1a4a7a;font-weight:bold;margin-top:3px;">Conclusion :</div>
+                    <div style="font-size:10px;color:var(--th-color-primary);font-weight:bold;margin-top:3px;">Conclusion :</div>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse mitrale non significative"> Dysfonction non significative</label>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="dysfonction prothèse mitrale significative"> Dysfonction significative</label>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec excl1" data-group="g2_mi_concl" onchange="exclusifGroup(this)" value="dysfonction sévère prothèse mitrale nécessitant avis spécialisé"> Dysfonction sévère — avis spécialisé</label>
@@ -1360,11 +1367,11 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <!-- Aperçu Echo -->
     <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
         <div class="label-excl">
-            <label style="font-size:10px;color:#2e6da4;font-weight:bold;">👁 Aperçu rapport Echo</label>
+            <label style="font-size:10px;color:var(--th-color-stat);font-weight:bold;">👁 Aperçu rapport Echo</label>
             <button type="button" class="btn-excl" onclick="toggleExcl('CONCLUSION1')" title="Exclure du rapport">−</button>
         </div>
         <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:80px;background:#f0f7ff;border:1px solid #2e6da4;font-size:11px;color:#1a4a7a;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+            style="min-height:80px;background:#ffffff;border:1px solid #2e6da4;font-size:11px;color:#0d2b4e;font-weight:500;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
             oninput="majApercuEcho(); autoResize(this)"></textarea>
     </div>
     </form>
@@ -1378,31 +1385,31 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
     <!-- Motif -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">📋 Motif</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📋 Motif</div>
+        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Antécédents -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">📂 Antécédents</div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📂 Antécédents</div>
         <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Facteurs de risque -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">⚠️ Facteurs de risque</div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">⚠️ Facteurs de risque</div>
         <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Diagnostic -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">🩺 Diagnostic</div>
-        <div style="font-size:11px;color:#1a4a7a;font-weight:bold;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-weight:normal;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">🩺 Diagnostic</div>
+        <div style="font-size:11px;color:var(--th-color-primary);font-weight:bold;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-weight:normal;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Au total — Conduite à tenir -->
     <div>
-        <div style="font-size:11px;font-weight:bold;color:#1a4a7a;margin-bottom:3px;">🎯 Au total — Conduite à tenir</div>
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">🎯 Au total — Conduite à tenir</div>
         <?php $cat = trim($examen['Conduite_ATenir'] ?? ''); if ($cat): ?>
         <div style="font-size:11px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:3px;padding:4px 6px;line-height:1.5;white-space:pre-wrap;"><?= htmlspecialchars($cat) ?></div>
         <?php else: ?>
@@ -1995,7 +2002,7 @@ function bioNavNBC(dir) {
         if (!d.ok) return;
         const zone = document.getElementById('bio-nbc-resultats');
         if (!d.lignes.length) {
-            zone.innerHTML = '<span style="color:#999;font-size:11px;">Bilan vide</span>';
+            zone.innerHTML = '<span style="color:var(--th-color-text-muted);font-size:11px;">Bilan vide</span>';
             return;
         }
         zone.innerHTML = d.lignes.map(l => {

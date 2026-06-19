@@ -55,11 +55,14 @@ if ($action === 'chercher_produits') {
 // ══════════════════════════════════════════════════════════════
 if ($action === 'liste_produits') {
     // Compte les utilisations dans PROD pour détecter les orphelins
+    // + date de la première prescription (pour le tri chronologique)
     $stmt = $db->query("
         SELECT pr.NuméroPRODUIT, pr.PRODUIT,
-               COUNT(pd.N_ord) AS nb_utilisations
+               COUNT(pd.N_ord) AS nb_utilisations,
+               CONVERT(varchar, MIN(o.date_ordon), 120) AS premiere_prescription
         FROM PRODUITS pr
         LEFT JOIN PROD pd ON pd.produit = pr.NuméroPRODUIT
+        LEFT JOIN ORD  o  ON o.n_ordon = pd.N_ord
         GROUP BY pr.NuméroPRODUIT, pr.PRODUIT
         ORDER BY pr.PRODUIT
     ");

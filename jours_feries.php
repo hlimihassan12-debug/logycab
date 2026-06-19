@@ -4,6 +4,11 @@ require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
 $stmtF = $db->query("SELECT DateFerie FROM T_JourFeries ORDER BY DateFerie");
+
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 $feriesRaw = $stmtF->fetchAll(PDO::FETCH_COLUMN);
 
 $feries = [];
@@ -35,19 +40,20 @@ function formatFr($date) {
 <head>
 <meta charset="UTF-8">
 <title>Jours Fériés</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
+body { font-family: var(--th-font-body); background: var(--th-bg-page); font-size: 13px; }
 
-.header { background: #1a4a7a; color: white; padding: 6px 14px;
+.header { background: var(--th-bg-header); color: white; padding: 6px 14px;
           display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
 .header h1 { font-size: 14px; white-space: nowrap; }
 .btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
          padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 26px; white-space: nowrap; }
 .btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.navy   { background: var(--th-btn-navy); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
@@ -62,20 +68,20 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .header-clock { background: rgba(255,255,255,0.12);
                 border-radius: 6px; padding: 3px 10px; text-align: center;
                 min-width: 130px; flex-shrink: 0; }
-.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
 .container { max-width: 700px; margin: 24px auto; padding: 0 16px; }
 
-.card { background: white; border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; overflow: hidden; }
-.card-header { background: #1a4a7a; color: white; padding: 10px 16px;
+.card { background: var(--th-bg-card); border-radius: 8px;
+        box-shadow: 0 2px 8px var(--th-border-card); margin-bottom: 20px; overflow: hidden; }
+.card-header { background: var(--th-bg-header-s); color: white; padding: 10px 16px;
                font-size: 13px; font-weight: bold; }
 
 /* Formulaire ajout */
 .form-add { padding: 14px 16px; display: flex; gap: 10px; align-items: center;
-            border-bottom: 1px solid #e0e8f0; }
-.form-add input[type=date] { padding: 6px 10px; border: 1px solid #2e6da4;
+            border-bottom: 1px solid var(--th-border-statsbar); }
+.form-add input[type=date] { padding: 6px 10px; border: 1px solid var(--th-color-secondary);
     border-radius: 4px; font-size: 12px; cursor: pointer; }
 .btn-add { background: #27ae60; color: white; border: none; border-radius: 4px;
            padding: 6px 16px; cursor: pointer; font-size: 12px; font-weight: bold; }
@@ -84,9 +90,9 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 /* Liste */
 .liste { padding: 8px 0; }
 .item-ferie { display: flex; align-items: center; gap: 10px;
-              padding: 7px 16px; border-bottom: 1px solid #f0f4f8; }
+              padding: 7px 16px; border-bottom: 1px solid var(--th-sep-color); }
 .item-ferie:last-child { border-bottom: none; }
-.item-ferie:hover { background: #f8fafc; }
+.item-ferie:hover { background: var(--th-bg-link-hover); }
 
 .badge-jour { font-size: 10px; font-weight: bold; padding: 2px 8px;
               border-radius: 10px; flex-shrink: 0; }
@@ -95,13 +101,13 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .badge-jour.lun { background: #e8f0fb; color: #2e6da4; }
 .badge-jour.std { background: #e8f5e9; color: #27ae60; }
 
-.item-label { flex: 1; color: #1a4a7a; font-weight: bold; }
-.item-date  { font-size: 11px; color: #888; font-family: monospace; }
+.item-label { flex: 1; color: var(--th-color-primary); font-weight: bold; }
+.item-date  { font-size: 11px; color: var(--th-color-text-muted); font-family: monospace; }
 .btn-sup { background: #e74c3c; color: white; border: none; border-radius: 4px;
            padding: 2px 8px; cursor: pointer; font-size: 11px; font-weight: bold; }
 .btn-sup:hover { opacity: 0.85; }
 
-.empty { padding: 20px; text-align: center; color: #bbb; font-style: italic; }
+.empty { padding: 20px; text-align: center; color: var(--th-color-text-muted); font-style: italic; }
 
 /* Toast */
 .toast { position: fixed; top: 16px; right: 16px; padding: 10px 18px;
@@ -113,11 +119,11 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .toast.error   { background: #e74c3c; }
 
 /* Compteur */
-.compteur { padding: 10px 16px; font-size: 11px; color: #888;
-            border-top: 1px solid #e0e8f0; text-align: right; }
+.compteur { padding: 10px 16px; font-size: 11px; color: var(--th-color-text-muted);
+            border-top: 1px solid var(--th-border-statsbar); text-align: right; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <script src="home.js"></script>
 <div class="header">

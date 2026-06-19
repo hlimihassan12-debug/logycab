@@ -3,6 +3,11 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
 // Statistiques rapides
 $nbPatients = $db->query("SELECT COUNT(DISTINCT id) FROM ORD")->fetchColumn();
 $nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
@@ -13,20 +18,21 @@ $dateAuj = date('d/m/Y');
 <head>
 <meta charset="UTF-8">
 <title>Logycab — Accueil</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; color: #222; min-height: 100vh; }
+body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-bg-page); color: var(--th-color-text); min-height: 100vh; }
 
 /* ── Header ── */
 .header {
-    background: linear-gradient(135deg, #1a4a7a, #2e6da4);
+    background: var(--th-bg-header);
     color: white; padding: 8px 16px;
     display: flex; align-items: center; gap: 10px;
 }
 .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
 .header .sub { font-size: 10px; opacity: 0.7; }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px; padding: 4px 10px; text-align: center; margin-left: auto; }
-.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 .btn-h {
     display: inline-flex; align-items: center; gap: 4px;
@@ -34,19 +40,19 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     font-weight: bold; text-decoration: none; color: white;
     white-space: nowrap; cursor: pointer; border: none;
 }
-.btn-h.blue   { background: #2e6da4; }
-.btn-h.navy   { background: #1a4a7a; }
-.btn-h.green  { background: #27ae60; }
-.btn-h.grey   { background: #7f8c8d; }
+.btn-h.blue   { background: var(--th-btn-blue); }
+.btn-h.navy   { background: var(--th-btn-navy); }
+.btn-h.green  { background: var(--th-btn-green); }
+.btn-h.grey   { background: var(--th-btn-grey); }
 
 /* ── Bandeau stats ── */
 .stats-bar {
-    background: white; border-bottom: 2px solid #c5d8ed;
+    background: var(--th-bg-statsbar); border-bottom: 2px solid var(--th-border-statsbar);
     padding: 6px 20px; display: flex; gap: 24px; align-items: center;
 }
 .stat-item { display: flex; flex-direction: column; align-items: center; }
-.stat-item .val { font-size: 18px; font-weight: bold; color: #1a4a7a; }
-.stat-item .lbl { font-size: 10px; color: #888; }
+.stat-item .val { font-size: 18px; font-weight: bold; color: var(--th-color-stat); }
+.stat-item .lbl { font-size: 10px; color: var(--th-color-text-muted); }
 
 /* ── Grille modules ── */
 .modules {
@@ -60,9 +66,9 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 
 /* ── Card module ── */
 .module-card {
-    background: white;
+    background: var(--th-bg-card);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px var(--th-border-card);
     overflow: hidden;
     transition: box-shadow 0.15s;
 }
@@ -80,13 +86,13 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 .mod-link {
     display: flex; align-items: center; gap: 8px;
     padding: 7px 16px;
-    text-decoration: none; color: #333;
+    text-decoration: none; color: var(--th-color-text);
     font-size: 12px;
     border-left: 3px solid transparent;
     transition: background 0.1s, border-color 0.1s;
 }
-.mod-link:hover { background: #f0f4f8; }
-.mod-link .arrow { color: #c5d8ed; font-size: 10px; margin-left: auto; }
+.mod-link:hover { background: var(--th-bg-link-hover); }
+.mod-link .arrow { color: var(--th-arrow-color); font-size: 10px; margin-left: auto; }
 .mod-link .ico-s { font-size: 14px; width: 20px; text-align: center; }
 
 /* Couleurs par module */
@@ -109,7 +115,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 .m-compta .mod-link:hover { border-left-color: #16a085; }
 
 /* séparateur entre liens */
-.mod-sep { height: 1px; background: #f0f0f0; margin: 2px 0; }
+.mod-sep { height: 1px; background: var(--th-sep-color); margin: 2px 0; }
 
 /* ── Coeur animé ── */
 @keyframes heartbeat {
@@ -122,7 +128,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
 .heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 22px; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- ══ HEADER ══ -->
 <div class="header">
@@ -130,7 +136,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
         <div style="display:flex;align-items:center;gap:8px;">
             <span class="heart">❤</span>
             <div>
-                <div style="font-size:20px;font-weight:900;letter-spacing:2px;">LOGYCAB</div>
+                <div style="font-size:20px;font-weight:900;letter-spacing:var(--th-logo-spacing);font-family:var(--th-font-logo);color:var(--th-color-accent,white);">LOGYCAB</div>
                 <div class="sub">Cabinet de Cardiologie — Dr H. Hlimi</div>
             </div>
         </div>
@@ -148,6 +154,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
     <a href="planning.php"      class="btn-h blue">📊 Planning</a>
     <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
     <a href="jours_feries.php"  class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
+    <a href="parametres.php"   class="btn-h" style="background:#555;">⚙ Thème</a>
     <!-- Horloge -->
     <div class="header-clock">
         <div id="clockTime" class="ct">--:--:--</div>
@@ -214,7 +221,7 @@ body { font-family: Arial, sans-serif; font-size: 12px; background: #f0f4f8; col
             </a>
             <div class="mod-sep"></div>
             <a href="gestion_ordonnances.php?ong=3" class="mod-link">
-                <span class="ico-s">📝</span> Rédiger une ordonnance
+                <span class="ico-s">✏️</span> Rédiger une ordonnance
                 <span class="arrow">▶</span>
             </a>
         </div>

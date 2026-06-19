@@ -3,6 +3,10 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 $modeInit = $_GET['mode'] ?? 'ajouter';
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 if (!in_array($modeInit, ['ajouter','modifier','supprimer'])) $modeInit = 'ajouter';
 $idInit = (int)($_GET['id'] ?? 0);
 ?>
@@ -11,12 +15,13 @@ $idInit = (int)($_GET['id'] ?? 0);
 <head>
 <meta charset="UTF-8">
 <title>Gestion patients</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:Arial,sans-serif; font-size:13px; background:#f0f4f8; }
+body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-page); color:var(--th-color-text); }
 
 .header {
-    background:linear-gradient(135deg,#1a4a7a,#2e6da4);
+    background:var(--th-bg-header);
     color:white; padding:8px 16px;
     display:flex; align-items:center; gap:10px;
 }
@@ -26,7 +31,7 @@ body { font-family:Arial,sans-serif; font-size:13px; background:#f0f4f8; }
       border:none; cursor:pointer; }
 .bh-green  { background:#27ae60; }
 .bh-red    { background:#c0392b; }
-.bh-navy   { background:#1a4a7a; }
+.bh-navy   { background:var(--th-btn-navy); }
 .header-clock { margin-left:auto; background:rgba(255,255,255,0.12);
     border-radius:6px; padding:4px 10px; text-align:center; }
 .header-clock .ct { font-size:14px; font-weight:bold; }
@@ -34,11 +39,11 @@ body { font-family:Arial,sans-serif; font-size:13px; background:#f0f4f8; }
 
 .page { display:flex; justify-content:center; padding:24px 16px; }
 
-.carte { background:white; border-radius:6px;
+.carte { background:var(--th-bg-card); border-radius:6px;
     box-shadow:0 2px 12px rgba(0,0,0,0.1); width:500px; max-width:98vw; }
 
 .carte-titre {
-    background:linear-gradient(135deg,#1a4a7a,#2e6da4);
+    background:var(--th-bg-header);
     color:white; padding:10px 16px; border-radius:6px 6px 0 0;
     font-size:14px; font-weight:bold;
 }
@@ -53,7 +58,7 @@ body { font-family:Arial,sans-serif; font-size:13px; background:#f0f4f8; }
     border-bottom:2px solid transparent;
     margin-bottom:-2px; margin-right:4px;
 }
-.ong.on      { background:#2e6da4; color:white; border-bottom-color:#2e6da4; }
+.ong.on      { background:var(--th-color-secondary); color:white; border-bottom-color:var(--th-color-secondary); }
 .ong.del     { background:#fde8e8; color:#c0392b; }
 .ong.del.on  { background:#e74c3c; color:white; border-bottom-color:#e74c3c; }
 
@@ -66,7 +71,7 @@ table.f { width:100%; border-collapse:collapse; }
 table.f tr { border-bottom:1px solid #f0f0f0; }
 table.f tr:last-child { border-bottom:none; }
 table.f td { padding:6px 8px; vertical-align:middle; }
-table.f td.L { width:155px; font-size:11px; color:#555; font-weight:bold; white-space:nowrap; }
+table.f td.L { width:155px; font-size:11px; color:var(--th-color-text-muted); font-weight:bold; white-space:nowrap; }
 table.f td.V { }
 
 /* Champs */
@@ -78,22 +83,22 @@ table.f td.V { }
 .inp:focus { outline:none; border-color:#2e6da4; box-shadow:0 0 0 2px rgba(46,109,164,0.12); }
 .inp.err { border-color:#e74c3c; background:#fff8f8; }
 .info-box {
-    background:#f4f7fa; border:1px solid #dde3ea;
+    background:var(--th-bg-link-hover); border:1px solid var(--th-border-statsbar);
     border-radius:3px; padding:5px 7px;
-    font-size:12px; color:#1a4a7a; font-weight:bold;
+    font-size:12px; color:var(--th-color-primary); font-weight:bold;
 }
 
 /* Age + DDN */
 .age-row { display:flex; gap:8px; align-items:flex-start; }
 .age-bloc { width:60px; text-align:center; }
-.age-val { font-size:18px; font-weight:bold; color:#1a4a7a;
+.age-val { font-size:18px; font-weight:bold; color:var(--th-color-primary);
     background:#f0f4f8; border:1px solid #dde3ea;
     border-radius:3px; padding:3px 6px; display:block; }
 .age-lbl { font-size:9px; color:#888; }
 .age-inp { width:60px; padding:5px 7px; border:1px solid #ccd6e0;
     border-radius:3px; font-size:14px; font-weight:bold;
     color:#1a4a7a; text-align:center; font-family:Arial,sans-serif; }
-.age-inp:focus { outline:none; border-color:#2e6da4; }
+.age-inp:focus { outline:none; border-color:var(--th-color-secondary); }
 
 /* Radios */
 .radios { display:flex; flex-direction:column; gap:3px; padding:2px 0; }
@@ -109,7 +114,7 @@ table.f td.V { }
 /* Zone recherche */
 .zrech { display:flex; gap:6px; margin-bottom:12px; }
 .zrech input { flex:1; padding:5px 8px; border:1px solid #ccd6e0; border-radius:3px; font-size:12px; }
-.zrech button { background:#1a4a7a; color:white; border:none; border-radius:3px;
+.zrech button { background:var(--th-btn-navy); color:white; border:none; border-radius:3px;
     padding:5px 12px; font-size:12px; font-weight:bold; cursor:pointer; }
 
 /* Alerte */
@@ -134,7 +139,7 @@ table.f td.V { }
 .mres.nok { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; display:block; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <script src="home.js"></script>
 <div class="header">
