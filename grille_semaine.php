@@ -219,14 +219,20 @@ function couleurBarre(int $nb, int $max): string {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+?>
 <title>Grille Semaine</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
+body { font-family: Arial, sans-serif; background: var(--th-bg-page); font-size: 12px; color: var(--th-color-text); }
 
 /* ══ HEADER ══ */
 .header {
-    background: #1a4a7a; color: white;
+    background: var(--th-bg-header-s); color: white;
     padding: 5px 12px;
     display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
 }
@@ -237,8 +243,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
     display: inline-flex; align-items: center; height: 24px; white-space: nowrap;
 }
 .btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.navy   { background: var(--th-btn-navy); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
@@ -257,12 +263,12 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
     background: rgba(255,255,255,0.12); border-radius: 6px;
     padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0;
 }
-.hclock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.hclock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .hclock .cd { font-size: 9px; opacity: 0.75; }
 
 /* ══ NAVIGATION SEMAINE ══ */
 .nav-sem {
-    background: #1a4a7a; color: white; padding: 5px 12px;
+    background: var(--th-btn-navy); color: white; padding: 5px 12px;
     display: flex; align-items: center; justify-content: center; gap: 10px;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
@@ -282,6 +288,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 /* ══ TABLEAU ══ */
 .wrap { padding: 8px 10px; overflow-x: auto; }
 
+/* La table elle-même et son contenu (zone de travail patients) restent
+   en fond clair volontairement pour la lisibilité pendant les consultations. */
 table.grille {
     border-collapse: collapse;
     width: 100%; min-width: 700px;
@@ -292,11 +300,11 @@ table.grille {
 
 /* En-têtes */
 table.grille thead th {
-    background: #1a4a7a; color: white;
+    background: var(--th-bg-header-s); color: white;
     padding: 6px 4px; font-size: 11px; font-weight: bold;
     border: 1px solid #155a9a; text-align: center;
 }
-table.grille thead th.th-heure { width: 50px; background: #0f3460; }
+table.grille thead th.th-heure { width: 50px; background: var(--th-btn-navy); }
 
 /* Corps */
 table.grille tbody td {
@@ -404,7 +412,7 @@ td.col-ferie { background: #f3e5f5; }
     min-width: 320px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
 }
 .modal-box h3 { color: #1a4a7a; margin-bottom: 12px; font-size: 13px; }
-.modal-inp { width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 10px; }
+.modal-inp { width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 10px; color: #222; }
 .modal-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .modal-btns button, .modal-btns a {
     padding: 5px 12px; border: none; border-radius: 4px;
@@ -420,7 +428,7 @@ td.col-ferie { background: #f3e5f5; }
 /* Toast */
 .toast {
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: #1a4a7a; color: white; padding: 8px 20px;
+    background: var(--th-btn-navy); color: white; padding: 8px 20px;
     border-radius: 20px; font-size: 12px; opacity: 0;
     transition: opacity 0.3s; z-index: 2000; pointer-events: none;
 }
@@ -428,11 +436,11 @@ td.col-ferie { background: #f3e5f5; }
 .toast.error { background: #c0392b; }
 
 /* Légende */
-.legende { padding: 6px 12px; display: flex; gap: 10px; font-size: 10px; color: #666; flex-wrap: wrap; }
+.legende { padding: 6px 12px; display: flex; gap: 10px; font-size: 10px; color: var(--th-color-text-muted); flex-wrap: wrap; }
 .legende span { padding: 2px 8px; border-radius: 3px; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- ══ HEADER : recherche à gauche, boutons au milieu, horloge à droite ══ -->
 <script src="home.js"></script>
@@ -626,12 +634,12 @@ if ($hasSansHeure):
 
 <!-- Légende -->
 <div class="legende">
-    <span style="background:#eafaf1;">✓ Vu</span>
-    <span style="background:#fff0f0;">✕ Absent</span>
-    <span style="background:#f0f4fb;">Normal</span>
-    <span style="background:#faf0ff;">Sans heure</span>
-    <span style="background:#eef5ff;">★ Aujourd'hui</span>
-    <span style="background:#f3e5f5;">🔴 Jour férié</span>
+    <span style="background:#eafaf1;color:#1a5e33;">✓ Vu</span>
+    <span style="background:#fff0f0;color:#922b21;">✕ Absent</span>
+    <span style="background:#f0f4fb;color:#1a4a7a;">Normal</span>
+    <span style="background:#faf0ff;color:#6a1a8a;">Sans heure</span>
+    <span style="background:#eef5ff;color:#1a4a7a;">★ Aujourd'hui</span>
+    <span style="background:#f3e5f5;color:#6a1a8a;">🔴 Jour férié</span>
 </div>
 
 <div class="toast" id="toast"></div>

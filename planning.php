@@ -144,15 +144,21 @@ $joursNoms = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+?>
 <title>Planning — Logycab</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-       background: #f0f4f8; font-size: 13px; }
+       background: var(--th-bg-page); font-size: 13px; color: var(--th-color-text); }
 
 /* ── Header ── */
 .header {
-    background: linear-gradient(135deg, #1a4a7a 0%, #0f3460 100%);
+    background: var(--th-bg-header);
     color: white; padding: 6px 14px;
     display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -162,8 +168,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
          padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 26px; white-space: nowrap; }
 .btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.navy   { background: var(--th-btn-navy); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
@@ -179,14 +185,14 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 .header-clock { background: rgba(255,255,255,0.12);
                 border-radius: 6px; padding: 3px 10px; text-align: center;
                 min-width: 130px; flex-shrink: 0; }
-.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
 /* ── Barre de modes ── */
 .mode-bar {
-    background: white; padding: 6px 14px;
+    background: var(--th-bg-card); padding: 6px 14px;
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    border-bottom: 2px solid #e0e8f0;
+    border-bottom: 2px solid var(--th-border-statsbar);
     box-shadow: 0 2px 4px rgba(0,0,0,0.06);
 }
 .btn-mode {
@@ -196,25 +202,25 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     transition: all 0.15s;
 }
 .btn-mode:hover { border-color: #2e6da4; color: #2e6da4; }
-.btn-mode.actif { background: #1a4a7a; color: white; border-color: #1a4a7a; }
+.btn-mode.actif { background: var(--th-btn-navy); color: white; border-color: var(--th-btn-navy); }
 
 .periode-info {
     margin-left: auto; display: flex; align-items: center; gap: 8px;
 }
 .date-box {
-    background: #f0f4f8; border: 1px solid #ddd; border-radius: 4px;
-    padding: 3px 8px; font-size: 11px; color: #444; font-weight: bold;
+    background: var(--th-bg-link-hover); border: 1px solid #ddd; border-radius: 4px;
+    padding: 3px 8px; font-size: 11px; color: var(--th-color-text); font-weight: bold;
 }
 .total-badge {
-    background: #1a4a7a; color: white; border-radius: 20px;
+    background: var(--th-btn-navy); color: white; border-radius: 20px;
     padding: 3px 12px; font-size: 12px; font-weight: bold;
 }
 
 /* ── Légende ── */
 .legende {
-    background: white; padding: 4px 14px;
+    background: var(--th-bg-card); padding: 4px 14px;
     display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
-    border-bottom: 1px solid #e0e8f0; font-size: 11px; color: #555;
+    border-bottom: 1px solid var(--th-border-statsbar); font-size: 11px; color: var(--th-color-text-muted);
 }
 .leg-item { display: flex; align-items: center; gap: 5px; }
 .leg-dot  { width: 11px; height: 11px; border-radius: 3px; flex-shrink:0; }
@@ -225,10 +231,10 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 /* ── Bloc mois ── */
 .mois-bloc { margin-bottom: 16px; }
 .mois-titre {
-    font-size: 12px; font-weight: 800; color: #1a4a7a;
+    font-size: 12px; font-weight: 800; color: var(--th-color-primary);
     text-transform: uppercase; letter-spacing: 2px;
     padding: 6px 4px 4px; margin-bottom: 6px;
-    border-bottom: 2px solid #d0dcea;
+    border-bottom: 2px solid var(--th-border-statsbar);
 }
 
 /* ── Grille 3 colonnes ── */
@@ -239,6 +245,9 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* ── Carte jour — UNE SEULE LIGNE compacte ── */
+/* Note : le fond des jours normaux est calculé dynamiquement en PHP (couleurFond())
+   selon la charge de travail — il reste volontairement clair quel que soit le thème,
+   pour garder le code couleur vert/jaune/orange/rouge lisible et cohérent. */
 .jour-card {
     border-radius: 5px;
     padding: 3px 7px;
@@ -314,7 +323,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 .jour-card.ferie .jour-num { color: #f3e5f5; }
 .jour-card.ferie .fraction { color: #ce93d8; }
 
-/* ── Texte jours normaux ── */
+/* ── Texte jours normaux — fond clair calculé en PHP, texte sombre fixe pour rester lisible ── */
 .jour-card:not(.weekend):not(.ferie) .jour-nom { color: #1a2a3a; }
 .jour-card:not(.weekend):not(.ferie) .jour-num  { color: #3a4a5a; }
 .jour-card:not(.weekend):not(.ferie) .fraction  { color: #2a3a4a; }
@@ -323,7 +332,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 .grille.une-col { grid-template-columns: 1fr; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- HEADER -->
 <script src="home.js"></script>

@@ -87,13 +87,19 @@ foreach ($patients as $pat) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+?>
 <title>Agenda — <?= htmlspecialchars(strftime_fr($dateAff)) ?></title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
+body { font-family: var(--th-font-body); background: var(--th-bg-page); font-size: 12px; color: var(--th-color-text); }
 
 /* ── Header ── */
-.header { background: #1a4a7a; color: white; padding: 5px 12px;
+.header { background: var(--th-bg-header-s); color: white; padding: 5px 12px;
           display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
 .header h1 { font-size: 14px; white-space: nowrap; }
 /* btn-h : boutons de l'en-tête UNIQUEMENT — pas affectés par btn-wa-end */
@@ -102,8 +108,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
          display: inline-flex; align-items: center; height: 24px;
          white-space: nowrap; line-height: 1; }
 .btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.navy   { background: var(--th-btn-navy); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
@@ -118,7 +124,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 
 /* ── Navigation date ── */
-.nav-date { background: #0f3460; color: white; padding: 5px 10px;
+.nav-date { background: var(--th-btn-navy); color: white; padding: 5px 10px;
             display: flex; align-items: center; justify-content: center;
             gap: 5px; flex-wrap: wrap; }
 .date-label { font-size: 14px; font-weight: bold; min-width: 220px; text-align: center; }
@@ -132,41 +138,41 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .nav-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 3px; }
 
 /* ── Stats bar ── */
-.stats-bar { background: white; padding: 6px 12px; display: flex; gap: 10px;
+.stats-bar { background: var(--th-bg-card); padding: 6px 12px; display: flex; gap: 10px;
              align-items: center; flex-wrap: wrap;
-             border-bottom: 2px solid #e0e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
-.stat-pill { background: #f0f4f8; border-radius: 16px; padding: 3px 12px;
+             border-bottom: 2px solid var(--th-border-statsbar); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+.stat-pill { background: var(--th-bg-link-hover); border-radius: 16px; padding: 3px 12px;
              font-size: 11px; display: flex; align-items: center; gap: 4px; }
-.stat-pill .val { font-weight: bold; font-size: 15px; color: #1a4a7a; }
-.stat-pill .lbl { color: #888; font-size: 10px; }
+.stat-pill .val { font-weight: bold; font-size: 15px; color: var(--th-color-primary); }
+.stat-pill .lbl { color: var(--th-color-text-muted); font-size: 10px; }
 .stat-pill.green .val { color: #27ae60; }
 .stat-pill.red   .val { color: #e74c3c; }
 .stat-pill.orange .val { color: #e67e22; }
 .search-input { padding: 4px 10px; border: 1px solid #ccc; border-radius: 16px;
-                font-size: 11px; width: 220px; outline: none; margin-left: auto; }
+                font-size: 11px; width: 220px; outline: none; margin-left: auto; color: #222; background: white; }
 .search-input:focus { border-color: #2e6da4; }
 
 /* ── Layout ── */
 .main { display: flex; }
 
 /* ── Créneaux ── */
-.col-creneaux { width: 100px; min-width: 100px; background: white;
-                border-right: 2px solid #e0e8f0; padding: 6px 4px;
+.col-creneaux { width: 100px; min-width: 100px; background: var(--th-bg-card);
+                border-right: 2px solid var(--th-border-statsbar); padding: 6px 4px;
                 position: sticky; top: 0; }
-.col-creneaux h4 { font-size: 9px; color: #aaa; text-align: center;
+.col-creneaux h4 { font-size: 9px; color: var(--th-color-text-muted); text-align: center;
                    text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
 .cr-item { display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
            padding: 3px 5px; border-radius: 5px; cursor: pointer;
            border: 1px solid transparent; }
-.cr-item:hover { border-color: #2e6da4; background: #f0f4f8; }
-.cr-heure { font-size: 11px; font-weight: bold; color: #444; min-width: 35px; }
+.cr-item:hover { border-color: #2e6da4; background: var(--th-bg-link-hover); }
+.cr-heure { font-size: 11px; font-weight: bold; color: var(--th-color-text); min-width: 35px; }
 .cr-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .cr-dot.vert   { background: #27ae60; }
 .cr-dot.jaune  { background: #f39c12; }
 .cr-dot.rouge  { background: #e74c3c; }
-.cr-nb { font-size: 10px; color: #888; }
+.cr-nb { font-size: 10px; color: var(--th-color-text-muted); }
 
-/* ── Patients ── */
+/* ── Patients (zone de travail — reste claire pour lisibilité) ── */
 .col-patients { flex: 1; padding: 8px; overflow-x: auto; }
 
 /* ── Carte patient — hauteur réduite pour 15-20 patients/page ── */
@@ -257,7 +263,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .btn-wa-end svg { width: 15px; height: 15px; fill: white; }
 
 /* ── Footer ── */
-.footer-bar { background: #1a4a7a; color: white; padding: 6px 12px;
+.footer-bar { background: var(--th-btn-navy); color: white; padding: 6px 12px;
               display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
               position: sticky; bottom: 0; }
 .footer-stat .fval { font-size: 15px; font-weight: bold; }
@@ -269,7 +275,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
 .btn-fg:hover { background: rgba(255,255,255,0.3); }
 
 /* ── Empty ── */
-.empty { text-align: center; padding: 50px; color: #bbb; font-size: 14px; }
+.empty { text-align: center; padding: 50px; color: var(--th-color-text-muted); font-size: 14px; }
 
 /* ── Toast ── */
 .toast { position: fixed; top: 16px; right: 16px; padding: 9px 16px;
@@ -288,7 +294,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 12px; }
              min-width: 300px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 .modal-box h3 { color: #1a4a7a; margin-bottom: 12px; font-size: 13px; }
 .modal-inp { width: 100%; padding: 6px 10px; border: 1px solid #ccc;
-             border-radius: 4px; font-size: 12px; margin-bottom: 10px; }
+             border-radius: 4px; font-size: 12px; margin-bottom: 10px; color: #222; }
 .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
 .modal-btns button { padding: 5px 14px; border: none; border-radius: 4px;
                      cursor: pointer; font-size: 11px; font-weight: bold; }
@@ -302,7 +308,7 @@ input[type=date].date-pick { padding: 4px 8px; border: 1px solid rgba(255,255,25
 input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1); }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- ── HEADER ── -->
 <script src="home.js"></script>
