@@ -57,12 +57,11 @@ try {
 } catch (Exception $e) { /* garde la valeur par défaut */ }
 
 // ── Jours fériés ──────────────────────────────────────────────
-$feriesLabels = []; // ['2026-05-01' => 'Fête du Travail']
+$feriesLabels = []; // ['2026-05-01' => 'Jour férié']
 try {
-    $stmtF = $db->query("SELECT DateFerie, Label FROM T_JourFeries ORDER BY DateFerie");
+    $stmtF = $db->query("SELECT DateFerie FROM T_JourFeries ORDER BY DateFerie");
     while ($f = $stmtF->fetch(PDO::FETCH_ASSOC)) {
         $raw = trim($f['DateFerie'] ?? '');
-        $lbl = trim($f['Label'] ?? 'Jour férié');
         $dateKey = '';
         if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $raw, $m)) {
             $dateKey = $m[3].'-'.$m[2].'-'.$m[1];
@@ -72,7 +71,7 @@ try {
             $ts = strtotime($raw);
             if ($ts) $dateKey = date('Y-m-d', $ts);
         }
-        if ($dateKey) $feriesLabels[$dateKey] = $lbl;
+        if ($dateKey) $feriesLabels[$dateKey] = 'Jour férié';
     }
 } catch (Exception $e) { /* ignore */ }
 
@@ -122,10 +121,10 @@ function couleurFond($nb, $nbrMax) {
 function couleurBarre($nb, $nbrMax) {
     if ($nb === 0) return '#dde';
     $ratio = $nb / $nbrMax;
-    if ($ratio <= 0.25) return '#27ae60';
-    if ($ratio <= 0.5)  return '#f39c12';
-    if ($ratio <= 0.75) return '#e67e22';
-    return '#e74c3c';
+    if ($ratio <= 0.25) return '#27ae60'; // vert
+    if ($ratio <= 0.5)  return '#f1c40f'; // jaune
+    if ($ratio <= 0.75) return '#3498db'; // bleu
+    return '#e74c3c';                     // rouge
 }
 
 // Regrouper les jours par mois
@@ -138,6 +137,83 @@ $moisNoms = ['01'=>'Janvier','02'=>'Février','03'=>'Mars','04'=>'Avril',
              '05'=>'Mai','06'=>'Juin','07'=>'Juillet','08'=>'Août',
              '09'=>'Septembre','10'=>'Octobre','11'=>'Novembre','12'=>'Décembre'];
 $joursNoms = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+$joursNomsCourts = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+// Regroupe les jours d'un mois en lignes : Lun→Ven séparés, puis Sam+Dim fusionnés en "WE j-j"
+// $alignerCalendrier = true → on cale sur les vraies semaines civiles (Lundi→Dimanche) du
+// mois entier, avec des cases vides avant le 1er jour et après le dernier, afin que la
+// ligne week-end tombe TOUJOURS sur la même hauteur de ligne, quel que soit le mois.
+function grouperSemaines($joursM, $alignerCalendrier = false) {
+    if (empty($joursM)) return [];
+
+    if (!$alignerCalendrier) {
+        // ── Comportement simple : seulement les jours réellement présents ──
+        $lignes = [];
+        $i = 0;
+        $n = count($joursM);
+        while ($i < $n) {
+            $jour = $joursM[$i];
+            $dow  = (int)date('w', strtotime($jour));
+            if ($dow === 6) {
+                $samedi   = $jour;
+                $dimanche = ($i + 1 < $n) ? $joursM[$i + 1] : null;
+                if ($dimanche && (int)date('w', strtotime($dimanche)) === 0) {
+                    $lignes[] = ['type' => 'we', 'jours' => [$samedi, $dimanche], 'vide' => false];
+                    $i += 2;
+                } else {
+                    $lignes[] = ['type' => 'we', 'jours' => [$samedi], 'vide' => false];
+                    $i += 1;
+                }
+            } elseif ($dow === 0) {
+                $lignes[] = ['type' => 'we', 'jours' => [$jour], 'vide' => false];
+                $i += 1;
+            } else {
+                $lignes[] = ['type' => 'jour', 'jours' => [$jour], 'vide' => false];
+                $i += 1;
+            }
+        }
+        return $lignes;
+    }
+
+    // ── Alignement calendrier : semaines civiles complètes Lundi→Dimanche ──
+    $present = array_flip($joursM);
+
+    $cleMois         = date('Y-m', strtotime($joursM[0]));
+    $premierJourMois = $cleMois . '-01';
+    $dernierJourMois = date('Y-m-t', strtotime($premierJourMois));
+
+    // Lundi de la semaine qui contient le 1er du mois
+    $dowPremier = (int)date('N', strtotime($premierJourMois)); // 1=lundi … 7=dimanche
+    $lundiDebut = new DateTime($premierJourMois);
+    $lundiDebut->modify('-' . ($dowPremier - 1) . ' days');
+
+    // Dimanche de la semaine qui contient le dernier jour du mois
+    $dowDernier  = (int)date('N', strtotime($dernierJourMois));
+    $dimancheFin = new DateTime($dernierJourMois);
+    $dimancheFin->modify('+' . (7 - $dowDernier) . ' days');
+
+    $lignes = [];
+    $cur = clone $lundiDebut;
+    while ($cur <= $dimancheFin) {
+        // 5 lignes individuelles : Lundi → Vendredi (vides si hors mois/période)
+        for ($d = 0; $d < 5; $d++) {
+            $ds = $cur->format('Y-m-d');
+            $lignes[] = ['type' => 'jour', 'jours' => [$ds], 'vide' => !isset($present[$ds])];
+            $cur->modify('+1 day');
+        }
+        // 1 ligne fusionnée : Samedi + Dimanche
+        $sam = $cur->format('Y-m-d'); $cur->modify('+1 day');
+        $dim = $cur->format('Y-m-d'); $cur->modify('+1 day');
+        $samOk = isset($present[$sam]);
+        $dimOk = isset($present[$dim]);
+        $joursWe = [];
+        if ($samOk) $joursWe[] = $sam;
+        if ($dimOk) $joursWe[] = $dim;
+        if (empty($joursWe)) $joursWe = [$sam, $dim];
+        $lignes[] = ['type' => 'we', 'jours' => $joursWe, 'vide' => (!$samOk && !$dimOk)];
+    }
+    return $lignes;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -195,141 +271,106 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border-bottom: 2px solid var(--th-border-statsbar);
     box-shadow: 0 2px 4px rgba(0,0,0,0.06);
 }
+
+/* ── Style unique pour toutes les boîtes de la barre (modes / dates / total / légende) ── */
+.btn-mode, .date-box, .leg-item {
+    border: 1px solid #ccc; border-radius: 4px; background: white;
+    font-size: 12px; font-weight: 600; color: #333;
+}
 .btn-mode {
-    padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: bold;
-    border: 2px solid #ddd; background: white; color: #555;
-    cursor: pointer; text-decoration: none; display: inline-block;
+    padding: 5px 14px; cursor: pointer; text-decoration: none; display: inline-block;
     transition: all 0.15s;
 }
 .btn-mode:hover { border-color: #2e6da4; color: #2e6da4; }
 .btn-mode.actif { background: var(--th-btn-navy); color: white; border-color: var(--th-btn-navy); }
 
-.periode-info {
-    margin-left: auto; display: flex; align-items: center; gap: 8px;
-}
 .date-box {
-    background: var(--th-bg-link-hover); border: 1px solid #ddd; border-radius: 4px;
-    padding: 3px 8px; font-size: 11px; color: var(--th-color-text); font-weight: bold;
+    padding: 5px 12px; display: inline-flex; align-items: center; white-space: nowrap;
 }
-.total-badge {
-    background: var(--th-btn-navy); color: white; border-radius: 20px;
-    padding: 3px 12px; font-size: 12px; font-weight: bold;
-}
+.grp-debut { margin-left: 10px; }
 
-/* ── Légende ── */
-.legende {
-    background: var(--th-bg-card); padding: 4px 14px;
-    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
-    border-bottom: 1px solid var(--th-border-statsbar); font-size: 11px; color: var(--th-color-text-muted);
-}
-.leg-item { display: flex; align-items: center; gap: 5px; }
-.leg-dot  { width: 11px; height: 11px; border-radius: 3px; flex-shrink:0; }
+/* ── Légende (intégrée à la barre de modes) ── */
+.leg-titre { font-size: 12px; font-weight: 600; color: #333; }
+.leg-item  { display: flex; align-items: center; gap: 6px; padding: 5px 10px; }
+.leg-swatch { width: 16px; height: 14px; border-radius: 2px; flex-shrink: 0; }
 
 /* ── Corps principal ── */
 .planning-body { padding: 10px 14px; }
 
-/* ── Bloc mois ── */
-.mois-bloc { margin-bottom: 16px; }
+/* ── Conteneur des mois — colonnes adaptatives à la largeur d'écran ── */
+.mois-conteneur {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;
+}
+.mois-bloc {
+    flex: 0 0 220px; width: 220px;
+}
 .mois-titre {
     font-size: 12px; font-weight: 800; color: var(--th-color-primary);
-    text-transform: uppercase; letter-spacing: 2px;
-    padding: 6px 4px 4px; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 4px 4px 4px; margin-bottom: 4px;
     border-bottom: 2px solid var(--th-border-statsbar);
+    text-align: center;
 }
 
-/* ── Grille 3 colonnes ── */
-.grille {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-}
+/* ── Liste des jours du mois ── */
+.mois-jours { display: flex; flex-direction: column; gap: 1px; }
 
-/* ── Carte jour — UNE SEULE LIGNE compacte ── */
-/* Note : le fond des jours normaux est calculé dynamiquement en PHP (couleurFond())
-   selon la charge de travail — il reste volontairement clair quel que soit le thème,
-   pour garder le code couleur vert/jaune/orange/rouge lisible et cohérent. */
-.jour-card {
-    border-radius: 5px;
-    padding: 3px 7px;
-    border: 1px solid rgba(0,0,0,0.08);
-    text-decoration: none;
+/* ── Ligne jour normal — 3 blocs distincts : Nom | Jauge | Fraction ── */
+.jour-ligne {
+    display: flex; align-items: stretch; gap: 2px;
+    text-decoration: none; height: 21px;
+    margin-bottom: 0;
+}
+.jour-ligne:hover .jl-nom { filter: brightness(0.97); }
+.jour-ligne.today .jl-nom { outline: 2px solid #2e6da4; outline-offset: -2px; }
+
+/* Jour férié — marquage violet bien visible (boîte + barre + fraction) */
+.jour-ligne.ferie .jl-nom      { background: #f3e5f7; border-color: #9b59b6; color: #6c3483; }
+.jour-ligne.ferie .jl-barre-wrap { background: #9b59b6; }
+.jour-ligne.ferie .jl-fraction { border-color: #9b59b6; color: #6c3483; }
+
+.jl-nom {
+    background: white; border: 1px solid #1a2a3a; border-radius: 4px;
+    font-size: 12px; font-weight: 800; color: #1a2a3a;
+    display: flex; align-items: center; justify-content: center;
+    width: 84px; flex-shrink: 0; white-space: nowrap; overflow: hidden;
+}
+.jl-badge { font-size: 9px; flex-shrink: 0; position: absolute; }
+.jl-barre-wrap {
+    flex: 1; border: 1px solid #1a2a3a; border-radius: 4px;
+    overflow: hidden; min-width: 30px; background: #e8e8ec;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    height: 26px;
-    overflow: hidden;
-    transition: box-shadow 0.1s, filter 0.1s;
-    cursor: pointer;
 }
-.jour-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    filter: brightness(0.96);
-}
-.jour-card.today {
-    outline: 2px solid #2e6da4;
-    outline-offset: 1px;
+.jl-barre-fill { height: 100%; transition: width 0.3s; }
+.jl-fraction {
+    background: white; border: 1px solid #1a2a3a; border-radius: 4px;
+    font-size: 12px; font-weight: 800; color: #1a2a3a;
+    display: flex; align-items: center; justify-content: center;
+    width: 56px; flex-shrink: 0; white-space: nowrap;
 }
 
-/* Nom + numéro du jour */
-.jour-nom { font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.jour-num { font-size: 11px; font-weight: 400; white-space: nowrap; flex-shrink: 0; margin-right: 2px; }
-
-/* Badges */
-.badge-today {
-    font-size: 8px; font-weight: bold;
-    background: #2e6da4; color: white;
-    border-radius: 6px; padding: 1px 4px; flex-shrink: 0;
+/* ── Ligne week-end fusionnée — bandeau pleine largeur ── */
+.jour-ligne.we {
+    background: #1a1a2e; justify-content: center;
+    border: 1px solid #0d0d1a; border-radius: 4px;
+    height: 21px;
 }
-.badge-ferie {
-    font-size: 8px; font-weight: bold;
-    background: rgba(255,255,255,0.25); color: white;
-    border-radius: 6px; padding: 1px 4px; flex-shrink: 0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;
+.jour-ligne.we .jl-nom.we-label {
+    background: transparent; border: none; width: auto; padding: 0 10px;
+    font-size: 12px; font-weight: 700; color: #ffe082;
+    letter-spacing: 1px; display: flex; align-items: center;
 }
 
-/* Barre proportionnelle */
-.barre-wrap {
-    flex: 1; height: 5px; background: rgba(0,0,0,0.10);
-    border-radius: 3px; overflow: hidden; min-width: 20px;
+/* ── Case vide de calage (jour hors mois) — aplat sombre uni ── */
+.jour-ligne.vide {
+    background: #1c4a57;
+    border: 1px solid #123640; border-radius: 4px;
 }
-.barre-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.jour-ligne.vide.we { height: 21px; }
 
-/* Fraction X/20 */
-.fraction {
-    font-size: 10px; font-weight: 700;
-    white-space: nowrap; flex-shrink: 0;
-    min-width: 32px; text-align: right;
-}
+/* ── Vue Aujourd'hui : 1 seule colonne, plus large ── */
+.mois-conteneur.une-col .mois-bloc { flex: 1 1 100%; width: 100%; max-width: 360px; }
 
-/* jour-top et jour-bottom : display contents = les enfants rejoignent la ligne principale */
-.jour-top, .jour-bottom { display: contents; }
-
-/* ── Styles weekend ── */
-.jour-card.weekend {
-    background: #1a1a2e !important;
-    border-color: #0d0d1a;
-}
-.jour-card.weekend .jour-nom,
-.jour-card.weekend .jour-num { color: #ffe082; }
-.jour-card.weekend .fraction { color: #555; }
-
-/* ── Styles jour férié ── */
-.jour-card.ferie {
-    background: #4a235a !important;
-    border-color: #3a1a4a;
-}
-.jour-card.ferie .jour-nom,
-.jour-card.ferie .jour-num { color: #f3e5f5; }
-.jour-card.ferie .fraction { color: #ce93d8; }
-
-/* ── Texte jours normaux — fond clair calculé en PHP, texte sombre fixe pour rester lisible ── */
-.jour-card:not(.weekend):not(.ferie) .jour-nom { color: #1a2a3a; }
-.jour-card:not(.weekend):not(.ferie) .jour-num  { color: #3a4a5a; }
-.jour-card:not(.weekend):not(.ferie) .fraction  { color: #2a3a4a; }
-
-/* ── Vue Aujourd'hui : 1 colonne ── */
-.grille.une-col { grid-template-columns: 1fr; }
 </style>
 </head>
 <body class="<?= htmlspecialchars($theme) ?>">
@@ -338,6 +379,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 <script src="home.js"></script>
 <div class="header">
     <!-- GAUCHE : recherche par date -->
+    <input id="searchInput" class="search-hdr" type="text" placeholder="🔍 Date ou jour..."
           oninput="filtrerPlanning(this.value)">
     <button id="btnClearSearch" onclick="clearSearch()"
             style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
@@ -403,7 +445,7 @@ function gdAller() {
     </div>
 </div>
 
-<!-- BARRE MODES -->
+<!-- BARRE MODES + PÉRIODE + LÉGENDE (une seule ligne, style homogène) -->
 <div class="mode-bar">
     <?php
     $modes = [
@@ -421,102 +463,79 @@ function gdAller() {
     </a>
     <?php endforeach; ?>
 
-    <div class="periode-info">
-        <span class="date-box">📅 <?= labelCourt($debutS) ?></span>
-        <?php if ($debutS !== $finS): ?>
-        <span style="color:#aaa;font-size:11px;">→</span>
-        <span class="date-box"><?= labelCourt($finS) ?></span>
-        <?php endif; ?>
-        <span class="total-badge">🔢 <?= $totalPeriode ?> / <?= $nbrMax * count(array_filter($jours, fn($j) => !estWeekend($j) && !isset($feriesLabels[$j]))) ?> RDV</span>
-    </div>
-</div>
+    <span class="date-box grp-debut">📅 <?= labelCourt($debutS) ?><?php if ($debutS !== $finS): ?> → <?= labelCourt($finS) ?><?php endif; ?></span>
+    <span class="date-box" title="NbrMax = <?= $nbrMax ?> patients/jour">🔢 <?= $totalPeriode ?> / <?= $nbrMax * count(array_filter($jours, fn($j) => !estWeekend($j) && !isset($feriesLabels[$j]))) ?> RDV</span>
 
-<!-- LÉGENDE -->
-<div class="legende">
-    <strong style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#666;">Légende :</strong>
-    <div class="leg-item"><div class="leg-dot" style="background:#27ae60;"></div> ≤ 25 %</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#f39c12;"></div> ≤ 50 %</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#e67e22;"></div> ≤ 75 %</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#e74c3c;"></div> &gt; 75 % / complet</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#1a1a2e;"></div> Week-end</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#4a235a;"></div> Jour férié</div>
-    <span style="margin-left:auto;color:#888;font-size:10px;">NbrMax = <?= $nbrMax ?> patients/jour</span>
+    <strong class="leg-titre grp-debut">Légende :</strong>
+    <div class="leg-item"><div class="leg-swatch" style="background:#27ae60;"></div> ≤ 25 %</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:#f1c40f;"></div> ≤ 50 %</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:#3498db;"></div> ≤ 75 %</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:#e74c3c;"></div> 75-100 %</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:#9b59b6;"></div> Jour férié</div>
 </div>
 
 <!-- PLANNING -->
 <div class="planning-body">
-<?php foreach ($parMois as $cleM => $joursM):
+<div class="mois-conteneur<?= ($mode === 'aujourd_hui') ? ' une-col' : '' ?>">
+<?php
+$alignerCalendrier = in_array($mode, ['mois', '3mois', '6mois']);
+foreach ($parMois as $cleM => $joursM):
     $moisLabel = $moisNoms[date('m', strtotime($cleM.'-01'))] . ' ' . date('Y', strtotime($cleM.'-01'));
-    $nbCols    = ($mode === 'aujourd_hui') ? 'une-col' : '';
+    $lignes = grouperSemaines($joursM, $alignerCalendrier);
 ?>
 <div class="mois-bloc">
-    <?php if (count($parMois) > 1 || in_array($mode, ['mois','3mois','6mois'])): ?>
     <div class="mois-titre">📅 <?= $moisLabel ?></div>
-    <?php endif; ?>
 
-    <div class="grille <?= $nbCols ?>">
-    <?php foreach ($joursM as $jour):
-        $nb      = $rdvParJour[$jour] ?? 0;
-        $weekend = estWeekend($jour);
-        $ferie   = isset($feriesLabels[$jour]);
-        $isToday = ($jour === $todayS);
-        $dow     = (int)date('w', strtotime($jour));
-        $nomJour = $joursNoms[$dow];
-        $numJour = date('j', strtotime($jour));
-
-        // Classes CSS
-        $classes = 'jour-card';
-        if ($weekend) $classes .= ' weekend';
-        elseif ($ferie) $classes .= ' ferie';
-        if ($isToday) $classes .= ' today';
-
-        // Fond (jours normaux seulement)
-        $fondStyle = '';
-        if (!$weekend && !$ferie) {
-            $fondStyle = 'background:' . couleurFond($nb, $nbrMax) . ';';
-        }
-
-        // Barre
-        $barPct  = $nbrMax > 0 ? min(100, round($nb / $nbrMax * 100)) : 0;
-        $barColor = ($weekend || $ferie) ? 'rgba(255,255,255,0.2)' : couleurBarre($nb, $nbrMax);
+    <div class="mois-jours">
+    <?php foreach ($lignes as $ligne):
+        if (!empty($ligne['vide'])) {
+            // ── Case vide de calage (hors mois) — légèrement visible ──
     ?>
-    <a class="<?= $classes ?>"
-       href="agenda.php?date=<?= $jour ?>"
-       data-date="<?= date('d/m/Y', strtotime($jour)) ?>"
-       data-nom="<?= strtolower($nomJour) ?>"
-       style="<?= $fondStyle ?>">
+        <div class="jour-ligne vide<?= $ligne['type'] === 'we' ? ' we' : '' ?>"></div>
+    <?php
+            continue;
+        }
+        $estWE = $ligne['type'] === 'we';
 
-        <div class="jour-top">
-            <span>
-                <span class="jour-nom"><?= $nomJour ?></span>
-                <span class="jour-num">
-                    <?= $weekend ? date('d/m/Y', strtotime($jour)) : $numJour ?>
-                </span>
-            </span>
-            <?php if ($isToday): ?>
-                <span class="badge-today">Aujourd'hui</span>
-            <?php elseif ($ferie): ?>
-                <span class="badge-ferie" title="<?= htmlspecialchars($feriesLabels[$jour]) ?>">
-                    <?= htmlspecialchars(mb_substr($feriesLabels[$jour], 0, 12)) ?>
-                </span>
-            <?php endif; ?>
-        </div>
+        if (!$estWE) {
+            // ── Ligne jour normal (Lun-Ven) ──
+            $jour    = $ligne['jours'][0];
+            $nb      = $rdvParJour[$jour] ?? 0;
+            $ferie   = isset($feriesLabels[$jour]);
+            $isToday = ($jour === $todayS);
+            $dow     = (int)date('w', strtotime($jour));
+            $nomJour = $joursNomsCourts[$dow];
+            $numJour = date('j', strtotime($jour));
 
-        <?php if (!$weekend && !$ferie): ?>
-        <div class="jour-bottom">
-            <div class="barre-wrap">
-                <div class="barre-fill"
-                     style="width:<?= $barPct ?>%;background:<?= $barColor ?>;"></div>
-            </div>
-            <span class="fraction"><?= $nb ?> / <?= $nbrMax ?></span>
-        </div>
-        <?php endif; ?>
+            $classes = 'jour-ligne';
+            if ($ferie) $classes .= ' ferie';
+            if ($isToday) $classes .= ' today';
 
-    </a>
-    <?php endforeach; ?>
+            $barPct   = $nbrMax > 0 ? min(100, round($nb / $nbrMax * 100)) : 0;
+            $barColor = $ferie ? '#9b59b6' : couleurBarre($nb, $nbrMax);
+    ?>
+        <a class="<?= $classes ?>" href="agenda.php?date=<?= $jour ?>"
+           data-date="<?= date('d/m/Y', strtotime($jour)) ?>" data-nom="<?= strtolower($joursNoms[$dow]) ?>">
+            <span class="jl-nom"><?= $nomJour ?> <?= $numJour ?><?= $isToday ? ' ★' : '' ?><?= $ferie ? ' 🟣' : '' ?></span>
+            <span class="jl-barre-wrap"><span class="jl-barre-fill" style="width:<?= $barPct ?>%;background:<?= $barColor ?>;"></span></span>
+            <span class="jl-fraction"><?= $nb ?>/<?= $nbrMax ?></span>
+        </a>
+    <?php } else {
+            // ── Ligne week-end fusionnée (Sam[-Dim]) ──
+            $jrs = $ligne['jours'];
+            $premierNum = date('j', strtotime($jrs[0]));
+            $dernierNum = date('j', strtotime($jrs[count($jrs)-1]));
+            $label = (count($jrs) > 1) ? "WE $premierNum-$dernierNum" : "WE $premierNum";
+            $dateAttr = date('d/m/Y', strtotime($jrs[0]));
+    ?>
+        <a class="jour-ligne we" href="agenda.php?date=<?= $jrs[0] ?>" data-date="<?= $dateAttr ?>" data-nom="we">
+            <span class="jl-nom we-label"><?= $label ?></span>
+        </a>
+    <?php } endforeach; ?>
     </div>
 </div>
 <?php endforeach; ?>
+</div>
 </div>
 
 <script>
@@ -524,7 +543,7 @@ function gdAller() {
 function filtrerPlanning(v) {
     v = v.toLowerCase().trim();
     let first = null, found = 0;
-    document.querySelectorAll('.jour-card').forEach(c => {
+    document.querySelectorAll('.jour-ligne:not(.vide)').forEach(c => {
         const date = (c.dataset.date || '').toLowerCase();
         const nom  = (c.dataset.nom  || '').toLowerCase();
         const match = !v || date.includes(v) || nom.includes(v);
@@ -566,3 +585,4 @@ function clearSearch() {
 
 </body>
 </html>
+ 
