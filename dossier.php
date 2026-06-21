@@ -449,8 +449,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
         <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
     </div>
-    <!-- Bilans + Déco (spécifiques dossier) -->
-    <a href="bilan.php?id=<?= $id ?>" class="btn-h blue">🧪 Bilans</a>
+    <!-- Aperçu bilan (spécifique dossier) -->
     <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:#27ae60;font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu bilan</a>
     <!-- Bascule vue -->
     <div style="display:inline-flex;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px;">
@@ -821,7 +820,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
             <button type="button"
                 onclick="var z=document.getElementById('cert-zone-acc');z.style.display=z.style.display==='none'?'block':'none'"
-                style="background:var(--th-bg-card);color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
+                style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
                 Certificat médical
             </button>
             <div id="cert-zone-acc" style="display:none;background:#f0f4f8;border-radius:6px;padding:8px;margin-top:8px;border:1px solid #dde3ea;">
@@ -1145,7 +1144,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- BOUTON CERTIFICAT -->
                 <button type="button"
                     onclick="var z=document.getElementById('cert-zone');z.style.display=z.style.display==='none'?'block':'none'"
-                    style="background:var(--th-bg-card);color:#333;border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
+                    style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
                     Certificat médical
                 </button>
 
@@ -1196,7 +1195,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </div>
                 </div>
                 <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
                 ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
             </div>
 
@@ -1210,7 +1209,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </div>
                 </div>
                 <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
                 ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
             </div>
 
@@ -1224,7 +1223,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </div>
                 </div>
                 <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
                 ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
             </div>
 
@@ -1238,7 +1237,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </div>
                 </div>
                 <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:13px;font-family:Arial Narrow,Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
+                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
                 ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
             </div>
 
@@ -1320,7 +1319,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
         </div>
         <?php if ($examen && !empty($examen['CMLM_EXAMEN'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($examen['CMLM_EXAMEN'])) ?>
         </div>
         <?php elseif ($examen): ?>
@@ -1349,7 +1348,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
         </div>
         <?php if ($ecgCourant && !empty($ecgCourant['CMLM_ECG'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($ecgCourant['CMLM_ECG'])) ?>
         </div>
         <?php elseif ($ecgCourant): ?>
@@ -1379,7 +1378,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
         </div>
         <?php if ($echoCourant && !empty($echoCourant['CMLM_ECHO'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($echoCourant['CMLM_ECHO'])) ?>
         </div>
         <?php elseif ($echoCourant): ?>
@@ -1414,7 +1413,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
  
             <!-- Aperçu biologie anormale — visible directement -->
             <div id="apercu-bio-dossier" style="margin-top:4px;">
-                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:10px;color:#0d2b4e;font-weight:500;line-height:1.6;" id="apercu-bio-texte">
+                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;" id="apercu-bio-texte">
                     <?php
                     $apercuBioLignes = [];
                     foreach ($lignesBioActuel as $bl) {
@@ -1427,7 +1426,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                     }
                     echo $apercuBioLignes
                         ? implode('<br>', $apercuBioLignes)
-                        : '<span style="color:var(--th-color-text-muted);font-style:italic;">Aucun résultat anormal</span>';
+                        : '<span style="color:var(--th-color-text-muted);font-weight:600;">Aucun résultat anormal</span>';
                     ?>
                 </div>
             </div>
@@ -2352,7 +2351,7 @@ async function bioCharger(n_bilan, idx) {
         const lignesAn = res.lignes.filter(l => l.resultat && l.resultat.toUpperCase() !== 'N');
         apercuTexte.innerHTML = lignesAn.length
             ? lignesAn.map(l => `${l.nom} : <strong style="color:#e74c3c;">${l.resultat}</strong>`).join('<br>')
-            : '<span style="color:var(--th-color-text-muted);">Aucun résultat anormal</span>';
+            : '<span style="color:var(--th-color-text-muted);font-weight:600;">Aucun résultat anormal</span>';
     }
  
     // Afficher bouton aperçu 👁 si le bilan a des lignes
@@ -2800,7 +2799,7 @@ function madValiderTout() {
     // ── Motif ──
     var motifs = [];
     document.querySelectorAll('.mad-motif:checked').forEach(function(cb) {
-        if (cb.value) motifs.push('• ' + cb.value);
+        if (cb.value) motifs.push('- ' + cb.value);
     });
     if (motifs.length > 0) {
         var ta = document.getElementById('champ_motif');
@@ -2813,19 +2812,19 @@ function madValiderTout() {
     // ── Antécédents ──
     var atcds = [];
     document.querySelectorAll('.mad-atcd:checked').forEach(function(cb) {
-        if (cb.value) atcds.push('• ' + cb.value);
+        if (cb.value) atcds.push('- ' + cb.value);
     });
     var neo = document.getElementById('mad_neo_cb');
     var neoD = document.getElementById('mad_neo_detail');
     if (neo && neo.checked && neoD && neoD.value.trim()) {
-        atcds = atcds.filter(function(i){ return i !== '• Néoplasie'; });
-        atcds.push('• ATCD : Néoplasie (' + neoD.value.trim() + ')');
+        atcds = atcds.filter(function(i){ return i !== '- Néoplasie'; });
+        atcds.push('- ATCD : Néoplasie (' + neoD.value.trim() + ')');
     }
     var autreChir = document.getElementById('mad_autrechir_cb');
     var autreChirD = document.getElementById('mad_autrechir_detail');
     if (autreChir && autreChir.checked && autreChirD && autreChirD.value.trim()) {
-        atcds = atcds.filter(function(i){ return i !== '• Autre'; });
-        atcds.push('• ATCD chir. : Autre (' + autreChirD.value.trim() + ')');
+        atcds = atcds.filter(function(i){ return i !== '- Autre'; });
+        atcds.push('- ATCD chir. : Autre (' + autreChirD.value.trim() + ')');
     }
     if (atcds.length > 0) {
         var ta2 = document.getElementById('champ_atcd');
@@ -2838,12 +2837,12 @@ function madValiderTout() {
     // ── Diagnostic → champ_diagnostic ──
     var diags = [];
     document.querySelectorAll('.mad-diag:checked').forEach(function(cb) {
-        if (cb.value) diags.push('• ' + cb.value);
+        if (cb.value) diags.push('- ' + cb.value);
     });
     var fcMoy = document.getElementById('md_fc_moy');
     var fcMin = document.getElementById('md_fc_min');
-    if (fcMoy && fcMoy.value) diags.push('• Bradycardie sinusale — FC moy: ' + fcMoy.value + '/min');
-    if (fcMin && fcMin.value) diags.push('• Bradycardie sinusale — FC min: ' + fcMin.value + '/min');
+    if (fcMoy && fcMoy.value) diags.push('- Bradycardie sinusale — FC moy: ' + fcMoy.value + '/min');
+    if (fcMin && fcMin.value) diags.push('- Bradycardie sinusale — FC min: ' + fcMin.value + '/min');
     if (diags.length > 0) {
         var champDiag = document.getElementById('champ_diagnostic');
         if (champDiag) {
@@ -2855,7 +2854,7 @@ function madValiderTout() {
     // ── Facteurs de risque → champ_fdr ──
     var fdrs = [];
     document.querySelectorAll('.mad-fdr:checked').forEach(function(cb) {
-        if (cb.value) fdrs.push('• ' + cb.value);
+        if (cb.value) fdrs.push('- ' + cb.value);
     });
     if (fdrs.length > 0) {
         var champFdr = document.getElementById('champ_fdr');

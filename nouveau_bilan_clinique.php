@@ -365,7 +365,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
 
     <!-- ── Panel cases Examen ── -->
-    <div id="panel_sympto" style="margin-bottom:6px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
+    <div id="panel_sympto" style="margin-bottom:6px;border:1px solid var(--th-border-card);border-radius:5px;padding:6px 8px;background:var(--th-bg-card);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">🩺 Examen — cochez pour générer le rapport Examen</div>
 
         <!-- Boutons Normal / Anormal -->
@@ -391,10 +391,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <!-- ══ BLOC NORMAL (affiché par ✅) ══ -->
         <div id="bloc_normal" style="display:none;">
             <div style="font-size:11px;font-weight:bold;color:#27ae60;margin-bottom:3px;">Examen clinique normal</div>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
-            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
         </div>
 
         <!-- ══ BLOC ANORMAL (affiché par ⚠️) ══ -->
@@ -409,39 +409,39 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <div id="sub_exam_card" style="display:block;">
 
             <!-- Angor — EXCLUSIF -->
-            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_angor" onchange="toggleSub(this)"> Symptomatologie douloureuse (angor)</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_angor" onchange="toggleSub(this)"> Symptomatologie douloureuse (angor)</label>
             <div id="sub_angor" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="douleur thoracique (angor)"> Douleur thoracique (angor)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor d'effort"> Angor d'effort</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor crescendo"> Angor crescendo</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="douleur thoracique (angor)"> Douleur thoracique (angor)</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor d'effort"> Angor d'effort</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor crescendo"> Angor crescendo</label>
             </div>
 
             <!-- Dyspnée — EXCLUSIF -->
-            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_dyspnee" onchange="toggleSub(this)"> Symptomatologie dyspnéique</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_dyspnee" onchange="toggleSub(this)"> Symptomatologie dyspnéique</label>
             <div id="sub_dyspnee" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée stade I NYHA"> Dyspnée stade I NYHA</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade II NYHA"> Dyspnée d'effort stade II NYHA</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade III NYHA"> Dyspnée d'effort stade III NYHA</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="suspicion d'embolie pulmonaire"> Suspicion d'embolie pulmonaire</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée stade I NYHA"> Dyspnée stade I NYHA</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade II NYHA"> Dyspnée d'effort stade II NYHA</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade III NYHA"> Dyspnée d'effort stade III NYHA</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="suspicion d'embolie pulmonaire"> Suspicion d'embolie pulmonaire</label>
             </div>
 
             <!-- Signes IVD — MULTIPLE + bouton OK -->
-            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_ivd" onchange="toggleSub(this)"> Signes d'IVD</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_ivd" onchange="toggleSub(this)"> Signes d'IVD</label>
             <div id="sub_ivd" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatalgies d'effort"> Hépatalgies d'effort</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatomégalie"> Hépatomégalie</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hypochondre droit douloureux à la palpation"> Hypochondre droit douloureux à la palpation</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="œdèmes des MI prenant le godet"> Œdèmes des MI prenant le godet</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="turgescence des veines jugulaires"> Turgescence des veines jugulaires</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatalgies d'effort"> Hépatalgies d'effort</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatomégalie"> Hépatomégalie</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hypochondre droit douloureux à la palpation"> Hypochondre droit douloureux à la palpation</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="œdèmes des MI prenant le godet"> Œdèmes des MI prenant le godet</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="turgescence des veines jugulaires"> Turgescence des veines jugulaires</label>
                 <button type="button" onclick="appliquerMultiple('sub_ivd')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             <!-- Rythmique — EXCLUSIF -->
-            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_rythme" onchange="toggleSub(this)"> Symptomatologie rythmique</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_rythme" onchange="toggleSub(this)"> Symptomatologie rythmique</label>
             <div id="sub_rythme" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="palpitations"> Palpitations</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="tachycardie"> Tachycardie</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="bradycardie"> Bradycardie</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="palpitations"> Palpitations</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="tachycardie"> Tachycardie</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="bradycardie"> Bradycardie</label>
             </div>
 
             </div><!-- fin sub_exam_card -->
@@ -452,12 +452,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <div id="sub_exam_vasc" style="display:block;">
 
             <!-- Artéritique — EXCLUSIF -->
-            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_arterite" onchange="toggleSub(this)"> Symptomatologie artéritique des MI</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_arterite" onchange="toggleSub(this)"> Symptomatologie artéritique des MI</label>
             <div id="sub_arterite" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade I"> Artérite stade I</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade II"> Artérite stade II</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade VI"> Artérite stade VI</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="gangrène"> Gangrène</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade I"> Artérite stade I</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade II"> Artérite stade II</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade VI"> Artérite stade VI</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="gangrène"> Gangrène</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
                     <span style="font-size:11px;">Autres :</span>
                     <input type="text" id="arterite_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;">
@@ -465,11 +465,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </div>
 
             <!-- Phlébitique — MULTIPLE + bouton OK -->
-            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_phlebite" onchange="toggleSub(this)"> Symptomatologie phlébitique</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_phlebite" onchange="toggleSub(this)"> Symptomatologie phlébitique</label>
             <div id="sub_phlebite" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="varices des MI"> Varices des MI</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="phlébite des MI"> Phlébite des MI</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="trouble trophique des MI"> Trouble trophique des MI</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="varices des MI"> Varices des MI</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="phlébite des MI"> Phlébite des MI</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="trouble trophique des MI"> Trouble trophique des MI</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
                     <span style="font-size:11px;">Autres :</span>
                     <input type="text" id="phlebite_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;">
@@ -546,7 +546,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
 
     <!-- Panneau Conduite à tenir (caché par défaut) -->
-    <div id="panel_conduite" style="display:none;border:1px solid #b0c8e8;border-radius:4px;padding:6px 8px;background:#f5f9ff;margin-bottom:4px;max-height:340px;overflow-y:auto;">
+    <div id="panel_conduite" style="display:none;border:1px solid var(--th-border-card);border-radius:4px;padding:6px 8px;background:var(--th-bg-card);margin-bottom:4px;max-height:340px;overflow-y:auto;">
 
         <!-- ══ SECTION 1 : Maladie chronique (ex-CMLM) ══ -->
         <div class="cat-section">
@@ -554,33 +554,33 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_maladie">▶</span> 📋 Maladie chronique
             </div>
             <div id="sec_maladie" style="display:none;padding-left:10px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Son état nécessite une prise en charge au long cours"> Son état nécessite</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Son état nécessite une prise en charge au long cours"> Son état nécessite</label>
 
                 <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Traitement médical</div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Un traitement médical au long cours"> Un traitement médical au long cours</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Actuellement sous traitement"> Actuellement sous :</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Aucun médicament ajouté"> Aucun médicament ajouté — cliquez sur [ALD]</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Un traitement médical au long cours"> Un traitement médical au long cours</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Actuellement sous traitement"> Actuellement sous :</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Aucun médicament ajouté"> Aucun médicament ajouté — cliquez sur [ALD]</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:12px;">
                     <span style="font-size:10px;color:var(--th-color-text-muted);">Traitement retenu :</span>
                     <input type="text" id="cat_trait_retenu" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
 
                 <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle)"> Clinique (trimestrielle)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle"> Électrocardiographique trimestrielle</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle"> Échographique annuelle</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle)"> Clinique (trimestrielle)</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle"> Électrocardiographique trimestrielle</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle"> Échographique annuelle</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
-                    <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique"> Biologique :</label>
+                    <label style="font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique"> Biologique :</label>
                     <input type="text" id="cat_bio_detail" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
 
                 <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Avis spécialiste</div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis endocrinologue"> Endocrinologue</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis neurologue"> Neurologue</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis néphrologue"> Néphrologue</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis gastro-entérologue"> Gastro-entérologue</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis pneumologue"> Pneumologue</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis chirurgien cardiaque"> Chirurgien cardiaque</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis endocrinologue"> Endocrinologue</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis neurologue"> Neurologue</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis néphrologue"> Néphrologue</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis gastro-entérologue"> Gastro-entérologue</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis pneumologue"> Pneumologue</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis chirurgien cardiaque"> Chirurgien cardiaque</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
                     <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
                     <input type="text" id="cat_avis_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
@@ -594,8 +594,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_corresp">▶</span> ✉️ Correspondance
             </div>
             <div id="sec_corresp" style="display:none;padding-left:10px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Je vous adresse ce patient pour avis et prise en charge"> Je vous adresse ce patient pour avis et prise en charge</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Je vous adresse ce patient pour avis et prise en charge"> Je vous adresse ce patient pour avis et prise en charge</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
                     <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
                     <input type="text" id="cat_corresp_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
@@ -609,20 +609,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_cr">▶</span> 📋 Compte rendu
             </div>
             <div id="sec_cr" style="display:none;padding-left:10px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
 
                 <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Adaptation du traitement (voir protocole)</div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous antiagrégants plaquettaires (voir protocole)"> Patient sous antiagrégants plaquettaires</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous AVK (voir protocole)"> Patient sous AVK (voir protocole)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous anticoagulants directs"> Patient sous anticoagulants directs</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous antiagrégants plaquettaires (voir protocole)"> Patient sous antiagrégants plaquettaires</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous AVK (voir protocole)"> Patient sous AVK (voir protocole)</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous anticoagulants directs"> Patient sous anticoagulants directs</label>
 
                 <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle) — CR"> Clinique (trimestrielle)</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle — CR"> Électrocardiographique trimestrielle</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle — CR"> Échographique annuelle</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle) — CR"> Clinique (trimestrielle)</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle — CR"> Électrocardiographique trimestrielle</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle — CR"> Échographique annuelle</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
-                    <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique — CR"> Biologique :</label>
+                    <label style="font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique — CR"> Biologique :</label>
                     <input type="text" id="cat_cr_bio" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -634,8 +634,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_aptitude">▶</span> 🏅 Aptitude physique
             </div>
             <div id="sec_aptitude" style="display:none;padding-left:10px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal, apte à la pratique sportive"> Examen cardio-vasculaire normal</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Apte à l'emploi sollicité"> Apte à l'emploi sollicité</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal, apte à la pratique sportive"> Examen cardio-vasculaire normal</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Apte à l'emploi sollicité"> Apte à l'emploi sollicité</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
                     <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
                     <input type="text" id="cat_apt_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
@@ -755,7 +755,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
-    <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
+    <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-card);border-radius:5px;padding:6px 8px;background:var(--th-bg-card);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">📈 ECG — cochez pour générer le rapport ECG</div>
         <div style="display:flex;gap:6px;margin-bottom:4px;">
             <button type="button" id="btn_ecg_normal"
@@ -780,11 +780,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <input type="radio" name="ecg_global" value="anormal" id="ecg_r_anormal" style="display:none;" onchange="toggleECGAnormal(true)">
         <!-- Cases ECG Normal (visible quand ECG normal coché) -->
         <div id="ecg_normal_detail" style="display:none;margin-top:4px;">
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_iv" value="conduction intra-ventriculaire normale" checked> Conduction intra-ventriculaire normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_repol" value="repolarisation normale" checked> Repolarisation normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
+            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
+            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
+            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_iv" value="conduction intra-ventriculaire normale" checked> Conduction intra-ventriculaire normale</label>
+            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_repol" value="repolarisation normale" checked> Repolarisation normale</label>
+            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
         </div>
 
         <div id="ecg_detail" style="display:none;">
@@ -795,20 +795,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_rythme">▶</span>
             </div>
             <div id="sub_ecg_rythme" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
+                <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
                 <div id="sub_ecg_rythme_sv" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="rythme sinusal, absence de trouble de rythme"> Rythme sinusal, absence de trouble de rythme</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="arythmie complète par fibrillation auriculaire"> Arythmie complète par fibrillation auriculaire</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="tachyarythmie"> Tachyarythmie</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="bradyarythmie"> Bradyarythmie</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="flutter auriculaire"> Flutter auriculaire</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="hyperexcitabilité supraventriculaire"> Hyperexcitabilité supraventriculaire</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="rythme sinusal, absence de trouble de rythme"> Rythme sinusal, absence de trouble de rythme</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="arythmie complète par fibrillation auriculaire"> Arythmie complète par fibrillation auriculaire</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="tachyarythmie"> Tachyarythmie</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="bradyarythmie"> Bradyarythmie</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="flutter auriculaire"> Flutter auriculaire</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="hyperexcitabilité supraventriculaire"> Hyperexcitabilité supraventriculaire</label>
                 </div>
-                <label style="font-size:11px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_v" onchange="toggleSub(this)"> Ventriculaire</label>
+                <label style="font-weight:600;font-size:12px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_v" onchange="toggleSub(this)"> Ventriculaire</label>
                 <div id="sub_ecg_rythme_v" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="absence de trouble de rythme ventriculaire"> Absence de trouble de rythme</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="hyperexcitabilité ventriculaire"> Hyperexcitabilité ventriculaire</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="salve de TV"> Salve de TV</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="absence de trouble de rythme ventriculaire"> Absence de trouble de rythme</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="hyperexcitabilité ventriculaire"> Hyperexcitabilité ventriculaire</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="salve de TV"> Salve de TV</label>
                 </div>
             </div>
 
@@ -818,54 +818,54 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_cond">▶</span>
             </div>
             <div id="sub_ecg_cond" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
+                <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
                 <div id="sub_ecg_cond_sv" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="conduction supraventriculaire normale"> Normale</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bradycardie sinusale"> Bradycardie sinusale</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="tachycardie sinusale"> Tachycardie sinusale</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bloc sino-auriculaire"> Bloc sino-auriculaire</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="pauses sinusales"> Pauses sinusales</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="conduction supraventriculaire normale"> Normale</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bradycardie sinusale"> Bradycardie sinusale</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="tachycardie sinusale"> Tachycardie sinusale</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bloc sino-auriculaire"> Bloc sino-auriculaire</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="pauses sinusales"> Pauses sinusales</label>
                 </div>
-                <label style="font-size:11px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_av" onchange="toggleSub(this)"> Auriculo-ventriculaire</label>
+                <label style="font-weight:600;font-size:12px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_av" onchange="toggleSub(this)"> Auriculo-ventriculaire</label>
                 <div id="sub_ecg_cond_av" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="conduction auriculo-ventriculaire normale"> Normale</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV I"> BAV I</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Luciani-Wenckebach"> BAV II : Luciani-Wenckebach</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Mobitz II"> BAV II : Mobitz II</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV III"> BAV III</label>
-                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="pré-excitations (WPW)"> Pré-excitations</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="conduction auriculo-ventriculaire normale"> Normale</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV I"> BAV I</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Luciani-Wenckebach"> BAV II : Luciani-Wenckebach</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Mobitz II"> BAV II : Mobitz II</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV III"> BAV III</label>
+                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="pré-excitations (WPW)"> Pré-excitations</label>
                 </div>
-                <label style="font-size:11px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_iv" onchange="toggleSub(this)"> Intra-ventriculaire</label>
+                <label style="font-weight:600;font-size:12px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_iv" onchange="toggleSub(this)"> Intra-ventriculaire</label>
                 <div id="sub_ecg_cond_iv" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_iv')" value="conduction intra-ventriculaire normale"> Conduction intra-ventriculaire normale</label>
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_iv')" value="conduction intra-ventriculaire normale"> Conduction intra-ventriculaire normale</label>
 
                     <!-- Bloc de branche gauche -->
-                    <label style="font-size:11px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbg" onchange="toggleSub(this)"> Bloc de branche gauche</label>
+                    <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbg" onchange="toggleSub(this)"> Bloc de branche gauche</label>
                     <div id="sub_ecg_bbg" style="display:none;margin-left:12px;margin-top:1px;margin-bottom:2px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche complet"> complet</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche incomplet"> incomplet</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc antérieur gauche"> hémibloc antérieur gauche</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc postérieur gauche"> hémibloc postérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche complet"> complet</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche incomplet"> incomplet</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc antérieur gauche"> hémibloc antérieur gauche</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc postérieur gauche"> hémibloc postérieur</label>
                     </div>
 
                     <!-- Bloc de branche droit -->
-                    <label style="font-size:11px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbd" onchange="toggleSub(this)"> Bloc de branche droit</label>
+                    <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbd" onchange="toggleSub(this)"> Bloc de branche droit</label>
                     <div id="sub_ecg_bbd" style="display:none;margin-left:12px;margin-top:1px;margin-bottom:2px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit complet"> complet</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit incomplet"> incomplet</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc droit complet"> bloc droit complet</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit complet"> complet</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit incomplet"> incomplet</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc droit complet"> bloc droit complet</label>
                     </div>
 
                     <!-- Pacemaker -->
-                    <label style="font-size:11px;display:block;cursor:pointer;margin-top:2px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_pace" onchange="toggleSub(this);" value="électro-entraîné, pacemaker"> Électro-entraîné, pacemaker — date de pose :
+                    <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-top:2px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_pace" onchange="toggleSub(this);" value="électro-entraîné, pacemaker"> Électro-entraîné, pacemaker — date de pose :
                         <input type="text" id="ecg_pace_date" placeholder="jj/mm/aaaa" style="width:80px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
                     </label>
                     <div id="sub_ecg_pace" style="display:none;margin-left:14px;margin-top:2px;">
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="DDD"> DDD</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="VVI"> VVI</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="AAI (une sonde dans l'oreillette droite)"> AAI — une sonde dans l'oreillette droite</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="CRT-P (pacemaker de resynchronisation cardiaque)"> CRT-P — resynchronisation cardiaque</label>
-                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="DAI (défibrillateur automatique implantable)"> DAI — défibrillateur automatique implantable</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="DDD"> DDD</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="VVI"> VVI</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="AAI (une sonde dans l'oreillette droite)"> AAI — une sonde dans l'oreillette droite</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="CRT-P (pacemaker de resynchronisation cardiaque)"> CRT-P — resynchronisation cardiaque</label>
+                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="DAI (défibrillateur automatique implantable)"> DAI — défibrillateur automatique implantable</label>
                     </div>
                 </div>
             </div>
@@ -876,14 +876,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_isch">▶</span>
             </div>
             <div id="sub_ecg_isch" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_isch')" value="ondes Q de nécrose absentes"> Absents</label>
-                <label style="font-size:11px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_isch_topo" onchange="exclusifVisible(this,'sub_ecg_isch');toggleSub(this);" value="ondes Q de nécrose présentes"> Présents</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_isch')" value="ondes Q de nécrose absentes"> Absents</label>
+                <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_isch_topo" onchange="exclusifVisible(this,'sub_ecg_isch');toggleSub(this);" value="ondes Q de nécrose présentes"> Présents</label>
                 <div id="sub_ecg_isch_topo" style="display:none;margin-left:12px;margin-top:1px;">
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose antérieur"> Antérieur</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose apical"> Apical</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose inférieur"> Inférieur</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose latéral"> Latéral</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose postérieur"> Postérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose antérieur"> Antérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose apical"> Apical</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose inférieur"> Inférieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose latéral"> Latéral</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose postérieur"> Postérieur</label>
                         <button type="button" onclick="appliquerMultiple('sub_ecg_isch_topo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
@@ -894,18 +894,18 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_repol">▶</span>
             </div>
             <div id="sub_ecg_repol" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol')" value="segment ST sans anomalie"> Absents</label>
-                <label style="font-size:11px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_repol_detail" onchange="exclusifVisible(this,'sub_ecg_repol');toggleSub(this);" value="anomalie segment ST présente"> Présents</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol')" value="segment ST sans anomalie"> Absents</label>
+                <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_repol_detail" onchange="exclusifVisible(this,'sub_ecg_repol');toggleSub(this);" value="anomalie segment ST présente"> Présents</label>
                 <div id="sub_ecg_repol_detail" style="display:none;margin-left:12px;margin-top:2px;">
-                    <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sous-décalage segment ST"> Sous-décalage segment ST</label>
-                    <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sus-décalage segment ST"> Sus-décalage segment ST</label>
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sous-décalage segment ST"> Sous-décalage segment ST</label>
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sus-décalage segment ST"> Sus-décalage segment ST</label>
                     <div id="sub_ecg_repol_st"></div>
                     <div style="font-size:10px;color:var(--th-color-text-muted);margin-bottom:2px;">Dans le territoire :</div>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST antérieur"> Antérieur</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST apical"> Apical</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST inférieur"> Inférieur</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST latéral"> Latéral</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST postérieur"> Postérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST antérieur"> Antérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST apical"> Apical</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST inférieur"> Inférieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST latéral"> Latéral</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST postérieur"> Postérieur</label>
                         <button type="button" onclick="appliquerMultiple('sub_ecg_repol_detail')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
@@ -916,14 +916,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_ondeT">▶</span>
             </div>
             <div id="sub_ecg_ondeT" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_ondeT')" value="ondes T sans anomalie"> Absents</label>
-                <label style="font-size:11px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_ondeT_topo" onchange="exclusifVisible(this,'sub_ecg_ondeT');toggleSub(this);" value="anomalie ondes T présente"> Présents</label>
+                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_ondeT')" value="ondes T sans anomalie"> Absents</label>
+                <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_ondeT_topo" onchange="exclusifVisible(this,'sub_ecg_ondeT');toggleSub(this);" value="anomalie ondes T présente"> Présents</label>
                 <div id="sub_ecg_ondeT_topo" style="display:none;margin-left:12px;margin-top:1px;">
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T antérieur"> Antérieur</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T apical"> Apical</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T inférieur"> Inférieur</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T latéral"> Latéral</label>
-                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T postérieur"> Postérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T antérieur"> Antérieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T apical"> Apical</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T inférieur"> Inférieur</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T latéral"> Latéral</label>
+                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T postérieur"> Postérieur</label>
                         <button type="button" onclick="appliquerMultiple('sub_ecg_ondeT_topo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
@@ -983,7 +983,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="Echoscopie cardiaque">
 
     <!-- ── Cases à cocher Echo ── -->
-    <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid #b0c8e8;border-radius:5px;padding:6px 8px;background:#f5f9ff;">
+    <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid var(--th-border-card);border-radius:5px;padding:6px 8px;background:var(--th-bg-card);">
 
         <!-- Boutons Normale / Anormale -->
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -1002,13 +1002,13 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <!-- ══ NORMALE ══ -->
         <div id="echo_normale_detail" style="display:none;">
             <div style="font-size:11px;font-weight:bold;color:#27ae60;margin-bottom:3px;">Échographie normale</div>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_og" checked value="oreillettes non dilatées"> Oreillettes non dilatées</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_vd" checked value="cavités droites non dilatées"> Cavités droites non dilatées</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec"> Péricarde sec</label>
-            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_aorte" checked value="aorte initiale non dilatée"> Aorte initiale non dilatée</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_og" checked value="oreillettes non dilatées"> Oreillettes non dilatées</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_vd" checked value="cavités droites non dilatées"> Cavités droites non dilatées</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec"> Péricarde sec</label>
+            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_aorte" checked value="aorte initiale non dilatée"> Aorte initiale non dilatée</label>
         </div>
 
         <!-- ══ ANORMALE ══ -->
