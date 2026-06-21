@@ -52,7 +52,7 @@ body { font-family:Arial,sans-serif; font-size:12px; color:#111; background:whit
 .section { margin-top:3mm; }
 .section-titre { font-size:12px; font-weight:bold; text-decoration:underline; color:#111; margin-bottom:1mm; }
 .section-corps { border-left:3px solid #ccc; padding-left:8px; font-size:12px; line-height:1.4; white-space:pre-wrap; word-wrap:break-word; }
-.editable { width:100%; border:1px dashed #aaa; border-radius:3px; padding:4px 6px; font-size:12px; font-family:Arial,sans-serif; line-height:1.4; resize:vertical; background:#fafeff; color:#111; }
+.editable { width:100%; border:1px dashed #aaa; border-radius:3px; padding:4px 6px; font-size:12px; font-family:Arial,sans-serif; line-height:1.4; background:#fafeff; color:#111; white-space:pre-wrap; word-break:break-word; min-height:1.4em; cursor:text; }
 .editable:focus { outline:none; border-color:#27ae60; background:#f0fff4; }
 .au-total-titre { font-size:12px; font-weight:bold; text-decoration:underline; margin-top:4mm; margin-bottom:1mm; color:#111; }
 .au-total-corps { border-left:3px solid #27ae60; padding-left:8px; font-size:12px; line-height:1.4; white-space:pre-wrap; }
@@ -60,7 +60,7 @@ body { font-family:Arial,sans-serif; font-size:12px; color:#111; background:whit
 @media screen { body { margin:36px auto 20px; box-shadow:0 2px 10px rgba(0,0,0,0.15); border:1px solid #ddd; } }
 @media print {
     .btn-bar { display:none !important; } body { margin:0; }
-    .editable { border:none !important; background:transparent !important; padding:0 !important; resize:none !important; overflow:visible !important; height:auto !important; }
+    .editable { border:none !important; background:transparent !important; padding:0 !important; outline:none !important; }
 }
 </style></head><body>
 
@@ -83,21 +83,21 @@ body { font-family:Arial,sans-serif; font-size:12px; color:#111; background:whit
 
 <div class="section">
     <div class="section-titre">Examen clinique :</div>
-    <div class="section-corps"><textarea class="editable" rows="2"><?= $texteExamen ?: '—' ?></textarea></div>
+    <div class="section-corps"><div class="editable" contenteditable="true"><?= $texteExamen ?: '—' ?></div></div>
 </div>
 
 <div class="section">
     <div class="section-titre">Examen ECG :</div>
-    <div class="section-corps"><textarea class="editable" rows="2"><?= $texteECG ?: '—' ?></textarea></div>
+    <div class="section-corps"><div class="editable" contenteditable="true"><?= $texteECG ?: '—' ?></div></div>
 </div>
 
 <div class="section">
     <div class="section-titre">Examen Écho-Doppler :</div>
-    <div class="section-corps"><textarea class="editable" rows="2"><?= $texteEcho ?: '—' ?></textarea></div>
+    <div class="section-corps"><div class="editable" contenteditable="true"><?= $texteEcho ?: '—' ?></div></div>
 </div>
 
 <div class="au-total-titre">Au total — Conduite à tenir :</div>
-<div class="au-total-corps"><textarea class="editable" rows="2"><?= $conduiteATenir ?: '—' ?></textarea></div>
+<div class="au-total-corps"><div class="editable" contenteditable="true"><?= $conduiteATenir ?: '—' ?></div></div>
 
 <div class="signature">
     Dr Hassan Hlimi<br>
@@ -105,8 +105,6 @@ body { font-family:Arial,sans-serif; font-size:12px; color:#111; background:whit
 </div>
 
 <script>
-document.querySelectorAll('textarea.editable').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
-window.addEventListener('beforeprint',()=>document.querySelectorAll('textarea.editable').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; }));
 window.addEventListener('afterprint',()=>window.close());
 </script>
 </body></html>

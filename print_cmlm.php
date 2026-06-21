@@ -19,11 +19,8 @@ if (!empty($patient['DDN'])) {
     if ($ts && $ts > 86400) $ddn = date('d/m/Y', $ts);
 }
 
-// ── Diagnostic (champ texte libre dans ID) ───────────────────────────────
+// ── Diagnostic (source officielle : ID.diagnostic) ─────────────────────────
 $diagTexte = trim($patient['diagnostic'] ?? '');
-
-// ── Facteurs de risque (CHAMP_FDR dans table ID) ─────────────────────────
-$fdrTexte = htmlspecialchars(trim($patient['CHAMP_FDR'] ?? ''));
 
 // ── Dernier examen ────────────────────────────────────────────────────────
 $stmtEx = $db->prepare("SELECT TOP 1 * FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC, N1 DESC");
@@ -183,8 +180,9 @@ body {
 .editable {
     width:100%; border:1px dashed #aaa; border-radius:3px;
     padding:2px 6px; font-size:12px; font-family:Arial,sans-serif;
-    line-height:1.4; resize:vertical; background:#fafeff;
-    color:#111; overflow:hidden; min-height:0;
+    line-height:1.4; background:#fafeff;
+    color:#111; white-space:pre-wrap; word-break:break-word;
+    min-height:1.4em; cursor:text;
 }
 .editable:focus { outline:none; border-color:#2e6da4; background:#f0f7ff; }
 
@@ -255,10 +253,7 @@ body {
 
     .editable {
         border:none !important; background:transparent !important;
-        padding:0 !important; resize:none !important;
-        overflow:visible !important;
-        height:auto !important;
-        min-height:0 !important;
+        padding:0 !important; outline:none !important;
     }
 
     /* Traitement retenu : puces propres */
@@ -284,7 +279,7 @@ body {
 <!-- ── Barre boutons ── -->
 <div class="btn-bar">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
-    <span><?= htmlspecialchars($nomPatient) ?> — Attestation MLD</span>
+    <span><?= htmlspecialchars($nomPatient) ?> — CMLM</span>
     <button class="btn-close" onclick="window.close()">✕ Fermer</button>
 </div>
 
@@ -305,7 +300,7 @@ body {
 <div class="section">
     <div class="section-titre">Souffre d'une affection médicale cardiologique chronique :</div>
     <div class="section-corps">
-        <textarea class="editable" id="txt_affection" rows="2"><?= htmlspecialchars($diagTexte ?: '—') ?></textarea>
+        <div class="editable" contenteditable="true" id="txt_affection"><?= htmlspecialchars($diagTexte ?: '—') ?></div>
     </div>
 </div>
 
@@ -316,29 +311,22 @@ body {
 
         <div style="margin-bottom:2px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen clinique :</div>
-            <textarea class="editable" id="txt_clinique" rows="1"><?= htmlspecialchars($texteExamen ?: '—') ?></textarea>
+            <div class="editable" contenteditable="true" id="txt_clinique"><?= htmlspecialchars($texteExamen ?: '—') ?></div>
         </div>
 
         <div style="margin-bottom:2px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen ECG :</div>
-            <textarea class="editable" id="txt_ecg" rows="1"><?= htmlspecialchars($texteECG ?: '—') ?></textarea>
+            <div class="editable" contenteditable="true" id="txt_ecg"><?= htmlspecialchars($texteECG ?: '—') ?></div>
         </div>
 
         <div style="margin-bottom:2px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen Echo-doppler :</div>
-            <textarea class="editable" id="txt_echo" rows="1"><?= htmlspecialchars($texteEcho ?: '—') ?></textarea>
+            <div class="editable" contenteditable="true" id="txt_echo"><?= htmlspecialchars($texteEcho ?: '—') ?></div>
         </div>
-
-        <?php if ($fdrTexte): ?>
-        <div style="margin-bottom:1px;">
-            <div style="font-size:11px;color:#555;margin-bottom:0px;">Facteurs de risque :</div>
-            <textarea class="editable" id="txt_fdr" rows="1"><?= $fdrTexte ?></textarea>
-        </div>
-        <?php endif; ?>
 
         <div style="margin-bottom:1px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen biologique :</div>
-            <textarea class="editable" id="txt_bio" rows="1"><?= htmlspecialchars($bioTexte ?: '—') ?></textarea>
+            <div class="editable" contenteditable="true" id="txt_bio"><?= htmlspecialchars($bioTexte ?: '—') ?></div>
         </div>
 
     </div><!-- fin section-corps diagnostic -->
@@ -556,18 +544,6 @@ document.getElementById('autre_spec_input').addEventListener('keydown', function
 
 /* ── Fermer après impression ── */
 window.addEventListener('afterprint', function() { window.close(); });
-
-/* ── Auto-hauteur textarea avant impression ── */
-function ajusterHauteurTextareas() {
-    document.querySelectorAll('textarea.editable').forEach(function(ta) {
-        ta.style.height = '0px';
-        ta.style.height = (ta.scrollHeight) + 'px';
-    });
-}
-// Ajuster dès que le DOM est prêt et avant impression
-document.addEventListener('DOMContentLoaded', ajusterHauteurTextareas);
-ajusterHauteurTextareas();
-window.addEventListener('beforeprint', ajusterHauteurTextareas);
 
 
 </script>

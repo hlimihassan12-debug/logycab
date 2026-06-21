@@ -1386,19 +1386,19 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <!-- Motif -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📋 Motif</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text-muted);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Antécédents -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📂 Antécédents</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text-muted);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Facteurs de risque -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">⚠️ Facteurs de risque</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text-muted);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Diagnostic -->
