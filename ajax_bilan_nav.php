@@ -89,12 +89,12 @@ if ($dateRaw) {
 }
 $row['date_affichage'] = $dateAff;
 $pkField = ($type === 'examen') ? 'N1' : 'N°';
-$pk = $row[$pkField] ?? 0;
-$row['pk'] = $pk;
+$row['pk'] = $row[$pkField] ?? 0;
 
-// Calcul du rang réel : combien d'enregistrements ont un PK >= pk (position depuis le plus récent)
-$stmtRang = $db->prepare("SELECT COUNT(*) FROM $table WHERE $colId = ? AND $colPK >= ?");
-$stmtRang->execute([$id, $pk]);
-$row['rang'] = (int)$stmtRang->fetchColumn();
+// Rang réel (1 = le premier/plus ancien, total = le dernier/plus récent) calculé depuis la base
+$sqlRang = "SELECT COUNT(*) FROM $table WHERE $colId = ? AND $colPK < ?";
+$stmtRang = $db->prepare($sqlRang);
+$stmtRang->execute([$id, $row['pk']]);
+$row['rang'] = (int)$stmtRang->fetchColumn() + 1;
 
 echo json_encode($row);

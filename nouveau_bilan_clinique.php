@@ -323,14 +323,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 <div style="background:#e8f0fa;border-bottom:2px solid #c5d8ed;padding:4px 12px;display:flex;align-items:center;gap:6px;">
     <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🔀 Navigation globale</span>
     <div style="display:flex;align-items:center;gap:3px;margin-left:6px;">
-        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
+        <button type="button" onclick="naviguerTout('last')"  title="Plus ancien (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:var(--th-color-primary);padding:0 8px;white-space:nowrap;">— nouveau —</span>
         <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
+        <button type="button" onclick="naviguerTout('first')" title="Plus récent (tous)"
             style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
             style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -1835,6 +1835,10 @@ function enregistrerAjax(onglet) {
     }
     var msgEl = document.getElementById('msg_'+onglet);
     if (msgEl){ msgEl.textContent='⏳...'; msgEl.style.display='inline'; msgEl.style.color='#888'; }
+    if (!dateTouche[onglet]) {
+        var dEl = document.getElementById('date_'+onglet);
+        if (dEl) dEl.value = '<?= $today ?>';
+    }
     var data = _collectForm(onglet);
     // Forcer CMLM_ECHO pour l'onglet echo
     if (onglet === 'echo') {
@@ -1855,8 +1859,17 @@ function enregistrerAjax(onglet) {
     })
     .then(function(r){ return r.json(); })
     .then(function(resp){
-        if(msgEl){ msgEl.textContent=resp.msg||'✅ Enregistré'; msgEl.style.color='#27ae60'; msgEl.style.display='inline';
-            setTimeout(function(){ msgEl.style.display='none'; },3000); }
+        if(msgEl){
+            var ok = !!resp.ok;
+            msgEl.textContent = resp.msg || (ok ? '✅ Enregistré' : '❌ Erreur inconnue');
+            msgEl.style.color = ok ? '#27ae60' : '#e74c3c';
+            msgEl.style.display = 'inline';
+            if (ok) {
+                nbrEnreg[onglet] = (nbrEnreg[onglet] || 0) + 1;  // le total suit la nouvelle ligne sans recharger la page
+                setTimeout(function(){ msgEl.style.display='none'; },3000);
+            }
+            /* en cas d'echec, le message reste affiche tant que rien n'a ete corrige */
+        }
     })
     .catch(function(err){
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
@@ -1869,15 +1882,31 @@ function enregistrerTout() {
     var onglets = ['examen','ecg','echo'].filter(function(o){
         return document.getElementById('form-'+o);
     });
+    onglets.forEach(function(o){
+        if (!dateTouche[o]) {
+            var dEl = document.getElementById('date_'+o);
+            if (dEl) dEl.value = '<?= $today ?>';
+        }
+    });
     Promise.all(onglets.map(function(o){
         var data = _collectForm(o);
         return fetch('nouveau_bilan_clinique.php?id=<?= $id ?>', {
             method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body:data
-        }).then(function(r){ return r.json(); });
+        }).then(function(r){ return r.json(); }).then(function(resp){ resp._onglet = o; return resp; });
     }))
-    .then(function(){
-        if(msgEl){ msgEl.textContent='✅ Tout enregistré'; msgEl.style.color='#2ecc71'; msgEl.style.display='inline';
-            setTimeout(function(){ msgEl.style.display='none'; },3000); }
+    .then(function(resultats){
+        var echecs = resultats.filter(function(r){ return !r.ok; });
+        if(msgEl){
+            if (echecs.length === 0) {
+                msgEl.textContent = '✅ Tout enregistré';
+                msgEl.style.color = '#2ecc71';
+                setTimeout(function(){ msgEl.style.display='none'; },3000);
+            } else {
+                msgEl.textContent = '❌ Echec : ' + echecs.map(function(r){ return r._onglet+' ('+(r.msg||'erreur')+')'; }).join(' / ');
+                msgEl.style.color = '#e74c3c';
+            }
+            msgEl.style.display = 'inline';
+        }
     })
     .catch(function(err){
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
@@ -1887,6 +1916,11 @@ function enregistrerTout() {
 // Nombre total d'enregistrements par type (injecté depuis PHP)
 var nbrEnreg = { examen: <?= $nbExamen ?>, ecg: <?= $nbEcg ?>, echo: <?= $nbEcho ?> };
 var bilanRang = { examen: 0, ecg: 0, echo: 0 };  // rang courant (1-based, 0=nouveau)
+var dateTouche = { examen: false, ecg: false, echo: false };  // true si la date a ete modifiee a la main par le medecin
+['examen','ecg','echo'].forEach(function(t){
+    var elDate = document.getElementById('date_'+t);
+    if (elDate) elDate.addEventListener('input', function(){ dateTouche[t] = true; });
+});
 // bilanRef : clé primaire (N1 ou N°) de l'enregistrement affiché (0 = mode nouveau)
 var bilanRef = { examen: 0, ecg: 0, echo: 0 };
 function naviguerBilan(type, dir) {
@@ -1914,6 +1948,7 @@ function naviguerBilan(type, dir) {
         var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
         document.getElementById('navdate_'+type).textContent = label;
         var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
+        dateTouche[type] = false;
         if(type==='examen'){
             ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
              'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
@@ -1960,6 +1995,7 @@ function nouveauBilan(type) {
     var dateAff = '<?= date("d/m/Y") ?>';
     document.getElementById('navdate_'+type).textContent = dateAff + ' (' + (nbrEnreg[type]+1) + ')';
     var df=document.getElementById('date_'+type); if(df) df.value='<?= $today ?>';
+    dateTouche[type] = false;
     if(type==='examen') {
         viderExamen();
         /* Vider TAS TAD FC POIDS */
