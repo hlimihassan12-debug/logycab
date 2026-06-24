@@ -19,11 +19,6 @@ if ($urlMsg === 'examen_ok') $msgs['examen'] = '✅ Examen enregistré';
 if ($urlMsg === 'ecg_ok')    $msgs['ecg']    = '✅ ECG enregistré';
 if ($urlMsg === 'echo_ok')   $msgs['echo']   = '✅ Echo-Doppler enregistré';
 
-// Thème
-$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
-$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
-if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
-
 function toSqlDate($d) {
     if (!$d) return null;
     $ts = strtotime($d);
@@ -187,6 +182,11 @@ foreach ($bilansList3 as $b) {
         'lignes'  => $lignes,
     ];
 }
+
+// Theme
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -217,7 +217,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 .col-card { background: var(--th-bg-card); border-radius: 6px; padding: 12px; box-shadow: 0 1px 4px var(--th-border-card); }
 
 .col-title {
-    font-size: 12px; font-weight: bold; color: var(--th-color-primary);
+    font-size: 12px; font-weight: bold; color:var(--th-color-primary);
     margin-bottom: 10px; padding-bottom: 6px;
     border-bottom: 2px solid var(--th-border-statsbar);
     display: flex; align-items: center; justify-content: space-between;
@@ -235,10 +235,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     width: 100%; padding: 4px 6px;
     border: 1px solid #ddd; border-radius: 3px;
     font-size: 11px; font-family: Arial, sans-serif;
-    color: #222; background: white;
 }
 .champ input:focus, .champ textarea:focus, .champ select:focus {
-    outline: none; border-color: var(--th-color-secondary);
+    outline: none; border-color:var(--th-color-secondary);
     box-shadow: 0 0 0 2px rgba(46,109,164,0.12);
 }
 .champ textarea { resize: vertical; min-height: 48px; }
@@ -250,7 +249,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 }
 .date-enreg input[type=date] {
     border: 1px solid #ddd; border-radius: 3px;
-    padding: 2px 5px; font-size: 11px; color: var(--th-color-primary);
+    padding: 2px 5px; font-size: 11px; color:var(--th-color-primary);
 }
 /* Boutons icônes ✅ ✏️ 💾 — transparents, taille fixe, centrés */
 .btn-preset, .btn-save {
@@ -265,7 +264,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 .btn-preset:hover, .btn-save:hover { background: rgba(0,0,0,0.07); }
 .btn-normal { color: #27ae60; }
 .btn-anormal { color: #e67e22; }
-.btn-save { color: var(--th-color-secondary); }
+.btn-save { color:var(--th-color-secondary); }
 
 
 /* Champs réduits */
@@ -277,7 +276,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 .btn-excl {
     flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px;
     border: 1px solid #ccc; border-radius: 3px; background: #f5f5f5;
-    color:var(--th-color-text-muted); font-size: 12px; font-weight: bold;
+    color: var(--th-color-text-muted); font-size: 12px; font-weight: bold;
     cursor: pointer; line-height: 18px; text-align: center; padding: 0;
     transition: all 0.15s;
 }
@@ -320,18 +319,18 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 </div>
 
 <!-- ══ BARRE NAVIGATION GLOBALE ══ -->
-<div style="background:#e8f0fa;border-bottom:2px solid #c5d8ed;padding:4px 12px;display:flex;align-items:center;gap:6px;">
+<div style="background:var(--th-bg-link-hover);border-bottom:2px solid var(--th-border-statsbar);padding:4px 12px;display:flex;align-items:center;gap:6px;">
     <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🔀 Navigation globale</span>
     <div style="display:flex;align-items:center;gap:3px;margin-left:6px;">
-        <button type="button" onclick="naviguerTout('last')"  title="Plus ancien (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
+            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
+            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:var(--th-color-primary);padding:0 8px;white-space:nowrap;">— nouveau —</span>
         <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerTout('first')" title="Plus récent (tous)"
-            style="background:white;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
+            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
+            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
             style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
@@ -355,17 +354,17 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
    <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
       <div style="margin-bottom:2px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
-    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('examen','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('examen','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+    <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="naviguerBilan('examen','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('examen','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('examen','first')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('examen','first')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
     <!-- ── Panel cases Examen ── -->
-    <div id="panel_sympto" style="margin-bottom:6px;border:1px solid var(--th-border-card);border-radius:5px;padding:6px 8px;background:var(--th-bg-card);">
+    <div id="panel_sympto" style="margin-bottom:6px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">🩺 Examen — cochez pour générer le rapport Examen</div>
 
         <!-- Boutons Normal / Anormal -->
@@ -377,24 +376,24 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </button>
             <button type="button" id="btn_exam_anormal"
                 onclick="setExamenAnormal()"
-                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:white;color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">
+                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:var(--th-bg-card);color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">
                 ⚠️ Examen anormal
             </button>
         </div>
         <div style="margin-top:6px;margin-bottom:4px;">
             <button type="button" id="btn_generer_examen"
                 onclick="if(document.getElementById('bloc_normal')&&document.getElementById('bloc_normal').style.display!=='none'){genererConclusionNormal();}else{genererConclusion();} document.getElementById('bloc_normal').style.display='none'; document.getElementById('sympto_cases').style.display='none'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');"
-                style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
+                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
             <button type="button" id="lien_modifier_sympto" onclick="modifierExamen()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <!-- ══ BLOC NORMAL (affiché par ✅) ══ -->
         <div id="bloc_normal" style="display:none;">
             <div style="font-size:11px;font-weight:bold;color:#27ae60;margin-bottom:3px;">Examen clinique normal</div>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
+            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
         </div>
 
         <!-- ══ BLOC ANORMAL (affiché par ⚠️) ══ -->
@@ -409,39 +408,39 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <div id="sub_exam_card" style="display:block;">
 
             <!-- Angor — EXCLUSIF -->
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_angor" onchange="toggleSub(this)"> Symptomatologie douloureuse (angor)</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_angor" onchange="toggleSub(this)"> Symptomatologie douloureuse (angor)</label>
             <div id="sub_angor" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="douleur thoracique (angor)"> Douleur thoracique (angor)</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor d'effort"> Angor d'effort</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor crescendo"> Angor crescendo</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="douleur thoracique (angor)"> Douleur thoracique (angor)</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor d'effort"> Angor d'effort</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_angor')" value="angor crescendo"> Angor crescendo</label>
             </div>
 
             <!-- Dyspnée — EXCLUSIF -->
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_dyspnee" onchange="toggleSub(this)"> Symptomatologie dyspnéique</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_dyspnee" onchange="toggleSub(this)"> Symptomatologie dyspnéique</label>
             <div id="sub_dyspnee" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée stade I NYHA"> Dyspnée stade I NYHA</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade II NYHA"> Dyspnée d'effort stade II NYHA</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade III NYHA"> Dyspnée d'effort stade III NYHA</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="suspicion d'embolie pulmonaire"> Suspicion d'embolie pulmonaire</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée stade I NYHA"> Dyspnée stade I NYHA</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade II NYHA"> Dyspnée d'effort stade II NYHA</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="dyspnée d'effort stade III NYHA"> Dyspnée d'effort stade III NYHA</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_dyspnee')" value="suspicion d'embolie pulmonaire"> Suspicion d'embolie pulmonaire</label>
             </div>
 
             <!-- Signes IVD — MULTIPLE + bouton OK -->
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_ivd" onchange="toggleSub(this)"> Signes d'IVD</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_ivd" onchange="toggleSub(this)"> Signes d'IVD</label>
             <div id="sub_ivd" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatalgies d'effort"> Hépatalgies d'effort</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatomégalie"> Hépatomégalie</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hypochondre droit douloureux à la palpation"> Hypochondre droit douloureux à la palpation</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="œdèmes des MI prenant le godet"> Œdèmes des MI prenant le godet</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="turgescence des veines jugulaires"> Turgescence des veines jugulaires</label>
-                <button type="button" onclick="appliquerMultiple('sub_ivd')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatalgies d'effort"> Hépatalgies d'effort</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hépatomégalie"> Hépatomégalie</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hypochondre droit douloureux à la palpation"> Hypochondre droit douloureux à la palpation</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="œdèmes des MI prenant le godet"> Œdèmes des MI prenant le godet</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="turgescence des veines jugulaires"> Turgescence des veines jugulaires</label>
+                <button type="button" onclick="appliquerMultiple('sub_ivd')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             <!-- Rythmique — EXCLUSIF -->
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_rythme" onchange="toggleSub(this)"> Symptomatologie rythmique</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_rythme" onchange="toggleSub(this)"> Symptomatologie rythmique</label>
             <div id="sub_rythme" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="palpitations"> Palpitations</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="tachycardie"> Tachycardie</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="bradycardie"> Bradycardie</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="palpitations"> Palpitations</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="tachycardie"> Tachycardie</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_rythme')" value="bradycardie"> Bradycardie</label>
             </div>
 
             </div><!-- fin sub_exam_card -->
@@ -452,12 +451,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <div id="sub_exam_vasc" style="display:block;">
 
             <!-- Artéritique — EXCLUSIF -->
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_arterite" onchange="toggleSub(this)"> Symptomatologie artéritique des MI</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_arterite" onchange="toggleSub(this)"> Symptomatologie artéritique des MI</label>
             <div id="sub_arterite" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade I"> Artérite stade I</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade II"> Artérite stade II</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade VI"> Artérite stade VI</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="gangrène"> Gangrène</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade I"> Artérite stade I</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade II"> Artérite stade II</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade VI"> Artérite stade VI</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="gangrène"> Gangrène</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
                     <span style="font-size:11px;">Autres :</span>
                     <input type="text" id="arterite_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;">
@@ -465,16 +464,16 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </div>
 
             <!-- Phlébitique — MULTIPLE + bouton OK -->
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_phlebite" onchange="toggleSub(this)"> Symptomatologie phlébitique</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_phlebite" onchange="toggleSub(this)"> Symptomatologie phlébitique</label>
             <div id="sub_phlebite" style="display:none;margin-left:14px;margin-bottom:4px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="varices des MI"> Varices des MI</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="phlébite des MI"> Phlébite des MI</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="trouble trophique des MI"> Trouble trophique des MI</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="varices des MI"> Varices des MI</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="phlébite des MI"> Phlébite des MI</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-phleb" value="trouble trophique des MI"> Trouble trophique des MI</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
                     <span style="font-size:11px;">Autres :</span>
                     <input type="text" id="phlebite_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;">
                 </div>
-                <button type="button" onclick="appliquerMultiple('sub_phlebite')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                <button type="button" onclick="appliquerMultiple('sub_phlebite')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             </div><!-- fin sub_exam_vasc -->
@@ -493,31 +492,25 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         { -webkit-appearance:none; margin:0; }
         #inp_TAS,#inp_TAD,#inp_FC,#inp_POIDS { -moz-appearance:textfield; }
     </style>
-    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;gap:3px;flex-wrap:nowrap;margin-bottom:8px;">
         <label style="font-size:10px;color:var(--th-color-text-muted);">TAS <span style="color:red;">*</span></label>
-        <input type="number" id="inp_TAS" name="TAS" placeholder="TAS" required style="width:50px;padding:3px 5px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
+        <input type="number" id="inp_TAS" name="TAS" placeholder="TAS" required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
         <label style="font-size:10px;color:var(--th-color-text-muted);">TAD <span style="color:red;">*</span></label>
-        <input type="number" id="inp_TAD" name="TAD" placeholder="TAD" required style="width:50px;padding:3px 5px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
+        <input type="number" id="inp_TAD" name="TAD" placeholder="TAD" required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
         <label style="font-size:10px;color:var(--th-color-text-muted);">FC <span style="color:red;">*</span></label>
-        <input type="number" id="inp_FC"  name="FC"  placeholder="FC"  required style="width:50px;padding:3px 5px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
+        <input type="number" id="inp_FC"  name="FC"  placeholder="FC"  required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
         <label style="font-size:10px;color:var(--th-color-text-muted);">Poids</label>
-        <input type="number" id="inp_POIDS" step="0.1" name="POIDS" placeholder="kg" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
+        <input type="number" id="inp_POIDS" step="0.1" name="POIDS" placeholder="kg" style="width:36px;padding:3px 2px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
         <label style="font-size:10px;color:var(--th-color-text-muted);">Taille</label>
-        <input type="text" name="TAILLE" placeholder="cm" readonly tabindex="-1" style="width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f5f5f5;color:#aaa;cursor:not-allowed;">
+        <input type="text" name="TAILLE" placeholder="cm" readonly tabindex="-1" style="width:36px;padding:3px 2px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f5f5f5;color:#aaa;cursor:not-allowed;">
     </div>
 
     <div class="champ" id="wrap_REMARQUE">
-        <div class="label-excl">
-            <label>Remarque</label>
-            <button type="button" class="btn-excl" onclick="toggleExcl('REMARQUE')" title="Exclure du rapport">−</button>
-        </div>
+        <label>Remarque</label>
         <textarea name="REMARQUE" class="court" oninput="majApercuExamen()"></textarea>
     </div>
     <div class="champ" id="wrap_Conclusion">
-        <div class="label-excl">
-            <label>Conclusion</label>
-            <button type="button" class="btn-excl" onclick="toggleExcl('Conclusion')" title="Exclure du rapport">−</button>
-        </div>
+        <label>Conclusion</label>
         <textarea name="Conclusion" class="court" oninput="majApercuExamen()"></textarea>
     </div>
 
@@ -529,24 +522,24 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <input type="hidden" id="excl_Signes_IVG"         name="excl_Signes_IVG">
     <input type="hidden" id="excl_Signes_IVD"         name="excl_Signes_IVD">
     <input type="hidden" id="excl_Autres_Symptomes"   name="excl_Autres_Symptomes">
-    <input type="hidden" id="excl_Conclusion"          name="excl_Conclusion">
-    <input type="hidden" id="excl_REMARQUE"            name="excl_REMARQUE">
 
     <!-- Zone prévisualisation concaténation Examen -->
     <div class="champ" style="margin-top:6px;">
-        <label style="font-size:10px;color:var(--th-color-stat);font-weight:bold;">👁 Aperçu rapport Examen</label>
+        <label style="font-size:10px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Examen</label>
         <textarea id="apercu_examen" name="CMLM_EXAMEN"
-            style="min-height:45px;background:#ffffff;border:1px solid #2e6da4;font-size:11px;color:#0d2b4e;font-weight:500;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:45px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:11px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
 
-    <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>Au total — Conduite à tenir</span>
+    <div style="display:flex;align-items:center;gap:5px;margin:10px 0 6px;">
         <button type="button" onclick="toggleConduitePanel()" title="Choisir dans la liste"
-            style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;">📋</button>
+            style="flex:1;background:var(--th-btn-blue);color:white;border:none;border-radius:3px;padding:4px 8px;font-size:11px;font-weight:bold;cursor:pointer;text-align:left;">📋 Au total CAT</button>
+        <button type="button"
+            onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
+            style="background:#27ae60;color:white;border:none;border-radius:3px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
     </div>
 
     <!-- Panneau Conduite à tenir (caché par défaut) -->
-    <div id="panel_conduite" style="display:none;border:1px solid var(--th-border-card);border-radius:4px;padding:6px 8px;background:var(--th-bg-card);margin-bottom:4px;max-height:340px;overflow-y:auto;">
+    <div id="panel_conduite" style="display:none;border:1px solid var(--th-border-statsbar);border-radius:4px;padding:6px 8px;background:var(--th-bg-link-hover);margin-bottom:4px;max-height:340px;overflow-y:auto;">
 
         <!-- ══ SECTION 1 : Maladie chronique (ex-CMLM) ══ -->
         <div class="cat-section">
@@ -554,35 +547,35 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_maladie">▶</span> 📋 Maladie chronique
             </div>
             <div id="sec_maladie" style="display:none;padding-left:10px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Son état nécessite une prise en charge au long cours"> Son état nécessite</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Son état nécessite une prise en charge au long cours"> Son état nécessite</label>
 
-                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Traitement médical</div>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Un traitement médical au long cours"> Un traitement médical au long cours</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Actuellement sous traitement"> Actuellement sous :</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Aucun médicament ajouté"> Aucun médicament ajouté — cliquez sur [ALD]</label>
+                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Traitement médical</div>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Un traitement médical au long cours"> Un traitement médical au long cours</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Actuellement sous traitement"> Actuellement sous :</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:12px;"><input type="checkbox" class="cat-item" value="Aucun médicament ajouté"> Aucun médicament ajouté — cliquez sur [ALD]</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:12px;">
-                    <span style="font-size:10px;color:var(--th-color-text-muted);">Traitement retenu :</span>
+                    <span style="font-size:10px;color:#555;">Traitement retenu :</span>
                     <input type="text" id="cat_trait_retenu" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
 
-                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle)"> Clinique (trimestrielle)</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle"> Électrocardiographique trimestrielle</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle"> Échographique annuelle</label>
+                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle)"> Clinique (trimestrielle)</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle"> Électrocardiographique trimestrielle</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle"> Échographique annuelle</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
-                    <label style="font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique"> Biologique :</label>
+                    <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique"> Biologique :</label>
                     <input type="text" id="cat_bio_detail" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
 
-                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Avis spécialiste</div>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis endocrinologue"> Endocrinologue</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis neurologue"> Neurologue</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis néphrologue"> Néphrologue</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis gastro-entérologue"> Gastro-entérologue</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis pneumologue"> Pneumologue</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis chirurgien cardiaque"> Chirurgien cardiaque</label>
+                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Avis spécialiste</div>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis endocrinologue"> Endocrinologue</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis neurologue"> Neurologue</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis néphrologue"> Néphrologue</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis gastro-entérologue"> Gastro-entérologue</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis pneumologue"> Pneumologue</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Avis chirurgien cardiaque"> Chirurgien cardiaque</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
-                    <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
+                    <span style="font-size:10px;color:#555;">Autre :</span>
                     <input type="text" id="cat_avis_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -594,10 +587,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_corresp">▶</span> ✉️ Correspondance
             </div>
             <div id="sec_corresp" style="display:none;padding-left:10px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Je vous adresse ce patient pour avis et prise en charge"> Je vous adresse ce patient pour avis et prise en charge</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Je vous adresse ce patient pour avis et prise en charge"> Je vous adresse ce patient pour avis et prise en charge</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Avis chirurgical"> Avis chirurgical</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
-                    <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
+                    <span style="font-size:10px;color:#555;">Autre :</span>
                     <input type="text" id="cat_corresp_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -609,20 +602,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_cr">▶</span> 📋 Compte rendu
             </div>
             <div id="sec_cr" style="display:none;padding-left:10px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal"> Examen cardio-vasculaire normal</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Absence de contre-indication cardiaque à la chirurgie"> Absence de contre-indication cardiaque à la chirurgie</label>
 
-                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Adaptation du traitement (voir protocole)</div>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous antiagrégants plaquettaires (voir protocole)"> Patient sous antiagrégants plaquettaires</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous AVK (voir protocole)"> Patient sous AVK (voir protocole)</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous anticoagulants directs"> Patient sous anticoagulants directs</label>
+                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Adaptation du traitement (voir protocole)</div>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous antiagrégants plaquettaires (voir protocole)"> Patient sous antiagrégants plaquettaires</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous AVK (voir protocole)"> Patient sous AVK (voir protocole)</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Patient sous anticoagulants directs"> Patient sous anticoagulants directs</label>
 
-                <div style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle) — CR"> Clinique (trimestrielle)</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle — CR"> Électrocardiographique trimestrielle</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle — CR"> Échographique annuelle</label>
+                <div style="font-size:10px;color:#555;font-weight:bold;margin:3px 0 1px;">Une surveillance</div>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance clinique (trimestrielle) — CR"> Clinique (trimestrielle)</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance électrocardiographique trimestrielle — CR"> Électrocardiographique trimestrielle</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;padding-left:8px;"><input type="checkbox" class="cat-item" value="Surveillance échographique annuelle — CR"> Échographique annuelle</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;padding-left:8px;">
-                    <label style="font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique — CR"> Biologique :</label>
+                    <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="cat-item" value="Surveillance biologique — CR"> Biologique :</label>
                     <input type="text" id="cat_cr_bio" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -634,10 +627,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_aptitude">▶</span> 🏅 Aptitude physique
             </div>
             <div id="sec_aptitude" style="display:none;padding-left:10px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal, apte à la pratique sportive"> Examen cardio-vasculaire normal</label>
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Apte à l'emploi sollicité"> Apte à l'emploi sollicité</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Examen cardio-vasculaire normal, apte à la pratique sportive"> Examen cardio-vasculaire normal</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="cat-item" value="Apte à l'emploi sollicité"> Apte à l'emploi sollicité</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
-                    <span style="font-size:10px;color:var(--th-color-text-muted);">Autre :</span>
+                    <span style="font-size:10px;color:#555;">Autre :</span>
                     <input type="text" id="cat_apt_autre" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:10px;" oninput="majConduiteTextarea()">
                 </div>
             </div>
@@ -647,11 +640,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="display:flex;align-items:center;gap:4px;margin-top:5px;">
             <span style="font-size:11px;">Autres :</span>
             <input type="text" id="cat_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;" oninput="majConduiteTextarea()">
-        </div>
-        <div style="text-align:right;margin-top:6px;">
-            <button type="button"
-                onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
-                style="background:#27ae60;color:white;border:none;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:bold;cursor:pointer;">&#9654; Générer &amp; 💾</button>
         </div>
     </div>
 
@@ -682,7 +670,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
             <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
             <?php if (!empty($anormaux)): ?>
-            <span style="font-size:10px;color:var(--th-color-text-muted);margin-left:4px;">:</span>
+            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
             <?php foreach ($anormaux as $an): ?>
             <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
                 <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
@@ -699,14 +687,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="sec">Détail bilan</div>
 
     <!-- Barre de navigation bilans -->
-    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+    <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">
             <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
         </span>
-        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
     </div>
 
     <!-- Zone résultats du bilan sélectionné -->
@@ -746,16 +734,16 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
-    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('ecg','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+    <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="naviguerBilan('ecg','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('ecg','first')"  title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('ecg','first')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
-    <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-card);border-radius:5px;padding:6px 8px;background:var(--th-bg-card);">
+    <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">📈 ECG — cochez pour générer le rapport ECG</div>
         <div style="display:flex;gap:6px;margin-bottom:4px;">
             <button type="button" id="btn_ecg_normal"
@@ -765,14 +753,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </button>
             <button type="button" id="btn_ecg_anormal"
                 onclick="setEcgGlobal('anormal')"
-                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:white;color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">
+                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:var(--th-bg-card);color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">
                 ⚠️ ECG anormal
             </button>
         </div>
         <div style="margin-top:6px;margin-bottom:4px;">
             <button type="button" id="btn_generer_ecg"
                 onclick="genererRapportECG(); document.getElementById('ecg_normal_detail').style.display='none'; document.getElementById('ecg_detail').style.display='none'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');"
-                style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
+                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
             <button type="button" id="lien_modifier_ecg" onclick="modifierECG()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
         <!-- champ radio caché pour compatibilité avec le reste du JS -->
@@ -780,11 +768,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <input type="radio" name="ecg_global" value="anormal" id="ecg_r_anormal" style="display:none;" onchange="toggleECGAnormal(true)">
         <!-- Cases ECG Normal (visible quand ECG normal coché) -->
         <div id="ecg_normal_detail" style="display:none;margin-top:4px;">
-            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
-            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
-            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_iv" value="conduction intra-ventriculaire normale" checked> Conduction intra-ventriculaire normale</label>
-            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_repol" value="repolarisation normale" checked> Repolarisation normale</label>
-            <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_iv" value="conduction intra-ventriculaire normale" checked> Conduction intra-ventriculaire normale</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_repol" value="repolarisation normale" checked> Repolarisation normale</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
         </div>
 
         <div id="ecg_detail" style="display:none;">
@@ -795,20 +783,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_rythme">▶</span>
             </div>
             <div id="sub_ecg_rythme" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
                 <div id="sub_ecg_rythme_sv" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="rythme sinusal, absence de trouble de rythme"> Rythme sinusal, absence de trouble de rythme</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="arythmie complète par fibrillation auriculaire"> Arythmie complète par fibrillation auriculaire</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="tachyarythmie"> Tachyarythmie</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="bradyarythmie"> Bradyarythmie</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="flutter auriculaire"> Flutter auriculaire</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="hyperexcitabilité supraventriculaire"> Hyperexcitabilité supraventriculaire</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="rythme sinusal, absence de trouble de rythme"> Rythme sinusal, absence de trouble de rythme</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="arythmie complète par fibrillation auriculaire"> Arythmie complète par fibrillation auriculaire</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="tachyarythmie"> Tachyarythmie</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="bradyarythmie"> Bradyarythmie</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="flutter auriculaire"> Flutter auriculaire</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_sv')" value="hyperexcitabilité supraventriculaire"> Hyperexcitabilité supraventriculaire</label>
                 </div>
-                <label style="font-weight:600;font-size:12px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_v" onchange="toggleSub(this)"> Ventriculaire</label>
+                <label style="font-size:11px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_rythme_v" onchange="toggleSub(this)"> Ventriculaire</label>
                 <div id="sub_ecg_rythme_v" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="absence de trouble de rythme ventriculaire"> Absence de trouble de rythme</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="hyperexcitabilité ventriculaire"> Hyperexcitabilité ventriculaire</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="salve de TV"> Salve de TV</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="absence de trouble de rythme ventriculaire"> Absence de trouble de rythme</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="hyperexcitabilité ventriculaire"> Hyperexcitabilité ventriculaire</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_rythme_v')" value="salve de TV"> Salve de TV</label>
                 </div>
             </div>
 
@@ -818,54 +806,54 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_cond">▶</span>
             </div>
             <div id="sub_ecg_cond" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
+                <label style="font-size:11px;cursor:pointer;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_sv" onchange="toggleSub(this)"> Supraventriculaire</label>
                 <div id="sub_ecg_cond_sv" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="conduction supraventriculaire normale"> Normale</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bradycardie sinusale"> Bradycardie sinusale</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="tachycardie sinusale"> Tachycardie sinusale</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bloc sino-auriculaire"> Bloc sino-auriculaire</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="pauses sinusales"> Pauses sinusales</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="conduction supraventriculaire normale"> Normale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bradycardie sinusale"> Bradycardie sinusale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="tachycardie sinusale"> Tachycardie sinusale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="bloc sino-auriculaire"> Bloc sino-auriculaire</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_sv')" value="pauses sinusales"> Pauses sinusales</label>
                 </div>
-                <label style="font-weight:600;font-size:12px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_av" onchange="toggleSub(this)"> Auriculo-ventriculaire</label>
+                <label style="font-size:11px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_av" onchange="toggleSub(this)"> Auriculo-ventriculaire</label>
                 <div id="sub_ecg_cond_av" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="conduction auriculo-ventriculaire normale"> Normale</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV I"> BAV I</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Luciani-Wenckebach"> BAV II : Luciani-Wenckebach</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Mobitz II"> BAV II : Mobitz II</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV III"> BAV III</label>
-                    <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="pré-excitations (WPW)"> Pré-excitations</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="conduction auriculo-ventriculaire normale"> Normale</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV I"> BAV I</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Luciani-Wenckebach"> BAV II : Luciani-Wenckebach</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV II : Mobitz II"> BAV II : Mobitz II</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="BAV III"> BAV III</label>
+                    <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_av')" value="pré-excitations (WPW)"> Pré-excitations</label>
                 </div>
-                <label style="font-weight:600;font-size:12px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_iv" onchange="toggleSub(this)"> Intra-ventriculaire</label>
+                <label style="font-size:11px;cursor:pointer;margin-top:3px;display:block;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_cond_iv" onchange="toggleSub(this)"> Intra-ventriculaire</label>
                 <div id="sub_ecg_cond_iv" style="display:none;margin-left:12px;margin-top:1px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_iv')" value="conduction intra-ventriculaire normale"> Conduction intra-ventriculaire normale</label>
+                    <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_cond_iv')" value="conduction intra-ventriculaire normale"> Conduction intra-ventriculaire normale</label>
 
                     <!-- Bloc de branche gauche -->
-                    <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbg" onchange="toggleSub(this)"> Bloc de branche gauche</label>
+                    <label style="font-size:11px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbg" onchange="toggleSub(this)"> Bloc de branche gauche</label>
                     <div id="sub_ecg_bbg" style="display:none;margin-left:12px;margin-top:1px;margin-bottom:2px;">
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche complet"> complet</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche incomplet"> incomplet</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc antérieur gauche"> hémibloc antérieur gauche</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc postérieur gauche"> hémibloc postérieur</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche complet"> complet</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche gauche incomplet"> incomplet</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc antérieur gauche"> hémibloc antérieur gauche</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="hémibloc postérieur gauche"> hémibloc postérieur</label>
                     </div>
 
                     <!-- Bloc de branche droit -->
-                    <label style="font-weight:600;font-size:12px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbd" onchange="toggleSub(this)"> Bloc de branche droit</label>
+                    <label style="font-size:11px;cursor:pointer;display:block;margin-bottom:1px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_bbd" onchange="toggleSub(this)"> Bloc de branche droit</label>
                     <div id="sub_ecg_bbd" style="display:none;margin-left:12px;margin-top:1px;margin-bottom:2px;">
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit complet"> complet</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit incomplet"> incomplet</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="bloc droit complet"> bloc droit complet</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit complet"> complet</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc de branche droit incomplet"> incomplet</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="bloc droit complet"> bloc droit complet</label>
                     </div>
 
                     <!-- Pacemaker -->
-                    <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-top:2px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_pace" onchange="toggleSub(this);" value="électro-entraîné, pacemaker"> Électro-entraîné, pacemaker — date de pose :
+                    <label style="font-size:11px;display:block;cursor:pointer;margin-top:2px;"><input type="checkbox" class="ecg-parent" data-target="sub_ecg_pace" onchange="toggleSub(this);" value="électro-entraîné, pacemaker"> Électro-entraîné, pacemaker — date de pose :
                         <input type="text" id="ecg_pace_date" placeholder="jj/mm/aaaa" style="width:80px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px;">
                     </label>
                     <div id="sub_ecg_pace" style="display:none;margin-left:14px;margin-top:2px;">
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="DDD"> DDD</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="VVI"> VVI</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="AAI (une sonde dans l'oreillette droite)"> AAI — une sonde dans l'oreillette droite</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="CRT-P (pacemaker de resynchronisation cardiaque)"> CRT-P — resynchronisation cardiaque</label>
-                        <label style="font-weight:600;font-size:12px;display:block;"><input type="checkbox" class="ecg-child" value="DAI (défibrillateur automatique implantable)"> DAI — défibrillateur automatique implantable</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="DDD"> DDD</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="VVI"> VVI</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="AAI (une sonde dans l'oreillette droite)"> AAI — une sonde dans l'oreillette droite</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="CRT-P (pacemaker de resynchronisation cardiaque)"> CRT-P — resynchronisation cardiaque</label>
+                        <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-child" value="DAI (défibrillateur automatique implantable)"> DAI — défibrillateur automatique implantable</label>
                     </div>
                 </div>
             </div>
@@ -876,15 +864,15 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_isch">▶</span>
             </div>
             <div id="sub_ecg_isch" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_isch')" value="ondes Q de nécrose absentes"> Absents</label>
-                <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_isch_topo" onchange="exclusifVisible(this,'sub_ecg_isch');toggleSub(this);" value="ondes Q de nécrose présentes"> Présents</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_isch')" value="ondes Q de nécrose absentes"> Absents</label>
+                <label style="font-size:11px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_isch_topo" onchange="exclusifVisible(this,'sub_ecg_isch');toggleSub(this);" value="ondes Q de nécrose présentes"> Présents</label>
                 <div id="sub_ecg_isch_topo" style="display:none;margin-left:12px;margin-top:1px;">
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose antérieur"> Antérieur</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose apical"> Apical</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose inférieur"> Inférieur</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose latéral"> Latéral</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose postérieur"> Postérieur</label>
-                        <button type="button" onclick="appliquerMultiple('sub_ecg_isch_topo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose antérieur"> Antérieur</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose apical"> Apical</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose inférieur"> Inférieur</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose latéral"> Latéral</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose postérieur"> Postérieur</label>
+                        <button type="button" onclick="appliquerMultiple('sub_ecg_isch_topo')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
 
@@ -894,19 +882,19 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_repol">▶</span>
             </div>
             <div id="sub_ecg_repol" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol')" value="segment ST sans anomalie"> Absents</label>
-                <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_repol_detail" onchange="exclusifVisible(this,'sub_ecg_repol');toggleSub(this);" value="anomalie segment ST présente"> Présents</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol')" value="segment ST sans anomalie"> Absents</label>
+                <label style="font-size:11px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_repol_detail" onchange="exclusifVisible(this,'sub_ecg_repol');toggleSub(this);" value="anomalie segment ST présente"> Présents</label>
                 <div id="sub_ecg_repol_detail" style="display:none;margin-left:12px;margin-top:2px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sous-décalage segment ST"> Sous-décalage segment ST</label>
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sus-décalage segment ST"> Sus-décalage segment ST</label>
+                    <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sous-décalage segment ST"> Sous-décalage segment ST</label>
+                    <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_repol_st')" value="sus-décalage segment ST"> Sus-décalage segment ST</label>
                     <div id="sub_ecg_repol_st"></div>
-                    <div style="font-size:10px;color:var(--th-color-text-muted);margin-bottom:2px;">Dans le territoire :</div>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST antérieur"> Antérieur</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST apical"> Apical</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST inférieur"> Inférieur</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST latéral"> Latéral</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST postérieur"> Postérieur</label>
-                        <button type="button" onclick="appliquerMultiple('sub_ecg_repol_detail')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <div style="font-size:10px;color:#555;margin-bottom:2px;">Dans le territoire :</div>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST antérieur"> Antérieur</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST apical"> Apical</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST inférieur"> Inférieur</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST latéral"> Latéral</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST postérieur"> Postérieur</label>
+                        <button type="button" onclick="appliquerMultiple('sub_ecg_repol_detail')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
 
@@ -916,15 +904,15 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span id="arr_ecg_ondeT">▶</span>
             </div>
             <div id="sub_ecg_ondeT" style="display:none;margin-left:14px;margin-top:2px;">
-                <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_ondeT')" value="ondes T sans anomalie"> Absents</label>
-                <label style="font-weight:600;font-size:12px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_ondeT_topo" onchange="exclusifVisible(this,'sub_ecg_ondeT');toggleSub(this);" value="anomalie ondes T présente"> Présents</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="ecg-child" onchange="exclusifVisible(this,'sub_ecg_ondeT')" value="ondes T sans anomalie"> Absents</label>
+                <label style="font-size:11px;display:block;cursor:pointer;margin-bottom:2px;"><input type="checkbox" class="ecg-parent ecg-child" data-target="sub_ecg_ondeT_topo" onchange="exclusifVisible(this,'sub_ecg_ondeT');toggleSub(this);" value="anomalie ondes T présente"> Présents</label>
                 <div id="sub_ecg_ondeT_topo" style="display:none;margin-left:12px;margin-top:1px;">
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T antérieur"> Antérieur</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T apical"> Apical</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T inférieur"> Inférieur</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T latéral"> Latéral</label>
-                        <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T postérieur"> Postérieur</label>
-                        <button type="button" onclick="appliquerMultiple('sub_ecg_ondeT_topo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T antérieur"> Antérieur</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T apical"> Apical</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T inférieur"> Inférieur</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T latéral"> Latéral</label>
+                        <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T postérieur"> Postérieur</label>
+                        <button type="button" onclick="appliquerMultiple('sub_ecg_ondeT_topo')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
 
@@ -933,7 +921,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
     <!-- 12. C/C + Autres signes ECG côte à côte -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-        <div class="champ" id="wrap_CC"><div class="label-excl"><label>C/C</label><button type="button" class="btn-excl" onclick="toggleExcl('CC')" title="Exclure du rapport">−</button></div>
+        <div class="champ" id="wrap_CC"><label>C/C</label>
             <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:36px;resize:vertical;"></textarea>
         </div>
         <div class="champ"><label>Autres signes ECG</label>
@@ -948,13 +936,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <input type="hidden" id="excl_QRS"                         name="excl_QRS">
     <input type="hidden" id="excl_infrastructure_de_conduction" name="excl_infrastructure_de_conduction">
     <input type="hidden" id="excl_REPOLARISATION"              name="excl_REPOLARISATION">
-    <input type="hidden" id="excl_CC"                          name="excl_CC">
 
     <!-- Zone prévisualisation concaténation ECG -->
     <div class="champ" style="margin-top:6px;">
-        <label style="font-size:10px;color:var(--th-color-stat);font-weight:bold;">👁 Aperçu rapport ECG</label>
+        <label style="font-size:10px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport ECG</label>
         <textarea id="apercu_ecg" name="CMLM_ECG"
-            style="min-height:65px;background:#ffffff;border:1px solid #2e6da4;font-size:11px;color:#0d2b4e;font-weight:500;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:65px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:11px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
     </form>
 
@@ -971,44 +958,44 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
-    <div style="display:flex;align-items:center;gap:2px;background:#f0f4f8;border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('echo','last')" title="Premier bilan" style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+    <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="naviguerBilan('echo','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Suivant"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('echo','first')" title="Dernier"      style="background:none;color:#2e6da4;border:1px solid #c5d8ed;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('echo','first')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
     <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="Echoscopie cardiaque">
 
     <!-- ── Cases à cocher Echo ── -->
-    <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid var(--th-border-card);border-radius:5px;padding:6px 8px;background:var(--th-bg-card);">
+    <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
 
         <!-- Boutons Normale / Anormale -->
         <div style="display:flex;gap:6px;margin-bottom:6px;">
             <button type="button" id="btn_echo_normale" onclick="setEchoGlobal('normale')"
                 style="flex:1;padding:5px 4px;border:2px solid #27ae60;border-radius:4px;background:#27ae60;color:white;font-size:11px;font-weight:bold;cursor:pointer;">✅ Échographie normale</button>
             <button type="button" id="btn_echo_anormale" onclick="setEchoGlobal('anormale')"
-                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:white;color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">⚠️ Échographie anormale</button>
+                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:var(--th-bg-card);color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">⚠️ Échographie anormale</button>
         </div>
         <div style="margin-top:6px;margin-bottom:4px;">
             <button type="button" id="btn_generer_echo"
                 onclick="genererCmlmEcho(); document.getElementById('echo_normale_detail').style.display='none'; document.getElementById('cmlm_echo_detail').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');"
-                style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
+                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
             <button type="button" id="lien_modifier_echo" onclick="modifierEcho()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <!-- ══ NORMALE ══ -->
         <div id="echo_normale_detail" style="display:none;">
             <div style="font-size:11px;font-weight:bold;color:#27ae60;margin-bottom:3px;">Échographie normale</div>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_og" checked value="oreillettes non dilatées"> Oreillettes non dilatées</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_vd" checked value="cavités droites non dilatées"> Cavités droites non dilatées</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec"> Péricarde sec</label>
-            <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_aorte" checked value="aorte initiale non dilatée"> Aorte initiale non dilatée</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_og" checked value="oreillettes non dilatées"> Oreillettes non dilatées</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_vd" checked value="cavités droites non dilatées"> Cavités droites non dilatées</label>
+            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec"> Péricarde sec</label>
+            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_aorte" checked value="aorte initiale non dilatée"> Aorte initiale non dilatée</label>
         </div>
 
         <!-- ══ ANORMALE ══ -->
@@ -1019,7 +1006,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         .echo-section { font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
         .ecg-section  { font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
         .exam-section { font-size:11px;font-weight:bold;color:var(--th-color-primary);background:var(--th-bg-link-hover);border-radius:3px;padding:2px 5px;margin:5px 0 2px;cursor:pointer;display:flex;align-items:center;justify-content:space-between; }
-        .echo-mesure  { font-size:10px;color:var(--th-color-text-muted);margin:2px 0 3px 4px; }
+        .echo-mesure  { font-size:10px;color:#555;margin:2px 0 3px 4px; }
         .echo-mesure input[type=text],
         .echo-mesure input[type=number] { width:44px;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:10px; }
         .echo-sub     { margin-left:12px; }
@@ -1323,7 +1310,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec" value="hypokinésie <?= strtolower($t) ?>"> <?= $t ?></label>
                     <?php endforeach; ?>
-                    <button type="button" onclick="appliquerMultiple('es_hypo')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <button type="button" onclick="appliquerMultiple('es_hypo')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
                 <!-- Akinésie -->
                 <label class="echo-lbl"><input type="checkbox" class="cmlm-ep" data-target="es_aki" onchange="toggleCmlmSub(this)"> Akinésie</label>
@@ -1331,7 +1318,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec" value="akinésie <?= strtolower($t) ?>"> <?= $t ?></label>
                     <?php endforeach; ?>
-                    <button type="button" onclick="appliquerMultiple('es_aki')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <button type="button" onclick="appliquerMultiple('es_aki')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
                 <!-- Dyskinésie -->
                 <label class="echo-lbl"><input type="checkbox" class="cmlm-ep" data-target="es_dysk" onchange="toggleCmlmSub(this)"> Dyskinésie</label>
@@ -1339,7 +1326,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec" value="dyskinésie <?= strtolower($t) ?>"> <?= $t ?></label>
                     <?php endforeach; ?>
-                    <button type="button" onclick="appliquerMultiple('es_dysk')" style="margin-top:3px;background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <button type="button" onclick="appliquerMultiple('es_dysk')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
             <!-- Takotsubo -->
@@ -1356,22 +1343,17 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
 
     <!-- Champs cachés exclusion Echo -->
-    <input type="hidden" id="excl_DTSA"        name="excl_DTSA">
-    <input type="hidden" id="excl_CONCLUSION1" name="excl_CONCLUSION1">
 
     <div class="champ" id="wrap_DTSA">
-        <div class="label-excl"><label>DTSA</label><button type="button" class="btn-excl" onclick="toggleExcl('DTSA')" title="Exclure du rapport">−</button></div>
+        <label>DTSA</label>
         <textarea name="DTSA" class="court" oninput="majConcatEcho()"></textarea>
     </div>
 
     <!-- Aperçu Echo -->
     <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
-        <div class="label-excl">
-            <label style="font-size:10px;color:var(--th-color-stat);font-weight:bold;">👁 Aperçu rapport Echo</label>
-            <button type="button" class="btn-excl" onclick="toggleExcl('CONCLUSION1')" title="Exclure du rapport">−</button>
-        </div>
+        <label style="font-size:10px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Echo</label>
         <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:80px;background:#ffffff;border:1px solid #2e6da4;font-size:11px;color:#0d2b4e;font-weight:500;resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+            style="min-height:80px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:11px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
             oninput="majApercuEcho(); autoResize(this)"></textarea>
     </div>
     </form>
@@ -1384,25 +1366,25 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 <div class="col-card">
 
     <!-- Motif -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
+    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📋 Motif</div>
-        <div style="font-size:11px;color:var(--th-color-text-muted);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Antécédents -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
+    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📂 Antécédents</div>
-        <div style="font-size:11px;color:var(--th-color-text-muted);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Facteurs de risque -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
+    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">⚠️ Facteurs de risque</div>
-        <div style="font-size:11px;color:var(--th-color-text-muted);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Diagnostic -->
-    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e8eef5;">
+    <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">🩺 Diagnostic</div>
         <div style="font-size:11px;color:var(--th-color-primary);font-weight:bold;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-weight:normal;font-style:italic;">—</span>' ?></div>
     </div>
@@ -1567,7 +1549,7 @@ function majConcatEcho() {
         p.push(s.l + ' : ' + v + s.u);
     });
     if (!exclusions['DOPPLER']) { var d=g('DOPPLER'); if(d) p.push('Doppler : '+d); }
-    if (!exclusions['DTSA'])    { var t=g('DTSA');    if(t) p.push('DTSA : '+t); }
+    /* DTSA volontairement exclu de l'aperçu (saisie libre, hors rapport généré) */
     var c1 = document.getElementById('conclusion1_echo');
     if (c1) { c1.value = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : ''; autoResize(c1); }
     majApercuEcho();
@@ -1583,7 +1565,7 @@ function setExamenNormal() {
     var bn = document.getElementById('btn_exam_normal');
     var ba = document.getElementById('btn_exam_anormal');
     if(bn){ bn.style.background='#27ae60'; bn.style.color='white'; }
-    if(ba){ ba.style.background='white';   ba.style.color='#e67e22'; }
+    if(ba){ ba.style.background='var(--th-bg-card)';   ba.style.color='#e67e22'; }
     var bln = document.getElementById('bloc_normal');
     var bla = document.getElementById('sympto_cases');
     if(bln) bln.style.display = 'block';
@@ -1599,7 +1581,7 @@ function setExamenAnormal() {
     var bn = document.getElementById('btn_exam_normal');
     var ba = document.getElementById('btn_exam_anormal');
     if(ba){ ba.style.background='#e67e22'; ba.style.color='white'; }
-    if(bn){ bn.style.background='white';   bn.style.color='#27ae60'; }
+    if(bn){ bn.style.background='var(--th-bg-card)';   bn.style.color='#27ae60'; }
     var bln = document.getElementById('bloc_normal');
     var bla = document.getElementById('sympto_cases');
     if(bln) bln.style.display = 'none';
@@ -1814,7 +1796,7 @@ function enregistrerAjax(onglet) {
             var overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
             overlay.innerHTML =
-                '<div style="background:white;border-radius:8px;padding:28px 32px;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.35);">' +
+                '<div style="background:var(--th-bg-card);border-radius:8px;padding:28px 32px;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.35);">' +
                 '<div style="font-size:40px;margin-bottom:10px;">🚫</div>' +
                 '<div style="font-size:15px;font-weight:bold;color:#c0392b;margin-bottom:10px;">Enregistrement impossible</div>' +
                 '<div style="font-size:13px;color:#333;margin-bottom:18px;">Les champs suivants sont obligatoires :<br><br>' +
@@ -1834,11 +1816,7 @@ function enregistrerAjax(onglet) {
         });
     }
     var msgEl = document.getElementById('msg_'+onglet);
-    if (msgEl){ msgEl.textContent='⏳...'; msgEl.style.display='inline'; msgEl.style.color='#888'; }
-    if (!dateTouche[onglet]) {
-        var dEl = document.getElementById('date_'+onglet);
-        if (dEl) dEl.value = '<?= $today ?>';
-    }
+    if (msgEl){ msgEl.textContent='⏳...'; msgEl.style.display='inline'; msgEl.style.color='var(--th-color-text-muted)'; }
     var data = _collectForm(onglet);
     // Forcer CMLM_ECHO pour l'onglet echo
     if (onglet === 'echo') {
@@ -1859,17 +1837,8 @@ function enregistrerAjax(onglet) {
     })
     .then(function(r){ return r.json(); })
     .then(function(resp){
-        if(msgEl){
-            var ok = !!resp.ok;
-            msgEl.textContent = resp.msg || (ok ? '✅ Enregistré' : '❌ Erreur inconnue');
-            msgEl.style.color = ok ? '#27ae60' : '#e74c3c';
-            msgEl.style.display = 'inline';
-            if (ok) {
-                nbrEnreg[onglet] = (nbrEnreg[onglet] || 0) + 1;  // le total suit la nouvelle ligne sans recharger la page
-                setTimeout(function(){ msgEl.style.display='none'; },3000);
-            }
-            /* en cas d'echec, le message reste affiche tant que rien n'a ete corrige */
-        }
+        if(msgEl){ msgEl.textContent=resp.msg||'✅ Enregistré'; msgEl.style.color='#27ae60'; msgEl.style.display='inline';
+            setTimeout(function(){ msgEl.style.display='none'; },3000); }
     })
     .catch(function(err){
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
@@ -1878,35 +1847,19 @@ function enregistrerAjax(onglet) {
 
 function enregistrerTout() {
     var msgEl = document.getElementById('msg_tout');
-    if(msgEl){ msgEl.textContent='⏳ Enregistrement...'; msgEl.style.display='inline'; msgEl.style.color='#888'; }
+    if(msgEl){ msgEl.textContent='⏳ Enregistrement...'; msgEl.style.display='inline'; msgEl.style.color='var(--th-color-text-muted)'; }
     var onglets = ['examen','ecg','echo'].filter(function(o){
         return document.getElementById('form-'+o);
-    });
-    onglets.forEach(function(o){
-        if (!dateTouche[o]) {
-            var dEl = document.getElementById('date_'+o);
-            if (dEl) dEl.value = '<?= $today ?>';
-        }
     });
     Promise.all(onglets.map(function(o){
         var data = _collectForm(o);
         return fetch('nouveau_bilan_clinique.php?id=<?= $id ?>', {
             method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}, body:data
-        }).then(function(r){ return r.json(); }).then(function(resp){ resp._onglet = o; return resp; });
+        }).then(function(r){ return r.json(); });
     }))
-    .then(function(resultats){
-        var echecs = resultats.filter(function(r){ return !r.ok; });
-        if(msgEl){
-            if (echecs.length === 0) {
-                msgEl.textContent = '✅ Tout enregistré';
-                msgEl.style.color = '#2ecc71';
-                setTimeout(function(){ msgEl.style.display='none'; },3000);
-            } else {
-                msgEl.textContent = '❌ Echec : ' + echecs.map(function(r){ return r._onglet+' ('+(r.msg||'erreur')+')'; }).join(' / ');
-                msgEl.style.color = '#e74c3c';
-            }
-            msgEl.style.display = 'inline';
-        }
+    .then(function(){
+        if(msgEl){ msgEl.textContent='✅ Tout enregistré'; msgEl.style.color='#2ecc71'; msgEl.style.display='inline';
+            setTimeout(function(){ msgEl.style.display='none'; },3000); }
     })
     .catch(function(err){
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
@@ -1916,11 +1869,6 @@ function enregistrerTout() {
 // Nombre total d'enregistrements par type (injecté depuis PHP)
 var nbrEnreg = { examen: <?= $nbExamen ?>, ecg: <?= $nbEcg ?>, echo: <?= $nbEcho ?> };
 var bilanRang = { examen: 0, ecg: 0, echo: 0 };  // rang courant (1-based, 0=nouveau)
-var dateTouche = { examen: false, ecg: false, echo: false };  // true si la date a ete modifiee a la main par le medecin
-['examen','ecg','echo'].forEach(function(t){
-    var elDate = document.getElementById('date_'+t);
-    if (elDate) elDate.addEventListener('input', function(){ dateTouche[t] = true; });
-});
 // bilanRef : clé primaire (N1 ou N°) de l'enregistrement affiché (0 = mode nouveau)
 var bilanRef = { examen: 0, ecg: 0, echo: 0 };
 function naviguerBilan(type, dir) {
@@ -1948,7 +1896,6 @@ function naviguerBilan(type, dir) {
         var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
         document.getElementById('navdate_'+type).textContent = label;
         var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
-        dateTouche[type] = false;
         if(type==='examen'){
             ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
              'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
@@ -1995,7 +1942,6 @@ function nouveauBilan(type) {
     var dateAff = '<?= date("d/m/Y") ?>';
     document.getElementById('navdate_'+type).textContent = dateAff + ' (' + (nbrEnreg[type]+1) + ')';
     var df=document.getElementById('date_'+type); if(df) df.value='<?= $today ?>';
-    dateTouche[type] = false;
     if(type==='examen') {
         viderExamen();
         /* Vider TAS TAD FC POIDS */
@@ -2273,7 +2219,7 @@ function setEcgGlobal(val) {
     if (val === 'normal') {
         modeECG = 'normal';
         if (bn) { bn.style.background = '#27ae60'; bn.style.color = 'white'; }
-        if (ba) { ba.style.background = 'white';   ba.style.color = '#e67e22'; }
+        if (ba) { ba.style.background = 'var(--th-bg-card)';   ba.style.color = '#e67e22'; }
         toggleECGAnormal(false);
         /* Afficher les cases ECG normal et les pré-cocher */
         var nd = document.getElementById('ecg_normal_detail');
@@ -2294,7 +2240,7 @@ function setEcgGlobal(val) {
     } else {
         modeECG = 'anormal';
         if (ba) { ba.style.background = '#e67e22'; ba.style.color = 'white'; }
-        if (bn) { bn.style.background = 'white';   bn.style.color = '#27ae60'; }
+        if (bn) { bn.style.background = 'var(--th-bg-card)';   bn.style.color = '#27ae60'; }
         /* Cacher les cases ECG normal */
         var nd = document.getElementById('ecg_normal_detail');
         if (nd) { nd.style.display = 'none'; nd.querySelectorAll('input[type="checkbox"]').forEach(function(cb){ cb.checked = false; }); }
@@ -2315,12 +2261,12 @@ function setEchoGlobal(val) {
     if (val === 'normale') {
         modeEcho = 'normale';
         if (bn) { bn.style.background = '#27ae60'; bn.style.color = 'white'; }
-        if (ba) { ba.style.background = 'white';   ba.style.color = '#e67e22'; }
+        if (ba) { ba.style.background = 'var(--th-bg-card)';   ba.style.color = '#e67e22'; }
         toggleCmlmEcho(false);
     } else {
         modeEcho = 'anormale';
         if (ba) { ba.style.background = '#e67e22'; ba.style.color = 'white'; }
-        if (bn) { bn.style.background = 'white';   bn.style.color = '#27ae60'; }
+        if (bn) { bn.style.background = 'var(--th-bg-card)';   bn.style.color = '#27ae60'; }
         toggleCmlmEcho(true);
     }
 }
