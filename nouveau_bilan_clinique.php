@@ -315,6 +315,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         </a>
         <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
         <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="margin-left:0;">← Retour dossier</a>
+        <a href="agenda.php" class="btn-retour" style="background:#1a4a7a;margin-left:0;">📅 Agenda</a>
+        <a href="planning.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📊 Planning</a>
+        <a href="grille_semaine.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📋 Grille</a>
+        <a href="biologie.php?id=<?= $id ?>" class="btn-retour" style="background:#e67e22;margin-left:0;">🧪 Biologie</a>
+        <a href="jours_feries.php" class="btn-retour" style="background:#8e44ad;margin-left:0;">📅 Fériés</a>
+        <a href="logout.php" class="btn-retour" style="background:#e74c3c;margin-left:0;">🚪 Déco</a>
     </div>
 </div>
 

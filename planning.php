@@ -386,12 +386,14 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                    border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
     <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
     <!-- MILIEU : boutons fixes (planning = gris car page courante) -->
+    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <span                               class="btn-h grey"  >📊 Planning</span>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
 	<button class="btn-h navy" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
 	<!-- ══ PANNEAU ALLER À UNE DATE ══ -->
 <div id="goDatePanel" style="display:none; position:fixed; top:52px; left:50%; transform:translateX(-50%);

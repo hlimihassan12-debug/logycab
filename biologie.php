@@ -190,12 +190,14 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 <div class="header">
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"        class="btn-h green" >🏠 Dossier</button>
     <a href="agenda.php"              class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"            class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"      class="btn-h blue"  >📋 Grille</a>
     <span                             class="btn-h grey"  >🧪 Biologie</span>
     <a href="jours_feries.php"        class="btn-h purple">📅 Fériés</a>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
     <h1 style="margin-left:8px;">🧪 Biologie — <?= htmlspecialchars($patient['NOMPRENOM']) ?></h1>
     <div class="header-clock" style="margin-left:auto;">
         <div class="ct" id="clockTime">--:--:--</div>

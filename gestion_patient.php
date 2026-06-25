@@ -143,10 +143,15 @@ table.f td.V { }
 
 <script src="home.js"></script>
 <div class="header">
-    <button onclick="goHome()" class="bh bh-green">🏠 Dossier</button>
     <a href="index.php"     class="bh bh-red">🏠 Accueil</a>
+    <button onclick="goHome()" class="bh bh-green">🏠 Dossier</button>
     <a href="agenda.php"    class="bh bh-navy">📅 Agenda</a>
+    <a href="planning.php"  class="bh bh-navy" style="background:#2e6da4;">📊 Planning</a>
+    <a href="grille_semaine.php" class="bh bh-navy" style="background:#2e6da4;">📋 Grille</a>
+    <a href="recherche.php" class="bh bh-navy" style="background:#e67e22;">🧪 Biologie</a>
+    <a href="jours_feries.php" class="bh bh-navy" style="background:#8e44ad;">📅 Fériés</a>
     <a href="recherche.php" class="bh bh-navy">🔍 Recherche</a>
+    <a href="logout.php" class="bh bh-navy" style="background:#e74c3c;">🚪 Déco</a>
     <h1>👤 Gestion des patients</h1>
     <div class="header-clock" style="margin-left:auto;">
         <div class="ct" id="clockTime">--:--:--</div>

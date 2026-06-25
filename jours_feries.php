@@ -131,13 +131,14 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <!-- MILIEU : boutons fixes (fériés = gris car page courante) -->
+    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
-    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
     <span                               class="btn-h grey"  >📅 Fériés</span>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
     <!-- TITRE -->
     <h1 style="margin-left:8px;">📅 Jours Fériés &amp; Fermetures</h1>
     <!-- DROITE : horloge -->

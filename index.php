@@ -130,6 +130,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 </head>
 <body class="<?= htmlspecialchars($theme) ?>">
 
+<script src="home.js"></script>
+
 <!-- ══ HEADER ══ -->
 <div class="header">
     <div>
@@ -151,9 +153,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <!-- Boutons rapides -->
     <a href="agenda.php"        class="btn-h navy">📅 Agenda</a>
+    <button onclick="goHome()"  class="btn-h green">🏠 Dossier</button>
     <a href="planning.php"      class="btn-h blue">📊 Planning</a>
     <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
+    <a href="recherche.php" class="btn-h" style="background:#e67e22;" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
     <a href="jours_feries.php"  class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
     <a href="parametres.php"   class="btn-h" style="background:#555;">⚙ Thème</a>
     <!-- Horloge -->
     <div class="header-clock">
