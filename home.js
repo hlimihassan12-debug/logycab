@@ -9,3 +9,23 @@ function goHome() {
         window.location.href = 'recherche.php';
     }
 }
+
+// voirApercu() — ouvre le bilan clinique du dernier patient
+function voirApercu() {
+    const match = document.cookie.match(/(?:^|;\s*)dernier_patient=(\d+)/);
+    if (match && match[1]) {
+        window.location.href = 'nouveau_bilan_clinique.php?id=' + match[1];
+    } else {
+        window.location.href = 'recherche.php';
+    }
+}
+
+// voirBiologie() — ouvre la biologie du dernier patient
+function voirBiologie() {
+    const match = document.cookie.match(/(?:^|;\s*)dernier_patient=(\d+)/);
+    if (match && match[1]) {
+        window.location.href = 'biologie.php?id=' + match[1];
+    } else {
+        window.location.href = 'recherche.php';
+    }
+}

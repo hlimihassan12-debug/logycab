@@ -67,7 +67,7 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 .header-clock { background: rgba(255,255,255,0.12);
                 border-radius: 6px; padding: 3px 10px; text-align: center;
-                min-width: 130px; flex-shrink: 0; }
+                min-width: 130px; flex-shrink: 0; margin-left: auto; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
@@ -133,16 +133,15 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
     <!-- MILIEU : boutons fixes (fériés = gris car page courante) -->
     <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
+    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
-    <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
+    <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
     <span                               class="btn-h grey"  >📅 Fériés</span>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
-    <!-- TITRE -->
-    <h1 style="margin-left:8px;">📅 Jours Fériés &amp; Fermetures</h1>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
     <!-- DROITE : horloge -->
-    <div class="header-clock" style="margin-left:auto;">
+    <div class="header-clock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>

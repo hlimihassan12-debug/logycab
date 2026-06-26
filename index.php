@@ -152,39 +152,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
     <!-- Boutons rapides -->
-    <a href="agenda.php"        class="btn-h navy">📅 Agenda</a>
+    <a href="parametres.php"   class="btn-h" style="background:#555;">⚙ Thème</a>
+    <span                       class="btn-h grey">🏠 Accueil</span>
     <button onclick="goHome()"  class="btn-h green">🏠 Dossier</button>
+    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
+    <a href="agenda.php"        class="btn-h navy">📅 Agenda</a>
     <a href="planning.php"      class="btn-h blue">📊 Planning</a>
     <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
-    <a href="recherche.php" class="btn-h" style="background:#e67e22;" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
+    <button onclick="voirBiologie()" class="btn-h" style="background:#e67e22;">🧪 Biologie</button>
     <a href="jours_feries.php"  class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
-    <a href="parametres.php"   class="btn-h" style="background:#555;">⚙ Thème</a>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
     <!-- Horloge -->
     <div class="header-clock">
         <div id="clockTime" class="ct">--:--:--</div>
         <div id="clockDate" class="cd">---</div>
-    </div>
-</div>
-
-<!-- ══ BANDEAU STATS ══ -->
-<div class="stats-bar">
-    <div class="stat-item">
-        <span class="val"><?= number_format((int)$nbPatients, 0, ',', ' ') ?></span>
-        <span class="lbl">Patients</span>
-    </div>
-    <div style="width:1px;height:28px;background:#e0e0e0;"></div>
-    <div class="stat-item">
-        <span class="val" style="color:#8e44ad;"><?= (int)$nbRdvAujourd ?></span>
-        <span class="lbl">RDV aujourd'hui</span>
-    </div>
-    <div style="width:1px;height:28px;background:#e0e0e0;"></div>
-    <div class="stat-item">
-        <span class="val" style="color:#27ae60;"><?= $dateAuj ?></span>
-        <span class="lbl">Date du jour</span>
-    </div>
-    <div style="margin-left:auto;font-size:11px;color:#aaa;font-style:italic;">
-        Bienvenue, Dr Hlimi
     </div>
 </div>
 
@@ -325,6 +306,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
 
 </div><!-- fin modules -->
+
+<!-- ══ BANDEAU BAS : RDV DU JOUR ══ -->
+<div class="stats-bar" style="border-bottom:none;border-top:2px solid var(--th-border-statsbar);justify-content:center;">
+    <div class="stat-item">
+        <span class="val" style="color:#8e44ad;"><?= (int)$nbRdvAujourd ?></span>
+        <span class="lbl">RDV aujourd'hui</span>
+    </div>
+</div>
 
 <script>
 // ── Horloge ──

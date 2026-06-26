@@ -6,10 +6,16 @@ $db = getDB();
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { header('Location: recherche.php'); exit; }
 
-$stmt = $db->prepare("SELECT [N°PAT], NOMPRENOM FROM ID WHERE [N°PAT] = ?");
+$stmt = $db->prepare("SELECT [N°PAT], NOMPRENOM, DDN, CIN, MUTUELLE FROM ID WHERE [N°PAT] = ?");
 $stmt->execute([$id]);
 $patient = $stmt->fetch();
 if (!$patient) { die("❌ Patient introuvable"); }
+
+$age = '—';
+if (!empty($patient['DDN'])) {
+    $naissance = new DateTime($patient['DDN']);
+    $age = $naissance->diff(new DateTime())->y;
+}
 
 setcookie('dernier_patient', $id, time() + 86400*30, '/');
 ?>
@@ -46,7 +52,7 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
-                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
+                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; margin-left: auto; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
@@ -55,6 +61,7 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
                display: flex; align-items: center; gap: 12px; }
 .patient-bar .nom { font-size: 13px; font-weight: bold; color: #FFD700; }
 .patient-bar .num { font-size: 11px; color: rgba(255,255,255,0.7); }
+.patient-bar .det { font-size: 11px; color: rgba(255,255,255,0.7); }
 
 /* ── BARRE BILANS ── */
 .bilans-bar { background: white; padding: 6px 10px; flex-shrink: 0;
@@ -190,16 +197,17 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 <div class="header">
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <button onclick="ouvrirModalRapport()" class="btn-h" style="background:#c0392b;">📄 Rapport</button>
     <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"        class="btn-h green" >🏠 Dossier</button>
+    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
     <a href="agenda.php"              class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"            class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"      class="btn-h blue"  >📋 Grille</a>
     <span                             class="btn-h grey"  >🧪 Biologie</span>
     <a href="jours_feries.php"        class="btn-h purple">📅 Fériés</a>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;">🚪 Déco</a>
-    <h1 style="margin-left:8px;">🧪 Biologie — <?= htmlspecialchars($patient['NOMPRENOM']) ?></h1>
-    <div class="header-clock" style="margin-left:auto;">
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
+    <div class="header-clock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
@@ -209,6 +217,10 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 <div class="patient-bar">
     <span class="num">N° <?= $id ?></span>
     <span class="nom"><?= htmlspecialchars($patient['NOMPRENOM']) ?></span>
+    <span class="det"><?= $age ?> ans</span>
+    <span class="det">DDN <?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span>
+    <span class="det">CIN <?= htmlspecialchars($patient['CIN'] ?? '—') ?></span>
+    <span class="det">Mutuelle <?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span>
     <a href="dossier.php?id=<?= $id ?>" class="btn-h navy" style="margin-left:auto;">← Dossier</a>
 </div>
 
@@ -288,6 +300,65 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- ══ MODALE RAPPORT CARDIO-VASCULAIRE (identique à dossier.php) ══ -->
+<div id="modal-rapport" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:10px;width:380px;max-width:96%;
+                box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
+        <!-- Header -->
+        <div style="background:#c0392b;color:white;padding:10px 16px;
+                    display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:bold;font-size:13px;">🖨️ Rapport cardio-vasculaire</span>
+            <button onclick="fermerModalRapport()" style="background:none;border:none;color:white;
+                    font-size:18px;cursor:pointer;line-height:1;">✕</button>
+        </div>
+        <!-- Corps -->
+        <div style="padding:16px;">
+            <div id="rapport-loading" style="text-align:center;color:#888;font-size:12px;padding:20px 0;">
+                Chargement des dates…
+            </div>
+            <div id="rapport-contenu" style="display:none;">
+                <!-- Ligne Examen -->
+                <div id="ligne-examen" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:#333;">🩺 Examen clinique :</span>
+                    <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <button onclick="toggleExclusionRubrique('examen')" id="btn-excl-examen"
+                        title="Exclure cette rubrique du rapport"
+                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
+                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <!-- Ligne ECG -->
+                <div id="ligne-ecg" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:#333;">📈 ECG :</span>
+                    <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <button onclick="toggleExclusionRubrique('ecg')" id="btn-excl-ecg"
+                        title="Exclure cette rubrique du rapport"
+                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
+                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <!-- Ligne Echo -->
+                <div id="ligne-echo" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:#333;">🫀 Echo-Doppler :</span>
+                    <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <button onclick="toggleExclusionRubrique('echo')" id="btn-excl-echo"
+                        title="Exclure cette rubrique du rapport"
+                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
+                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <!-- Boutons action -->
+                <div style="display:flex;justify-content:flex-end;gap:8px;">
+                    <button onclick="fermerModalRapport()"
+                        style="background:#95a5a6;color:white;border:none;border-radius:5px;
+                               padding:6px 16px;font-size:12px;cursor:pointer;">Annuler</button>
+                    <button onclick="imprimerRapport()"
+                        style="background:#c0392b;color:white;border:none;border-radius:5px;
+                               padding:6px 16px;font-size:12px;font-weight:bold;cursor:pointer;">🖨️ Imprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 const patientId = <?= $id ?>;
@@ -630,6 +701,111 @@ async function supprimerLigne(n_analyse){
 
 // ── Init ──────────────────────────────────────────────────────
 chargerSelectBilans();
+
+/* ── Rapport cardio-vasculaire (identique à dossier.php) ── */
+var rapportExclusions = { examen: false, ecg: false, echo: false };
+
+function ouvrirModalRapport() {
+    rapportExclusions = { examen: false, ecg: false, echo: false };
+    ['examen','ecg','echo'].forEach(function(r) {
+        var btn = document.getElementById('btn-excl-' + r);
+        var ligne = document.getElementById('ligne-' + r);
+        if (btn) { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
+        if (ligne) ligne.style.opacity = '1';
+    });
+
+    document.getElementById('modal-rapport').style.display = 'flex';
+    document.getElementById('rapport-loading').style.display = 'block';
+    document.getElementById('rapport-contenu').style.display = 'none';
+
+    fetch('ajax_dates_rapport.php?id=' + patientId)
+        .then(function(r){ return r.json(); })
+        .then(function(d) {
+            remplirSelectRapport('sel-examen', d.examen || []);
+            remplirSelectRapport('sel-ecg',    d.ecg    || []);
+            remplirSelectRapport('sel-echo',   d.echo   || []);
+            document.getElementById('rapport-loading').style.display = 'none';
+            document.getElementById('rapport-contenu').style.display = 'block';
+        })
+        .catch(function(e) {
+            document.getElementById('rapport-loading').textContent = 'Erreur de chargement.';
+        });
+}
+
+function remplirSelectRapport(selectId, dates) {
+    var sel = document.getElementById(selectId);
+    sel.innerHTML = '';
+    if (!dates || dates.length === 0) {
+        var opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '— aucun —';
+        sel.appendChild(opt);
+        sel.disabled = true;
+        var rubrique = selectId.replace('sel-','');
+        rapportExclusions[rubrique] = true;
+        var btn = document.getElementById('btn-excl-' + rubrique);
+        var ligne = document.getElementById('ligne-' + rubrique);
+        if (btn) { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
+        if (ligne) ligne.style.opacity = '0.4';
+    } else {
+        sel.disabled = false;
+        dates.forEach(function(d, i) {
+            var opt = document.createElement('option');
+            opt.value = d.date_tri;
+            opt.textContent = d.date_fr;
+            if (i === 0) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+}
+
+function toggleExclusionRubrique(rubrique) {
+    rapportExclusions[rubrique] = !rapportExclusions[rubrique];
+    var btn   = document.getElementById('btn-excl-' + rubrique);
+    var ligne = document.getElementById('ligne-' + rubrique);
+    var sel   = document.getElementById('sel-' + rubrique);
+    if (rapportExclusions[rubrique]) {
+        if (btn)   { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
+        if (ligne) ligne.style.opacity = '0.4';
+        if (sel)   sel.disabled = true;
+    } else {
+        if (btn)   { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
+        if (ligne) ligne.style.opacity = '1';
+        if (sel)   sel.disabled = false;
+    }
+}
+
+function fermerModalRapport() {
+    document.getElementById('modal-rapport').style.display = 'none';
+}
+
+function imprimerRapport() {
+    var url = 'print_rapport.php?id=' + patientId;
+    if (!rapportExclusions.examen) {
+        var v = document.getElementById('sel-examen').value;
+        if (v) url += '&date_ex=' + encodeURIComponent(v);
+    } else {
+        url += '&excl_examen=1';
+    }
+    if (!rapportExclusions.ecg) {
+        var v = document.getElementById('sel-ecg').value;
+        if (v) url += '&date_ecg=' + encodeURIComponent(v);
+    } else {
+        url += '&excl_ecg=1';
+    }
+    if (!rapportExclusions.echo) {
+        var v = document.getElementById('sel-echo').value;
+        if (v) url += '&date_echo=' + encodeURIComponent(v);
+    } else {
+        url += '&excl_echo=1';
+    }
+    window.open(url, '_blank');
+    fermerModalRapport();
+}
+
+document.getElementById('modal-rapport').addEventListener('click', function(e) {
+    if (e.target === this) fermerModalRapport();
+});
 </script>
 </body>
 </html>

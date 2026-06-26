@@ -13,6 +13,11 @@ $patient = $stmt->fetch();
 if (!$patient) { die("❌ Patient introuvable !"); }
 
 $nom   = strtoupper(trim($patient['NOMPRENOM'] ?? ''));
+$age = '—';
+if (!empty($patient['DDN'])) {
+    $naissance = new DateTime($patient['DDN']);
+    $age = $naissance->diff(new DateTime())->y;
+}
 $msgs  = [];
 $urlMsg = $_GET['msg'] ?? '';
 if ($urlMsg === 'examen_ok') $msgs['examen'] = '✅ Examen enregistré';
@@ -211,6 +216,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     border: none; border-radius: 4px; padding: 5px 12px;
     cursor: pointer; font-size: 11px; text-decoration: none;
 }
+.search-hdr {
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 26px;
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+    color: white; outline: none; width: 190px; flex-shrink: 0;
+}
+.search-hdr::placeholder { color: rgba(255,255,255,0.5); }
+.search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+.header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
+                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; margin-left: auto; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
+.header-clock .cd { font-size: 9px; opacity: 0.75; }
+.patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
+.patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
+.patient-bar .info span { font-weight: bold; color: #FFD700; }
 
 .cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
 
@@ -295,38 +314,68 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 <body class="<?= htmlspecialchars($theme) ?>">
 
 <div class="header">
-    <div>
-        <div class="sub">🩺 Nouveau bilan clinique</div>
-        <h1><?= htmlspecialchars($nom) ?> &nbsp;—&nbsp; N° <?= $id ?></h1>
-    </div>
-    <div style="display:flex;gap:6px;margin-left:auto;align-items:center;">
-        <button type="button" onclick="enregistrerTout()"
-            style="background:#f39c12;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
-            💾 TOUT
-        </button>
-        <span id="msg_tout" style="font-size:11px;color:#2ecc71;font-weight:bold;display:none;"></span>
-        <button type="button" onclick="restaurerTout()" title="Remettre toutes les options visibles et tout décocher"
-            style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
-            ↺ Restaurer
-        </button>
-        <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
-           style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
-           📄 Rapport
-        </a>
-        <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
-        <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="margin-left:0;">← Retour dossier</a>
-        <a href="agenda.php" class="btn-retour" style="background:#1a4a7a;margin-left:0;">📅 Agenda</a>
-        <a href="planning.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📊 Planning</a>
-        <a href="grille_semaine.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📋 Grille</a>
-        <a href="biologie.php?id=<?= $id ?>" class="btn-retour" style="background:#e67e22;margin-left:0;">🧪 Biologie</a>
-        <a href="jours_feries.php" class="btn-retour" style="background:#8e44ad;margin-left:0;">📅 Fériés</a>
-        <a href="logout.php" class="btn-retour" style="background:#e74c3c;margin-left:0;">🚪 Déco</a>
+    <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
+    <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="background:#27ae60;margin-left:0;">🏠 Dossier</a>
+    <span class="btn-retour" style="background:#888;opacity:0.7;cursor:default;margin-left:0;">📋 Aperçu</span>
+    <a href="agenda.php" class="btn-retour" style="background:#1a4a7a;margin-left:0;">📅 Agenda</a>
+    <a href="planning.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📊 Planning</a>
+    <a href="grille_semaine.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📋 Grille</a>
+    <a href="biologie.php?id=<?= $id ?>" class="btn-retour" style="background:#e67e22;margin-left:0;">🧪 Biologie</a>
+    <a href="jours_feries.php" class="btn-retour" style="background:#8e44ad;margin-left:0;">📅 Fériés</a>
+    <a href="logout.php" class="btn-retour" style="background:#e74c3c;margin-left:0;" title="Déconnexion">⏻</a>
+    <div class="header-clock">
+        <div class="ct" id="clockTime">--:--:--</div>
+        <div class="cd" id="clockDate">---</div>
     </div>
 </div>
 
+<!-- BANDEAU PATIENT -->
+<div class="patient-bar">
+    <div class="info"><label>N°</label><span><?= $id ?></span></div>
+    <div class="info"><label>Nom</label><span><?= htmlspecialchars($nom) ?></span></div>
+    <div class="info"><label>Âge</label><span><?= $age ?> ans</span></div>
+    <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
+    <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
+    <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
+</div>
+
+<script>
+(function() {
+    const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const mois  = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    function tick() {
+        const n  = new Date();
+        const h  = String(n.getHours()).padStart(2,'0');
+        const m  = String(n.getMinutes()).padStart(2,'0');
+        const s  = String(n.getSeconds()).padStart(2,'0');
+        const ct = document.getElementById('clockTime');
+        const cd = document.getElementById('clockDate');
+        if (ct) ct.textContent = h+':'+m+':'+s;
+        if (cd) cd.textContent = jours[n.getDay()]+' '+n.getDate()+' '+mois[n.getMonth()]+' '+n.getFullYear();
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+
 <!-- ══ BARRE NAVIGATION GLOBALE ══ -->
 <div style="background:var(--th-bg-link-hover);border-bottom:2px solid var(--th-border-statsbar);padding:4px 12px;display:flex;align-items:center;gap:6px;">
-    <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🔀 Navigation globale</span>
+    <button type="button" onclick="enregistrerTout()"
+        style="background:#f39c12;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+        💾 TOUT
+    </button>
+    <span id="msg_tout" style="font-size:11px;color:#2ecc71;font-weight:bold;display:none;"></span>
+    <button type="button" onclick="restaurerTout()" title="Remettre toutes les options visibles et tout décocher"
+        style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+        ↺ Restaurer
+    </button>
+    <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
+       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
+       📄 Rapport
+    </a>
+    <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;margin-left:10px;">🔀 Navigation globale</span>
     <div style="display:flex;align-items:center;gap:3px;margin-left:6px;">
         <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
             style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>

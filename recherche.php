@@ -53,6 +53,10 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; }
 .search-row input { flex: 1; padding: 10px 14px; border: 2px solid #2e6da4; border-radius: 4px; font-size: 15px; }
 .search-row button { background: #1a4a7a; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 15px; }
 .search-row button:hover { background: #2e6da4; }
+.header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
+                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; margin-left: auto; }
+.header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
+.header-clock .cd { font-size: 9px; opacity: 0.75; }
 table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 thead { background: #1a4a7a; color: white; }
 thead th { padding: 10px 12px; text-align: left; font-size: 13px; }
@@ -68,13 +72,17 @@ a.lien-patient { color: #1a4a7a; text-decoration: none; font-weight: bold; }
 <div class="header">
     <a href="index.php" style="background:#c0392b;">🏠 Accueil</a>
     <a href="#" onclick="goHome();return false;" style="background:#27ae60;">🏠 Dossier</a>
+    <a href="#" onclick="voirApercu();return false;" style="background:#27ae60;font-weight:bold;">📋 Aperçu</a>
     <a href="agenda.php">📅 Agenda</a>
     <a href="planning.php" style="background:#2e6da4;">📊 Planning</a>
     <a href="grille_semaine.php" style="background:#2e6da4;">📋 Grille</a>
-    <span style="background:#888;opacity:0.7;cursor:default;">🧪 Biologie</span>
+    <a href="#" onclick="voirBiologie();return false;" style="background:#e67e22;">🧪 Biologie</a>
     <a href="jours_feries.php" style="background:#8e44ad;">📅 Fériés</a>
-    <a href="logout.php" style="background:#e74c3c;">🚪 Déco</a>
-    <h1>🔍 Recherche patient<?= $action ? ' — '.htmlspecialchars(str_replace('_',' ',$action)) : '' ?></h1>
+    <a href="logout.php" style="background:#e74c3c;" title="Déconnexion">⏻</a>
+    <div class="header-clock">
+        <div class="ct" id="clockTime">--:--:--</div>
+        <div class="cd" id="clockDate">---</div>
+    </div>
 </div>
 <div class="container">
     <div class="search-box">
@@ -116,5 +124,23 @@ a.lien-patient { color: #1a4a7a; text-decoration: none; font-weight: bold; }
         <?php endif; ?>
     <?php endif; ?>
 </div>
+<script>
+(function() {
+    const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const mois  = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    function tick() {
+        const n  = new Date();
+        const h  = String(n.getHours()).padStart(2,'0');
+        const m  = String(n.getMinutes()).padStart(2,'0');
+        const s  = String(n.getSeconds()).padStart(2,'0');
+        const ct = document.getElementById('clockTime');
+        const cd = document.getElementById('clockDate');
+        if (ct) ct.textContent = h+':'+m+':'+s;
+        if (cd) cd.textContent = jours[n.getDay()]+' '+n.getDate()+' '+mois[n.getMonth()]+' '+n.getFullYear();
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>

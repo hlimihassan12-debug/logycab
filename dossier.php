@@ -431,16 +431,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
-    <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
-    <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
-    <span                               class="btn-h grey"  >🏠 Dossier</span>
-    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
-    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
-    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
-    <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
-    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-    <!-- Séparateur -->
-    <div style="width:1px;height:22px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
     <!-- Navigation patient (spécifique dossier) -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
         <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
@@ -449,17 +439,25 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
         <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
     </div>
-    <!-- Aperçu bilan (spécifique dossier) -->
-    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:#27ae60;font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu bilan</a>
+    <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
+    <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
+    <span                               class="btn-h grey"  >🏠 Dossier</span>
+    <!-- Aperçu bilan (spécifique dossier, à côté de Dossier) -->
+    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:#27ae60;font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
+    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
+    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
+    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
+    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <!-- Séparateur -->
+    <div style="width:1px;height:22px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
     <!-- Bascule vue -->
     <div style="display:inline-flex;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px;">
-        <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🏠 Accueil</button>
-        <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Consultation</button>
+        <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🗂 Vue Accueil</button>
+        <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Vue Consultation</button>
     </div>
     <button type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
-    <a href="logout.php" class="btn-h red">🚪 Déco</a>
-    <!-- TITRE -->
-    <h1 style="margin-left:4px;">🩺 Dossier médical</h1>
+    <a href="logout.php" class="btn-h red" title="Déconnexion">⏻</a>
     <!-- DROITE : horloge -->
     <div class="header-clock" style="margin-left:auto;">
         <div id="clockTime" class="ct">--:--:--</div>
@@ -1983,6 +1981,14 @@ const noPosologies = <?= json_encode($posologies) ?>;
 const noDurees     = <?= json_encode($durees) ?>;
 let noIdx=0;
 function noAjouterLigne() {
+    const dateVal = document.getElementById('no_date').value;
+    if (!dateVal) {
+        alert('⛔ Renseignez d\'abord la date de l\'ordonnance avant d\'ajouter un médicament.');
+        document.getElementById('no_date').style.border = '2px solid #e74c3c';
+        document.getElementById('no_date').focus();
+        return;
+    }
+    document.getElementById('no_date').style.border = '';
     const i=noIdx++;
     let optsMed='<option value="">— Médicament —</option>';
     noMeds.forEach(m=>{optsMed+=`<option value="${m.id}">${m.nom}</option>`;});
