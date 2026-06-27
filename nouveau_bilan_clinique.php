@@ -4,6 +4,16 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
+// Compteur RDV du jour / NbrMax (pour le bloc logo)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
+
 $id = (int)($_GET['id'] ?? 0);
 if ($id == 0) { header('Location: recherche.php'); exit; }
 
@@ -227,9 +237,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; margin-left: auto; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
-.patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
+.patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
 .patient-bar .info span { font-weight: bold; color: #FFD700; }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 
 .cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-items: start; }
 
@@ -314,8 +335,17 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 <body class="<?= htmlspecialchars($theme) ?>">
 
 <div class="header">
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <div style="flex:1;"></div>
     <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
     <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="background:#27ae60;margin-left:0;">🏠 Dossier</a>
     <span class="btn-retour" style="background:#888;opacity:0.7;cursor:default;margin-left:0;">📋 Aperçu</span>
@@ -324,14 +354,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <a href="grille_semaine.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📋 Grille</a>
     <a href="biologie.php?id=<?= $id ?>" class="btn-retour" style="background:#e67e22;margin-left:0;">🧪 Biologie</a>
     <a href="jours_feries.php" class="btn-retour" style="background:#8e44ad;margin-left:0;">📅 Fériés</a>
-    <a href="logout.php" class="btn-retour" style="background:#e74c3c;margin-left:0;" title="Déconnexion">⏻</a>
-    <div class="header-clock">
+    <div class="header-clock" style="margin-left:0;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <a href="logout.php" class="btn-retour" style="background:#e74c3c;margin-left:0;" title="Déconnexion">⏻</a>
 </div>
 
-<!-- BANDEAU PATIENT -->
+<!-- BANDEAU PATIENT + NAVIGATION GLOBALE + ACTIONS -->
 <div class="patient-bar">
     <div class="info"><label>N°</label><span><?= $id ?></span></div>
     <div class="info"><label>Nom</label><span><?= htmlspecialchars($nom) ?></span></div>
@@ -339,6 +369,37 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
     <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
+    <div style="flex:1;"></div>
+    <!-- Navigation globale -->
+    <span style="font-size:10px;font-weight:bold;color:#FFD700;white-space:nowrap;">🔀 Navigation globale</span>
+    <div style="display:flex;align-items:center;gap:3px;">
+        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
+            style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
+            style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#FFD700;padding:0 8px;white-space:nowrap;">— nouveau —</span>
+        <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
+            style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
+            style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
+            style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
+    <span style="font-size:10px;color:#FFD700;opacity:0.7;white-space:nowrap;">agit / Examen/ ECG/ Echo</span>
+    <!-- Actions -->
+    <button type="button" onclick="enregistrerTout()"
+        style="background:#f39c12;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+        💾 TOUT
+    </button>
+    <span id="msg_tout" style="font-size:11px;color:#2ecc71;font-weight:bold;display:none;"></span>
+    <button type="button" onclick="restaurerTout()" title="Remettre toutes les options visibles et tout décocher"
+        style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+        ↺ Restaurer
+    </button>
+    <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
+       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
+       📄 Rapport
+    </a>
 </div>
 
 <script>
@@ -359,38 +420,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     setInterval(tick, 1000);
 })();
 </script>
-
-<!-- ══ BARRE NAVIGATION GLOBALE ══ -->
-<div style="background:var(--th-bg-link-hover);border-bottom:2px solid var(--th-border-statsbar);padding:4px 12px;display:flex;align-items:center;gap:6px;">
-    <button type="button" onclick="enregistrerTout()"
-        style="background:#f39c12;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
-        💾 TOUT
-    </button>
-    <span id="msg_tout" style="font-size:11px;color:#2ecc71;font-weight:bold;display:none;"></span>
-    <button type="button" onclick="restaurerTout()" title="Remettre toutes les options visibles et tout décocher"
-        style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
-        ↺ Restaurer
-    </button>
-    <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
-       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
-       📄 Rapport
-    </a>
-    <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;margin-left:10px;">🔀 Navigation globale</span>
-    <div style="display:flex;align-items:center;gap:3px;margin-left:6px;">
-        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
-            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
-            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:var(--th-color-primary);padding:0 8px;white-space:nowrap;">— nouveau —</span>
-        <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
-            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
-            style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
-        <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
-            style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
-    </div>
-    <span style="font-size:10px;color:var(--th-color-text-muted);margin-left:4px;">← agit simultanément sur Examen · ECG · Echo</span>
-</div>
 
 <div class="cols">
 

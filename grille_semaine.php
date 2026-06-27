@@ -3,6 +3,9 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
+// RDV d'aujourd'hui (pour le compteur sous le logo)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+
 // ── Semaine affichée ──────────────────────────────────────────
 $today  = new DateTime();
 $todayS = $today->format('Y-m-d');
@@ -257,6 +260,17 @@ body { font-family: Arial, sans-serif; background: var(--th-bg-page); font-size:
 }
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 
 /* Horloge à DROITE */
 .hclock {
@@ -445,7 +459,15 @@ td.col-ferie { background: #f3e5f5; }
 <!-- ══ HEADER : recherche à gauche, boutons au milieu, horloge à droite ══ -->
 <script src="home.js"></script>
 <div class="header">
-    <!-- GAUCHE : recherche locale -->
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
+    <!-- Recherche locale -->
     <input class="search-hdr" type="text" id="searchInput"
            placeholder="🔍 Rechercher patient..."
            oninput="filtrerGrille(this.value)">
@@ -453,19 +475,24 @@ td.col-ferie { background: #f3e5f5; }
             style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
                    border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
     <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
+    <button class="btn-h navy" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
+    <!-- Espace flexible : pousse boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
     <!-- MILIEU : boutons fixes (grille = gris car page courante) -->
+    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
+    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <span                               class="btn-h grey"  >📋 Grille</span>
-    <a href="biologie.php"              class="btn-h orange">🧪 Biologie</a>
+    <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-	<button class="btn-h navy" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
-    <!-- DROITE : horloge -->
-    <div class="hclock" style="margin-left:auto;">
+    <!-- DROITE : horloge puis déconnexion tout au bord -->
+    <div class="hclock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 <!-- ══ PANNEAU ALLER À UNE DATE ══ -->
 <div id="goDatePanel" style="display:none; position:fixed; top:52px; left:50%; transform:translateX(-50%);

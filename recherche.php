@@ -2,6 +2,21 @@
 require_once 'backend/db.php';
 $db = getDB();
 
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
+// Compteur RDV du jour / NbrMax (pour le bloc logo)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
+
 $q = trim($_GET['q'] ?? '');
 $action = trim($_GET['action'] ?? '');
 $patients = [];
@@ -40,49 +55,79 @@ $destination = $destinations[$action] ?? 'dossier.php?id=';
 <head>
 <meta charset="UTF-8">
 <title>Recherche patient — Logycab</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; }
-.header { background: #1a4a7a; color: white; padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
-.header a { color: white; text-decoration: none; background: #2e6da4; padding: 6px 14px; border-radius: 4px; font-size: 14px; }
+body { font-family: Arial, sans-serif; background: var(--th-bg-page); color: var(--th-color-text); }
+.header { background: var(--th-bg-header-s); color: white; padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
+.header a { color: white; text-decoration: none; background: var(--th-btn-blue); padding: 6px 14px; border-radius: 4px; font-size: 14px; }
 .header h1 { font-size: 18px; }
 .container { padding: 20px; max-width: 900px; margin: 0 auto; }
-.search-box { background: white; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.search-box h2 { color: #1a4a7a; margin-bottom: 12px; font-size: 16px; }
+.search-box { background: var(--th-bg-card); border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px var(--th-border-card); }
+.search-box h2 { color: var(--th-color-primary); margin-bottom: 12px; font-size: 16px; }
 .search-row { display: flex; gap: 10px; }
-.search-row input { flex: 1; padding: 10px 14px; border: 2px solid #2e6da4; border-radius: 4px; font-size: 15px; }
-.search-row button { background: #1a4a7a; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 15px; }
-.search-row button:hover { background: #2e6da4; }
+.search-row input { flex: 1; padding: 10px 14px; border: 2px solid var(--th-color-secondary); border-radius: 4px; font-size: 15px; background: var(--th-bg-card); color: var(--th-color-text); }
+.search-row button { background: var(--th-btn-navy); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 15px; }
+.search-row button:hover { background: var(--th-btn-blue); }
+.search-hdr { padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 26px;
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+    color: white; outline: none; width: 190px; flex-shrink: 0; }
+.search-hdr::placeholder { color: rgba(255,255,255,0.5); }
+.search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
-                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; margin-left: auto; }
+                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-thead { background: #1a4a7a; color: white; }
+table { width: 100%; border-collapse: collapse; background: var(--th-bg-card); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px var(--th-border-card); }
+thead { background: var(--th-bg-header-s); color: white; }
 thead th { padding: 10px 12px; text-align: left; font-size: 13px; }
-tbody tr { border-bottom: 1px solid #eee; cursor: pointer; }
-tbody tr:hover { background: #f0f7ff; }
+tbody tr { border-bottom: 1px solid var(--th-sep-color); cursor: pointer; }
+tbody tr:hover { background: var(--th-bg-link-hover); }
 tbody td { padding: 10px 12px; font-size: 13px; }
-.nb { color: #888; font-size: 13px; margin-bottom: 10px; }
-a.lien-patient { color: #1a4a7a; text-decoration: none; font-weight: bold; }
+.nb { color: var(--th-color-text-muted); font-size: 13px; margin-bottom: 10px; }
+a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-weight: bold; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 <script src="home.js"></script>
 <div class="header">
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
+    <!-- Recherche rapide -->
+    <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <!-- Espace flexible : pousse les boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
     <a href="index.php" style="background:#c0392b;">🏠 Accueil</a>
     <a href="#" onclick="goHome();return false;" style="background:#27ae60;">🏠 Dossier</a>
     <a href="#" onclick="voirApercu();return false;" style="background:#27ae60;font-weight:bold;">📋 Aperçu</a>
-    <a href="agenda.php">📅 Agenda</a>
-    <a href="planning.php" style="background:#2e6da4;">📊 Planning</a>
-    <a href="grille_semaine.php" style="background:#2e6da4;">📋 Grille</a>
+    <a href="agenda.php" style="background:var(--th-btn-navy);">📅 Agenda</a>
+    <a href="planning.php" style="background:var(--th-btn-blue);">📊 Planning</a>
+    <a href="grille_semaine.php" style="background:var(--th-btn-blue);">📋 Grille</a>
     <a href="#" onclick="voirBiologie();return false;" style="background:#e67e22;">🧪 Biologie</a>
     <a href="jours_feries.php" style="background:#8e44ad;">📅 Fériés</a>
-    <a href="logout.php" style="background:#e74c3c;" title="Déconnexion">⏻</a>
     <div class="header-clock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <a href="logout.php" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 <div class="container">
     <div class="search-box">
@@ -120,7 +165,7 @@ a.lien-patient { color: #1a4a7a; text-decoration: none; font-weight: bold; }
             </tbody>
         </table>
         <?php else: ?>
-            <p style="color:#999;text-align:center;padding:30px;">Aucun patient trouvé pour "<?= htmlspecialchars($q) ?>"</p>
+            <p style="color:var(--th-color-text-muted);text-align:center;padding:30px;">Aucun patient trouvé pour "<?= htmlspecialchars($q) ?>"</p>
         <?php endif; ?>
     <?php endif; ?>
 </div>

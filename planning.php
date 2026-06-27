@@ -56,6 +56,9 @@ try {
     if ($row) $nbrMax = (int)$row['Valeur'];
 } catch (Exception $e) { /* garde la valeur par défaut */ }
 
+// ── RDV d'aujourd'hui (pour le compteur sous le logo) ───────────
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+
 // ── Jours fériés ──────────────────────────────────────────────
 $feriesLabels = []; // ['2026-05-01' => 'Jour férié']
 try {
@@ -258,6 +261,17 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 .header-clock { background: rgba(255,255,255,0.12);
                 border-radius: 6px; padding: 3px 10px; text-align: center;
                 min-width: 130px; flex-shrink: 0; }
@@ -378,7 +392,15 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 <!-- HEADER -->
 <script src="home.js"></script>
 <div class="header">
-    <!-- GAUCHE : recherche par date -->
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
+    <!-- Recherche par date -->
     <input id="searchInput" class="search-hdr" type="text" placeholder="🔍 Date ou jour..."
           oninput="filtrerPlanning(this.value)">
     <button id="btnClearSearch" onclick="clearSearch()"
@@ -386,6 +408,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                    border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
     <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
     <button class="btn-h navy" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
+    <!-- Espace flexible : pousse boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
     <!-- MILIEU : boutons fixes (planning = gris car page courante) -->
     <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
@@ -395,7 +419,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 <div id="goDatePanel" style="display:none; position:fixed; top:52px; left:50%; transform:translateX(-50%);
      background:#1a4a7a; color:white; padding:10px 16px; border-radius:8px; z-index:9999;
      box-shadow:0 4px 16px rgba(0,0,0,0.4); display:none; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -438,11 +461,12 @@ function gdAller() {
     else alert('Entrez une date valide (JJ/MM/AAAA)');
 }
 </script>
-    <!-- DROITE : horloge -->
-    <div class="header-clock" style="margin-left:auto;">
+    <!-- DROITE : horloge puis déconnexion tout au bord -->
+    <div class="header-clock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 
 <!-- BARRE MODES + PÉRIODE + LÉGENDE (une seule ligne, style homogène) -->

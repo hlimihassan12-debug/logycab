@@ -11,6 +11,13 @@ if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 // Statistiques rapides
 $nbPatients = $db->query("SELECT COUNT(DISTINCT id) FROM ORD")->fetchColumn();
 $nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
 $dateAuj = date('d/m/Y');
 ?>
 <!DOCTYPE html>
@@ -31,7 +38,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 }
 .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
 .header .sub { font-size: 10px; opacity: 0.7; }
-.header-clock { background: rgba(255,255,255,0.12); border-radius: 6px; padding: 4px 10px; text-align: center; margin-left: auto; }
+.header-clock { background: rgba(255,255,255,0.12); border-radius: 6px; padding: 4px 10px; text-align: center; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 .btn-h {
@@ -139,7 +146,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span class="heart">❤</span>
             <div>
                 <div style="font-size:20px;font-weight:900;letter-spacing:var(--th-logo-spacing);font-family:var(--th-font-logo);color:var(--th-color-accent,white);">LOGYCAB</div>
-                <div class="sub">Cabinet de Cardiologie — Dr H. Hlimi</div>
+                <div class="sub"><?= (int)$nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
             </div>
         </div>
     </div>
@@ -151,6 +158,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
+    <!-- Espace flexible : pousse boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
     <!-- Boutons rapides -->
     <a href="parametres.php"   class="btn-h" style="background:#555;">⚙ Thème</a>
     <span                       class="btn-h grey">🏠 Accueil</span>
@@ -161,12 +170,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
     <button onclick="voirBiologie()" class="btn-h" style="background:#e67e22;">🧪 Biologie</button>
     <a href="jours_feries.php"  class="btn-h" style="background:#8e44ad;">📅 Fériés</a>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
-    <!-- Horloge -->
+    <!-- Horloge puis déconnexion tout au bord -->
     <div class="header-clock">
         <div id="clockTime" class="ct">--:--:--</div>
         <div id="clockDate" class="cd">---</div>
     </div>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 
 <!-- ══ MODULES ══ -->

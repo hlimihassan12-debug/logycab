@@ -3,6 +3,16 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
+// Compteur RDV du jour / NbrMax (pour le bloc logo)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
+
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { header('Location: recherche.php'); exit; }
 
@@ -18,6 +28,11 @@ if (!empty($patient['DDN'])) {
 }
 
 setcookie('dernier_patient', $id, time() + 86400*30, '/');
+
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -25,13 +40,14 @@ setcookie('dernier_patient', $id, time() + 86400*30, '/');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Biologie — <?= htmlspecialchars($patient['NOMPRENOM']) ?></title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-size: 13px;
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--th-bg-page); font-size: 13px;
        height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
 /* ── HEADER ── */
-.header { background: linear-gradient(135deg, #1a4a7a 0%, #0f3460 100%);
+.header { background: var(--th-bg-header);
           color: white; padding: 5px 12px; flex-shrink: 0;
           display: flex; align-items: center; gap: 7px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
@@ -39,9 +55,9 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
 .btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
          padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 24px; white-space: nowrap; }
-.btn-h.green  { background: #27ae60; }
-.btn-h.navy   { background: #1a4a7a; border: 1px solid rgba(255,255,255,0.3); }
-.btn-h.blue   { background: #2e6da4; }
+.btn-h.green  { background: var(--th-btn-green); }
+.btn-h.navy   { background: var(--th-btn-navy); border: 1px solid rgba(255,255,255,0.3); }
+.btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
 .btn-h.purple { background: #8e44ad; }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
@@ -51,25 +67,37 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
     color: white; outline: none; width: 190px; flex-shrink: 0; }
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
-                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; margin-left: auto; }
+                padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: #f0f4f8; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
 /* ── BANDEAU PATIENT ── */
-.patient-bar { background: #0f3460; color: white; padding: 4px 14px; flex-shrink: 0;
+.patient-bar { background: #000000; color: white; padding: 4px 14px; flex-shrink: 0;
                display: flex; align-items: center; gap: 12px; }
 .patient-bar .nom { font-size: 13px; font-weight: bold; color: #FFD700; }
 .patient-bar .num { font-size: 11px; color: rgba(255,255,255,0.7); }
 .patient-bar .det { font-size: 11px; color: rgba(255,255,255,0.7); }
 
 /* ── BARRE BILANS ── */
-.bilans-bar { background: white; padding: 6px 10px; flex-shrink: 0;
+.bilans-bar { background: var(--th-bg-card); padding: 6px 10px; flex-shrink: 0;
               display: flex; align-items: center; gap: 8px;
-              border-bottom: 2px solid #d0dce8; }
-.bilans-bar label { font-size: 11px; color: #666; font-weight: bold; }
-.select-bilan { padding: 3px 8px; border: 1px solid #2e6da4; border-radius: 4px;
-                font-size: 12px; cursor: pointer; min-width: 140px; }
+              border-bottom: 2px solid var(--th-border-statsbar); }
+.bilans-bar label { font-size: 11px; color: var(--th-color-text-muted); font-weight: bold; }
+.select-bilan { padding: 3px 8px; border: 1px solid var(--th-color-secondary); border-radius: 4px;
+                font-size: 12px; cursor: pointer; min-width: 140px;
+                background: var(--th-bg-card); color: var(--th-color-text); }
 .btn-bar { border: none; border-radius: 4px; padding: 3px 10px; cursor: pointer;
            font-size: 11px; font-weight: bold; color: white; height: 26px;
            display: inline-flex; align-items: center; }
@@ -78,10 +106,10 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; font-si
 .btn-bar.purple { background: #8e44ad; }
 .btn-bar.blue   { background: #2e6da4; }
 .btn-bar:hover  { opacity: 0.85; }
-input.date-bilan { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
-                   font-size: 12px; cursor: pointer; }
-input.obs-bilan  { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
-                   font-size: 12px; width: 160px; }
+input.date-bilan { padding: 3px 6px; border: 1px solid var(--th-border-card); border-radius: 4px;
+                   font-size: 12px; cursor: pointer; background: var(--th-bg-card); color: var(--th-color-text); }
+input.obs-bilan  { padding: 3px 6px; border: 1px solid var(--th-border-card); border-radius: 4px;
+                   font-size: 12px; width: 160px; background: var(--th-bg-card); color: var(--th-color-text); }
 
 /* ── LAYOUT 4 COLONNES ── */
 .layout { display: grid;
@@ -89,85 +117,87 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px;
           flex: 1; overflow: hidden; min-height: 0; }
 
 /* En-tête commun */
-.col-hdr { background: #1a4a7a; color: white; padding: 6px 10px;
+.col-hdr { background: var(--th-bg-header-s); color: white; padding: 6px 10px;
            font-size: 11px; font-weight: bold; flex-shrink: 0;
            display: flex; align-items: center; justify-content: space-between; }
 .col-body { flex: 1; overflow-y: auto; min-height: 0; }
 
 /* ════ COL 1 : PROFILS ════ */
 .col-profils { display: flex; flex-direction: column; overflow: hidden;
-               border-right: 2px solid #d0dce8; background: #f8fafc; }
+               border-right: 2px solid var(--th-border-statsbar); background: var(--th-bg-link-hover); }
 
-.profil-item { padding: 5px 10px; border-bottom: 1px solid #eef2f7;
-               cursor: pointer; background: white;
-               font-size: 12px; color: #2e6da4; font-weight: bold;
+.profil-item { padding: 5px 10px; border-bottom: 1px solid var(--th-sep-color);
+               cursor: pointer; background: var(--th-bg-card);
+               font-size: 12px; color: var(--th-color-text); font-weight: bold;
                transition: background 0.1s; }
-.profil-item:hover { background: #e8f0fb; }
-.profil-item.actif { background: #2e6da4; color: white; }
+.profil-item:hover { background: var(--th-bg-link-hover); }
+.profil-item.actif { background: var(--th-color-secondary); color: white; }
 /* Bouton "TOUS LES BILANS" en bas */
-.profil-item.tous { background: #1a4a7a; color: #FFD700;
+.profil-item.tous { background: var(--th-bg-header-s); color: #FFD700;
                     font-weight: 900; text-align: center;
-                    border-top: 2px solid #0f3460; position: sticky; bottom: 0; }
-.profil-item.tous:hover { background: #0f3460; }
+                    border-top: 2px solid var(--th-color-primary); position: sticky; bottom: 0; }
+.profil-item.tous:hover { background: var(--th-color-primary); }
 
 /* ════ COL 2 : ANALYSES DU PROFIL ════ */
 .col-analyses { display: flex; flex-direction: column; overflow: hidden;
-                border-right: 2px solid #d0dce8; background: #f8fafc; }
+                border-right: 2px solid var(--th-border-statsbar); background: var(--th-bg-link-hover); }
 
-.analyse-item { padding: 5px 10px; border-bottom: 1px solid #eef2f7;
-                cursor: pointer; background: white; font-size: 12px;
+.analyse-item { padding: 5px 10px; border-bottom: 1px solid var(--th-sep-color);
+                cursor: pointer; background: var(--th-bg-card); font-size: 12px;
+                color: var(--th-color-text);
                 display: flex; align-items: center; gap: 6px;
                 transition: background 0.1s; }
-.analyse-item:hover { background: #eafaf1; }
+.analyse-item:hover { background: #eafaf1; color: #222; }
 .analyse-item.dans-panier { background: #d5f5e3; color: #1e8449; font-weight: bold; }
 .analyse-item .plus { color: #27ae60; font-size: 14px; font-weight: 900; flex-shrink: 0; }
 .analyse-item.dans-panier .plus { color: #1e8449; }
 
 /* ════ COL 3 : PANIER / SÉLECTION ════ */
 .col-panier { display: flex; flex-direction: column; overflow: hidden;
-              border-right: 2px solid #d0dce8; background: #fffef0; }
+              border-right: 2px solid var(--th-border-statsbar); background: var(--th-bg-card); }
 
-.panier-item { padding: 4px 8px; border-bottom: 1px solid #eef2f7;
-               background: white; font-size: 12px; font-weight: bold; color: #1a4a7a;
+.panier-item { padding: 4px 8px; border-bottom: 1px solid var(--th-sep-color);
+               background: var(--th-bg-card); font-size: 12px; font-weight: bold; color: var(--th-color-primary);
                display: flex; align-items: center; gap: 5px; }
 .panier-item .del { background: none; border: none; cursor: pointer;
-                    color: #ccc; font-size: 13px; margin-left: auto; }
+                    color: var(--th-color-text-muted); font-size: 13px; margin-left: auto; }
 .panier-item .del:hover { color: #e74c3c; }
 
 /* Boutons panier — EN HAUT */
-.panier-header { padding: 6px 8px; border-bottom: 2px solid #d0dce8;
+.panier-header { padding: 6px 8px; border-bottom: 2px solid var(--th-border-statsbar);
                  display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
-                 background: #fffef0; }
+                 background: var(--th-bg-card); }
 
 /* ════ COL 4 : RÉSULTATS ════ */
-.col-resultats { display: flex; flex-direction: column; overflow: hidden; background: white; }
+.col-resultats { display: flex; flex-direction: column; overflow: hidden; background: var(--th-bg-card); }
 
 /* Toolbar résultats */
-.toolbar-res { background: #f8fafc; padding: 6px 10px; flex-shrink: 0;
+.toolbar-res { background: var(--th-bg-link-hover); padding: 6px 10px; flex-shrink: 0;
                display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-               border-bottom: 2px solid #e0e8f0; }
+               border-bottom: 2px solid var(--th-border-statsbar); }
 
 .tbl-wrap { flex: 1; overflow-y: auto; }
 table.bio { width: 100%; border-collapse: collapse; }
-table.bio thead th { background: #1a4a7a; color: white; padding: 7px 10px;
+table.bio thead th { background: var(--th-bg-header-s); color: white; padding: 7px 10px;
                      font-size: 11px; text-align: left; position: sticky; top: 0; z-index: 2; }
-table.bio tbody tr { border-bottom: 1px solid #f0f4f8; }
-table.bio tbody tr:hover { background: #fafcff; }
+table.bio tbody tr { border-bottom: 1px solid var(--th-sep-color); }
+table.bio tbody tr:hover { background: var(--th-bg-link-hover); }
 table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 .td-rubrique { background: #f0eafa !important; font-size: 10px;
                color: #7d3c98; font-weight: bold; padding: 2px 8px !important; }
-.td-analyse  { font-size: 12px; font-weight: bold; color: #1a4a7a; }
-.inp-res { width: 130px; padding: 1px 5px; border: 1px solid #ddd;
-           border-radius: 3px; font-size: 11px; height: 22px; }
-.inp-res:focus   { border-color: #2e6da4; outline: none; background: #f5f9ff; }
+.td-analyse  { font-size: 12px; font-weight: bold; color: var(--th-color-primary); }
+.inp-res { width: 130px; padding: 1px 5px; border: 1px solid var(--th-border-card);
+           border-radius: 3px; font-size: 11px; height: 22px;
+           background: var(--th-bg-card); color: var(--th-color-text); }
+.inp-res:focus   { border-color: var(--th-color-secondary); outline: none; background: var(--th-bg-link-hover); }
 .inp-res.normal  { border-color: #27ae60; color: #27ae60; font-weight: bold; background: #f0fff5; }
 .inp-res.anormal { border-color: #e74c3c; color: #e74c3c; font-weight: bold; background: #fff5f5; }
-.btn-del-l { background: none; border: none; cursor: pointer; color: #ccc; font-size: 14px; }
+.btn-del-l { background: none; border: none; cursor: pointer; color: var(--th-color-text-muted); font-size: 14px; }
 .btn-del-l:hover { color: #e74c3c; }
 
 .placeholder { flex: 1; display: flex; align-items: center; justify-content: center;
-               color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
-.empty { padding: 16px; text-align: center; color: #bbb; font-size: 12px; }
+               color: var(--th-color-text-muted); font-size: 13px; text-align: center; padding: 20px; }
+.empty { padding: 16px; text-align: center; color: var(--th-color-text-muted); font-size: 12px; }
 
 /* Toast */
 .toast { position: fixed; bottom: 20px; right: 20px; padding: 9px 16px;
@@ -190,13 +220,23 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
 <!-- HEADER -->
 <script src="home.js"></script>
 <div class="header">
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <!-- Espace flexible -->
+    <div style="flex:1;"></div>
     <button onclick="ouvrirModalRapport()" class="btn-h" style="background:#c0392b;">📄 Rapport</button>
     <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"        class="btn-h green" >🏠 Dossier</button>
@@ -206,11 +246,11 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
     <a href="grille_semaine.php"      class="btn-h blue"  >📋 Grille</a>
     <span                             class="btn-h grey"  >🧪 Biologie</span>
     <a href="jours_feries.php"        class="btn-h purple">📅 Fériés</a>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
     <div class="header-clock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 
 <!-- BANDEAU PATIENT -->
@@ -221,7 +261,6 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
     <span class="det">DDN <?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span>
     <span class="det">CIN <?= htmlspecialchars($patient['CIN'] ?? '—') ?></span>
     <span class="det">Mutuelle <?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span>
-    <a href="dossier.php?id=<?= $id ?>" class="btn-h navy" style="margin-left:auto;">← Dossier</a>
 </div>
 
 <!-- BARRE BILANS -->
@@ -304,7 +343,7 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 <!-- ══ MODALE RAPPORT CARDIO-VASCULAIRE (identique à dossier.php) ══ -->
 <div id="modal-rapport" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
      background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:10px;width:380px;max-width:96%;
+    <div style="background:var(--th-bg-card);border-radius:10px;width:380px;max-width:96%;
                 box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
         <!-- Header -->
         <div style="background:#c0392b;color:white;padding:10px 16px;
@@ -315,14 +354,14 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
         </div>
         <!-- Corps -->
         <div style="padding:16px;">
-            <div id="rapport-loading" style="text-align:center;color:#888;font-size:12px;padding:20px 0;">
+            <div id="rapport-loading" style="text-align:center;color:var(--th-color-text-muted);font-size:12px;padding:20px 0;">
                 Chargement des dates…
             </div>
             <div id="rapport-contenu" style="display:none;">
                 <!-- Ligne Examen -->
                 <div id="ligne-examen" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#333;">🩺 Examen clinique :</span>
-                    <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-text);">🩺 Examen clinique :</span>
+                    <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--th-border-card);border-radius:4px;background:var(--th-bg-card);color:var(--th-color-text);"></select>
                     <button onclick="toggleExclusionRubrique('examen')" id="btn-excl-examen"
                         title="Exclure cette rubrique du rapport"
                         style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
@@ -330,8 +369,8 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
                 </div>
                 <!-- Ligne ECG -->
                 <div id="ligne-ecg" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#333;">📈 ECG :</span>
-                    <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-text);">📈 ECG :</span>
+                    <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--th-border-card);border-radius:4px;background:var(--th-bg-card);color:var(--th-color-text);"></select>
                     <button onclick="toggleExclusionRubrique('ecg')" id="btn-excl-ecg"
                         title="Exclure cette rubrique du rapport"
                         style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
@@ -339,8 +378,8 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
                 </div>
                 <!-- Ligne Echo -->
                 <div id="ligne-echo" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:#333;">🫀 Echo-Doppler :</span>
-                    <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-text);">🫀 Echo-Doppler :</span>
+                    <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--th-border-card);border-radius:4px;background:var(--th-bg-card);color:var(--th-color-text);"></select>
                     <button onclick="toggleExclusionRubrique('echo')" id="btn-excl-echo"
                         title="Exclure cette rubrique du rapport"
                         style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;

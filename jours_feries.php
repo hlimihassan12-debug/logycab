@@ -3,6 +3,16 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
+// Compteur RDV du jour / NbrMax (pour le nouveau bloc logo)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
+
 $stmtF = $db->query("SELECT DateFerie FROM T_JourFeries ORDER BY DateFerie");
 
 // Thème
@@ -65,9 +75,20 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 }
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 .header-clock { background: rgba(255,255,255,0.12);
                 border-radius: 6px; padding: 3px 10px; text-align: center;
-                min-width: 130px; flex-shrink: 0; margin-left: auto; }
+                min-width: 130px; flex-shrink: 0; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
 
@@ -127,9 +148,19 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 
 <script src="home.js"></script>
 <div class="header">
-    <!-- GAUCHE : recherche globale -->
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
+    <!-- Recherche globale -->
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
+    <!-- Espace flexible : pousse boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
     <!-- MILIEU : boutons fixes (fériés = gris car page courante) -->
     <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
@@ -139,12 +170,12 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
     <span                               class="btn-h grey"  >📅 Fériés</span>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
-    <!-- DROITE : horloge -->
+    <!-- DROITE : horloge puis déconnexion tout au bord -->
     <div class="header-clock">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 
 <div class="container">

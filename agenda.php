@@ -122,11 +122,23 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 }
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 
 /* ── Navigation date ── */
 .nav-date { background: var(--th-btn-navy); color: white; padding: 5px 10px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: space-between;
             gap: 5px; flex-wrap: wrap; }
+.nav-date-center { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; flex: 1; }
 .date-label { font-size: 14px; font-weight: bold; min-width: 220px; text-align: center; }
 .btn-nav { background: rgba(255,255,255,0.18); color: white; border: none;
            padding: 3px 12px; border-radius: 4px; cursor: pointer;
@@ -313,40 +325,39 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
 <!-- ── HEADER ── -->
 <script src="home.js"></script>
 <div class="header">
-    <!-- GAUCHE : recherche locale (filtre les patients du jour) -->
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour affiché -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbPatients ?> RDV ce jour / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
+    <!-- Recherche locale (filtre les patients du jour) -->
     <input class="search-hdr" type="text" id="searchInput" placeholder="🔍 Rechercher patient..."
            oninput="filtrerPatients(this.value)">
     <button id="btnClearSearch" onclick="clearSearch()"
             style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
                    border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;height:24px;">✕</button>
     <span id="searchInfo" style="color:rgba(255,255,255,0.8);font-size:10px;white-space:nowrap;"></span>
+    <!-- Espace flexible : pousse boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
     <!-- MILIEU : boutons fixes (agenda = gris car page courante) -->
+    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
     <button onclick="goHome()"          class="btn-h green" >🏠 Dossier</button>
+    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
     <span                               class="btn-h grey"  >📅 Agenda</span>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
-    <a href="recherche.php" class="btn-h orange" title="Recherchez un patient pour accéder à la biologie">🧪 Biologie</a>
+    <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-	<button class="btn-h navy" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
-    <!-- Boutons propres à l'agenda -->
-    <button class="btn-h navy"  onclick="ouvrirAjoutPatient()">➕ Ajouter</button>
-    <button class="btn-h orange" onclick="modifierLimite()">⚙️ Max (<?= $nbrMax ?>)</button>
-    <!-- TITRE -->
-    <h1 style="margin-left:4px;">📅 Agenda</h1>
-    <!-- DROITE : horloge + WA liste -->
-    <div style="margin-left:auto; background:rgba(255,255,255,0.12); border-radius:6px;
+    <!-- DROITE : horloge puis déconnexion tout au bord -->
+    <div style="background:rgba(255,255,255,0.12); border-radius:6px;
                 padding:3px 10px; text-align:center; min-width:130px; flex-shrink:0;">
         <div id="clockTime" style="font-size:15px;font-weight:bold;letter-spacing:1px;color:#f0f4f8;">--:--:--</div>
         <div id="clockDate" style="font-size:9px;opacity:0.75;">---</div>
     </div>
-    <button onclick="envoyerWaListe()" title="Envoyer WhatsApp à tous"
-            style="background:#25D366; border:none; border-radius:8px;
-                   width:34px; height:34px; cursor:pointer; padding:0; flex-shrink:0;
-                   display:inline-flex; align-items:center; justify-content:center;">
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;fill:white;">
-            <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
-        </svg>
-    </button>
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
 <!-- ══ PANNEAU ALLER À UNE DATE ══ -->
 <div id="goDatePanel" style="display:none; position:fixed; top:52px; left:50%; transform:translateX(-50%);
@@ -393,24 +404,43 @@ function gdAller() {
 </script>
 <!-- ── NAVIGATION DATE ── -->
 <div class="nav-date">
-    <a href="agenda.php?date=<?= navDate($dateAff,'-6 months') ?>" class="btn-nav sm">◀6M</a>
-    <a href="agenda.php?date=<?= navDate($dateAff,'-3 months') ?>" class="btn-nav sm">◀3M</a>
-    <a href="agenda.php?date=<?= navDate($dateAff,'-1 month')  ?>" class="btn-nav sm">◀1M</a>
-    <a href="agenda.php?date=<?= navDate($dateAff,'-7 days')   ?>" class="btn-nav sm">◀1S</a>
-    <div class="nav-sep"></div>
+    <!-- GAUCHE : actions agenda déplacées ici -->
+    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+        <button class="btn-h navy"  onclick="ouvrirAjoutPatient()">➕ Ajouter</button>
+        <button class="btn-h orange" onclick="modifierLimite()">⚙️ Max (<?= $nbrMax ?>)</button>
+    </div>
+    <!-- CENTRE : navigation date -->
+    <div class="nav-date-center">
+        <button class="btn-nav sm" onclick="toggleGoDate()" title="Aller à une date">🔍 Date</button>
+        <div class="nav-sep"></div>
+        <a href="agenda.php?date=<?= navDate($dateAff,'-6 months') ?>" class="btn-nav sm">◀6M</a>
+        <a href="agenda.php?date=<?= navDate($dateAff,'-3 months') ?>" class="btn-nav sm">◀3M</a>
+        <a href="agenda.php?date=<?= navDate($dateAff,'-1 month')  ?>" class="btn-nav sm">◀1M</a>
+        <a href="agenda.php?date=<?= navDate($dateAff,'-7 days')   ?>" class="btn-nav sm">◀1S</a>
+        <div class="nav-sep"></div>
 
-    <a href="agenda.php?date=<?= $datePrev ?>" class="btn-nav">◀</a>
-    <span class="date-label">📅 <?= htmlspecialchars(strftime_fr($dateAff)) ?></span>
-    <a href="agenda.php?date=<?= $dateSuiv ?>" class="btn-nav">▶</a>
+        <a href="agenda.php?date=<?= $datePrev ?>" class="btn-nav">◀</a>
+        <span class="date-label">📅 <?= htmlspecialchars(strftime_fr($dateAff)) ?></span>
+        <a href="agenda.php?date=<?= $dateSuiv ?>" class="btn-nav">▶</a>
 
-    <input type="date" class="date-pick" value="<?= $dateAff ?>"
-           onchange="location.href='agenda.php?date='+this.value">
+        <input type="date" class="date-pick" value="<?= $dateAff ?>"
+               onchange="location.href='agenda.php?date='+this.value">
 
-    <div class="nav-sep"></div>
-    <a href="agenda.php?date=<?= navDate($dateAff,'+7 days')   ?>" class="btn-nav sm">1S▶</a>
-    <a href="agenda.php?date=<?= navDate($dateAff,'+1 month')  ?>" class="btn-nav sm">1M▶</a>
-    <a href="agenda.php?date=<?= navDate($dateAff,'+3 months') ?>" class="btn-nav sm">3M▶</a>
-    <a href="agenda.php?date=<?= navDate($dateAff,'+6 months') ?>" class="btn-nav sm">6M▶</a>
+        <div class="nav-sep"></div>
+        <a href="agenda.php?date=<?= navDate($dateAff,'+7 days')   ?>" class="btn-nav sm">1S▶</a>
+        <a href="agenda.php?date=<?= navDate($dateAff,'+1 month')  ?>" class="btn-nav sm">1M▶</a>
+        <a href="agenda.php?date=<?= navDate($dateAff,'+3 months') ?>" class="btn-nav sm">3M▶</a>
+        <a href="agenda.php?date=<?= navDate($dateAff,'+6 months') ?>" class="btn-nav sm">6M▶</a>
+    </div>
+    <!-- DROITE : WhatsApp -->
+    <button onclick="envoyerWaListe()" title="Envoyer WhatsApp à tous"
+            style="background:#25D366; border:none; border-radius:8px;
+                   width:34px; height:34px; cursor:pointer; padding:0; flex-shrink:0;
+                   display:inline-flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;fill:white;">
+            <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
+        </svg>
+    </button>
 </div>
 
 <!-- ── STATS ── -->

@@ -3,6 +3,16 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
+// Compteur RDV du jour / NbrMax (pour le bloc logo)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
+
 $id = (int)($_GET['id'] ?? 0);
 if ($id == 0) { header('Location: recherche.php'); exit; }
 
@@ -337,11 +347,22 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 }
 .search-hdr::placeholder { color: rgba(255,255,255,0.5); }
 .search-hdr:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
 .header-clock { background: rgba(255,255,255,0.12); border-radius: 6px;
                 padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
-.patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
+.patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
 .patient-bar .info span { font-weight: bold; color: #FFD700; }
 .main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
@@ -424,45 +445,40 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
 <!-- HEADER -->
 <div class="header">
-    <!-- GAUCHE : recherche globale avec suggestions -->
+    <!-- GAUCHE : logo + cœur animé + compteur RDV du jour -->
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom">LOGYCAB</div>
+            <div class="sub"><?= $nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
+        </div>
+    </div>
+    <!-- Recherche globale avec suggestions -->
     <div class="search-hdr-wrap">
         <input class="search-hdr" type="text" id="rech-patient" placeholder="🔍 Rechercher patient...">
         <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:var(--th-bg-card);
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
     </div>
-    <!-- Navigation patient (spécifique dossier) -->
-    <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
-        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
-        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
-        <span style="color:white;font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
-        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
-        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:white;text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
-    </div>
+    <!-- Espace flexible : pousse Rapports/boutons/horloge/déconnexion à droite -->
+    <div style="flex:1;"></div>
+    <!-- Rapports, juste à gauche de Accueil -->
+    <button type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
     <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
     <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
     <span                               class="btn-h grey"  >🏠 Dossier</span>
-    <!-- Aperçu bilan (spécifique dossier, à côté de Dossier) -->
     <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:#27ae60;font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
-    <!-- Séparateur -->
-    <div style="width:1px;height:22px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
-    <!-- Bascule vue -->
-    <div style="display:inline-flex;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px;">
-        <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🗂 Vue Accueil</button>
-        <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Vue Consultation</button>
-    </div>
-    <button type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
-    <a href="logout.php" class="btn-h red" title="Déconnexion">⏻</a>
-    <!-- DROITE : horloge -->
-    <div class="header-clock" style="margin-left:auto;">
+    <!-- DROITE : horloge puis déconnexion tout au bord -->
+    <div class="header-clock">
         <div id="clockTime" class="ct">--:--:--</div>
         <div id="clockDate" class="cd">---</div>
     </div>
+    <a href="logout.php" class="btn-h red" title="Déconnexion">⏻</a>
 </div>
 
 <!-- BANDEAU PATIENT -->
@@ -473,6 +489,20 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
     <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
+    <div style="flex:1;"></div>
+    <!-- Bascule vue -->
+    <div style="display:inline-flex;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px;">
+        <button class="btn-vue actif"   id="btn-vue-accueil"       onclick="setVue('accueil')">🗂 Vue Accueil</button>
+        <button class="btn-vue inactif" id="btn-vue-consultation"   onclick="setVue('consultation')">📋 Vue Consultation</button>
+    </div>
+    <!-- Navigation patient -->
+    <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
+        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
+        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
+        <span style="color:#FFD700;font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
+        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
+        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
+    </div>
 </div>
 
 <!-- LAYOUT 3 COLONNES -->
