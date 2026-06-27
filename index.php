@@ -19,6 +19,18 @@ try {
     if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
 } catch (Exception $e) {}
 $dateAuj = date('d/m/Y');
+
+// Dernier patient consulté (même cookie que goHome / voirApercu / voirBiologie dans home.js)
+$dernierPatient = isset($_COOKIE['dernier_patient']) ? (int)$_COOKIE['dernier_patient'] : 0;
+$dateAujCourte  = date('Ymd'); // format AAAAMMJJ pour print_rapport.php
+
+// Construit le lien vers une page patient : si aucun patient en mémoire -> recherche.php
+function lienPatient($page, $id, $extra = '') {
+    if ($id > 0) {
+        return $page . '?id=' . $id . $extra;
+    }
+    return 'recherche.php';
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -153,7 +165,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <!-- Recherche rapide -->
     <div style="margin-left:24px;position:relative;">
         <input type="text" id="rech-patient" placeholder="🔍 Rechercher patient..."
-            ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
             style="padding:4px 10px;border:none;border-radius:4px;font-size:11px;width:200px;background:rgba(255,255,255,0.9);color:#333;">
         <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:260px;background:white;
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
@@ -262,12 +273,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span class="ico">🩺</span> Gestion des bilans
         </div>
         <div class="module-body">
-            <a href="recherche.php?action=donner_bilan" class="mod-link">
+            <a href="<?= lienPatient('biologie.php', $dernierPatient) ?>" class="mod-link">
                 <span class="ico-s">📋</span> Donner un bilan (prescrire)
                 <span class="arrow">▶</span>
             </a>
             <div class="mod-sep"></div>
-            <a href="recherche.php?action=saisir_bilan" class="mod-link">
+            <a href="<?= lienPatient('biologie.php', $dernierPatient) ?>" class="mod-link">
                 <span class="ico-s">✏️</span> Saisir les résultats
                 <span class="arrow">▶</span>
             </a>
@@ -280,18 +291,23 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span class="ico">📑</span> Gestion des rapports
         </div>
         <div class="module-body">
-            <a href="recherche.php?action=cmlm" class="mod-link">
-                <span class="ico-s">📄</span> Attestation de maladie longue durée
+            <a href="<?= lienPatient('print_cmlm.php', $dernierPatient) ?>" class="mod-link">
+                <span class="ico-s">📋</span> Attestation de maladie de longue durée
                 <span class="arrow">▶</span>
             </a>
             <div class="mod-sep"></div>
-            <a href="recherche.php?action=rapport" class="mod-link">
-                <span class="ico-s">📋</span> Rapport médical cardio-vasculaire
+            <a href="<?= lienPatient('print_aptitude.php', $dernierPatient) ?>" class="mod-link">
+                <span class="ico-s">🏅</span> Certificat médical d'aptitude physique
                 <span class="arrow">▶</span>
             </a>
             <div class="mod-sep"></div>
-            <a href="recherche.php?action=autres_rapports" class="mod-link">
-                <span class="ico-s">📂</span> Autres rapports (lettre, certificat, aptitude)
+            <a href="<?= lienPatient('print_rapport.php', $dernierPatient, '&date_ex='.$dateAujCourte.'&date_ecg='.$dateAujCourte.'&date_echo='.$dateAujCourte) ?>" class="mod-link">
+                <span class="ico-s">📄</span> Compte rendu de l'examen cardio-vasculaire
+                <span class="arrow">▶</span>
+            </a>
+            <div class="mod-sep"></div>
+            <a href="<?= lienPatient('print_lettre.php', $dernierPatient) ?>" class="mod-link">
+                <span class="ico-s">✉️</span> Lettre de correspondance
                 <span class="arrow">▶</span>
             </a>
         </div>
@@ -303,7 +319,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span class="ico">💰</span> Gestion de la comptabilité
         </div>
         <div class="module-body">
-            <a href="recherche.php?action=factures" class="mod-link">
+            <a href="factures.php" class="mod-link">
                 <span class="ico-s">🧾</span> Consulter les factures
                 <span class="arrow">▶</span>
             </a>

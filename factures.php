@@ -3,208 +3,360 @@ require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
 
-$id = (int)($_GET['id'] ?? 0);
-if ($id == 0) { header('Location: recherche.php'); exit; }
+// RDV d'aujourd'hui (pour le bloc logo, comme sur les autres pages)
+$nbRdvAujourd = $db->query("SELECT COUNT(*) FROM ORD WHERE CONVERT(date,[DATE REDEZ VOUS])=CONVERT(date,GETDATE()) OR CONVERT(date,Date_Rdv)=CONVERT(date,GETDATE())")->fetchColumn();
+$nbrMax = 20;
+try {
+    $stmtMax = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+    $stmtMax->execute();
+    $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
+    if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
+} catch (Exception $e) {}
 
-$stmtPat = $db->prepare("SELECT * FROM ID WHERE [N°PAT] = ?");
-$stmtPat->execute([$id]);
-$patient = $stmtPat->fetch();
-if (!$patient) { die("❌ Patient introuvable !"); }
-
-$age = '';
-if ($patient['DDN']) {
-    $naissance = new DateTime($patient['DDN']);
-    $age = $naissance->diff(new DateTime())->y;
-}
-
-// Toutes les factures avec totaux
-$stmtFact = $db->prepare("
-    SELECT f.n_facture, f.date_facture,
-           ISNULL(SUM(d.prixU),0)  AS total,
-           ISNULL(SUM(d.Versé),0)  AS verse_total,
-           ISNULL(SUM(d.dette),0)  AS dette_total
-    FROM facture f
-    LEFT JOIN detail_acte d ON f.n_facture = d.N_fact
-    WHERE f.id = ?
-    GROUP BY f.n_facture, f.date_facture
-    ORDER BY f.date_facture DESC
-");
-$stmtFact->execute([$id]);
-$factures = $stmtFact->fetchAll();
-
-// Détails actes pour chaque facture
-$detailsParFact = [];
-if (!empty($factures)) {
-    $nFacts = array_column($factures, 'n_facture');
-    $placeholders = implode(',', array_fill(0, count($nFacts), '?'));
-    $stmtDA = $db->prepare("
-        SELECT d.N_fact, d.prixU, d.Versé, d.dette, d.[date-H], a.ACTE AS nom_acte
-        FROM detail_acte d
-        LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte
-        WHERE d.N_fact IN ($placeholders)
-        ORDER BY d.N_fact, d.N_aacte
-    ");
-    $stmtDA->execute($nFacts);
-    foreach ($stmtDA->fetchAll() as $da) {
-        $detailsParFact[$da['N_fact']][] = $da;
-    }
-}
-
-// Totaux globaux
-$totalGeneral = array_sum(array_column($factures, 'total'));
-$verseGeneral = array_sum(array_column($factures, 'verse_total'));
-$detteGeneral = array_sum(array_column($factures, 'dette_total'));
+// Thème
+$themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
+$theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
+if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factures — <?= htmlspecialchars($patient['NOMPRENOM']) ?></title>
+<title>Logycab — Factures</title>
+<link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--th-bg-page); font-size: 12px; color: var(--th-color-text); }
 
-.header { background: #1a4a7a; color: white; padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
-.header h1 { font-size: 15px; flex: 1; }
-.btn-header { color: white; text-decoration: none; background: #2e6da4; padding: 5px 12px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer; }
+/* ══ HEADER (identique aux autres pages) ══ */
+.header {
+    background: var(--th-bg-header-s); color: white;
+    padding: 5px 12px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+}
+.btn-h {
+    color: white; text-decoration: none; border: none; cursor: pointer;
+    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
+    display: inline-flex; align-items: center; height: 24px; white-space: nowrap;
+}
+.btn-h.green  { background: #27ae60; }
+.btn-h.navy   { background: var(--th-btn-navy); }
+.btn-h.blue   { background: var(--th-btn-blue); }
+.btn-h.orange { background: #e67e22; }
+.btn-h.purple { background: #8e44ad; }
+.btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
+.btn-h:not(.grey):hover { opacity: 0.85; }
+@keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14%     { transform: scale(1.2); }
+    28%     { transform: scale(1); }
+    42%     { transform: scale(1.15); }
+    56%     { transform: scale(1); }
+}
+.heart { display: inline-block; animation: heartbeat 1.6s infinite; color: #e74c3c; font-size: 20px; }
+.logo-block { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-block .nom-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+.logo-block .sub { font-size: 9px; opacity: 0.85; color: #fff; white-space: nowrap; }
+.hclock {
+    background: rgba(255,255,255,0.12); border-radius: 6px;
+    padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0;
+}
+.hclock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
+.hclock .cd { font-size: 9px; opacity: 0.75; }
 
-.patient-bar { background: #000; color: #FFD700; padding: 6px 16px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; }
-.patient-bar label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
-.patient-bar span  { font-weight: bold; color: #FFD700; }
+/* ══ TITRE DE PAGE ══ */
+.page-title {
+    background: #16a085; color: white; padding: 8px 16px;
+    font-size: 14px; font-weight: bold;
+}
 
-.container { max-width: 1000px; margin: 16px auto; padding: 0 12px; }
+/* ══ PANNEAU DE CONTRÔLE ══ */
+.controls {
+    background: var(--th-bg-card); border-bottom: 2px solid var(--th-border-card);
+    padding: 10px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.controls-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.controls-label { font-size: 11px; font-weight: bold; color: var(--th-color-text-muted); margin-right: 4px; }
 
-.stats-bar { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-.stat-card { background: white; border-radius: 6px; padding: 8px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); text-align: center; }
-.stat-card .val { font-size: 20px; font-weight: bold; color: #1a4a7a; }
-.stat-card .val.green { color: #27ae60; }
-.stat-card .val.red   { color: #e74c3c; }
-.stat-card .lbl { font-size: 10px; color: #888; text-transform: uppercase; }
+.tab-vue, .tab-gran {
+    background: var(--th-bg-page); color: var(--th-color-text);
+    border: 1px solid var(--th-border-card); border-radius: 5px;
+    padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer;
+}
+.tab-vue:hover, .tab-gran:hover { background: var(--th-bg-link-hover); }
+.tab-vue.active { background: #16a085; color: white; border-color: #16a085; }
+.tab-gran.active { background: #2e6da4; color: white; border-color: #2e6da4; }
 
-.fact-card { background: white; border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 10px; border-left: 4px solid #27ae60; }
-.fact-card.avec-dette { border-left-color: #e74c3c; }
+.date-range { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.date-range input[type=date] {
+    padding: 4px 6px; border: 1px solid var(--th-border-card); border-radius: 4px;
+    font-size: 11px; background: var(--th-bg-card); color: var(--th-color-text);
+}
+.btn-mini {
+    padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;
+    border: none; cursor: pointer; color: white;
+}
+.btn-mini.appliquer { background: #2e6da4; }
+.btn-mini.reset      { background: #888; }
+.btn-mini:hover { opacity: 0.85; }
 
-.fact-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-.fact-num  { font-size: 11px; color: #888; }
-.fact-date { font-size: 14px; font-weight: bold; color: #1a4a7a; }
-.badge-total { background: #e8f8ee; color: #27ae60; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
-.badge-verse { background: #e8f0fb; color: #2e6da4; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
-.badge-dette { background: #fde8e8; color: #e74c3c; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+/* ══ RÉSUMÉ ══ */
+.resume-bar {
+    background: #1a4a7a; color: white; padding: 8px 16px;
+    font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+}
+.resume-bar .montant { color: #FFD700; font-size: 15px; }
 
-.actes-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
-.actes-table th { background: #f0f4f8; color: #555; padding: 4px 8px; text-align: left; font-size: 10px; text-transform: uppercase; }
-.actes-table td { padding: 4px 8px; border-bottom: 1px solid #f0f0f0; }
-.actes-table tr:last-child td { border-bottom: none; }
-
-.separateur-annee { text-align: center; margin: 16px 0 10px; font-size: 11px; font-weight: bold; color: #888; letter-spacing: 2px; text-transform: uppercase; position: relative; }
-.separateur-annee::before, .separateur-annee::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: #ddd; }
-.separateur-annee::before { left: 0; }
-.separateur-annee::after { right: 0; }
-
-.empty { text-align: center; color: #999; padding: 40px; font-size: 14px; }
+/* ══ LISTE MULTI-COLONNES (lignes compactes étalées en colonnes) ══ */
+.table-wrap { padding: 16px; }
+.liste-resultats {
+    column-gap: 18px;
+    background: var(--th-bg-card);
+}
+.liste-resultats.col-3 { column-count: 3; }
+.liste-resultats.col-4 { column-count: 4; }
+.ligne-compacte {
+    display: flex; align-items: baseline; gap: 6px;
+    padding: 6px 10px; border-bottom: 1px solid var(--th-sep-color);
+    break-inside: avoid; -webkit-column-break-inside: avoid;
+    font-size: 12px;
+}
+.ligne-compacte:hover { background: var(--th-bg-link-hover); }
+.ligne-compacte .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ligne-compacte .cpt { color: var(--th-color-text-muted); font-size: 10px; white-space: nowrap; flex-shrink: 0; }
+.ligne-compacte .mtt { font-weight: bold; color: #16a085; white-space: nowrap; flex-shrink: 0; min-width: 64px; text-align: right; }
+.lien-patient { color: var(--th-color-text); text-decoration: none; }
+.lien-patient:hover { text-decoration: underline; color: #2e6da4; }
+.aucune-donnee { padding: 30px; text-align: center; color: var(--th-color-text-muted); font-size: 13px; }
 </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($theme) ?>">
 
+<script src="home.js"></script>
+
+<!-- ══ HEADER ══ -->
 <div class="header">
-    <a href="dossier.php?id=<?= $id ?>" class="btn-header">◀ Retour dossier</a>
-    <h1>💰 Factures — <?= htmlspecialchars($patient['NOMPRENOM']) ?></h1>
-</div>
-
-<div class="patient-bar">
-    <div><label>N°</label><span><?= $id ?></span></div>
-    <div><label>Nom</label><span><?= htmlspecialchars($patient['NOMPRENOM']) ?></span></div>
-    <div><label>Âge</label><span><?= $age ?> ans</span></div>
-    <div><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
-</div>
-
-<div class="container">
-
-    <!-- Stats globales -->
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div class="val"><?= count($factures) ?></div>
-            <div class="lbl">Factures</div>
-        </div>
-        <div class="stat-card">
-            <div class="val"><?= number_format($totalGeneral, 0, ',', ' ') ?> DH</div>
-            <div class="lbl">Total général</div>
-        </div>
-        <div class="stat-card">
-            <div class="val green"><?= number_format($verseGeneral, 0, ',', ' ') ?> DH</div>
-            <div class="lbl">Total versé</div>
-        </div>
-        <div class="stat-card">
-            <div class="val <?= $detteGeneral > 0 ? 'red' : '' ?>"><?= number_format($detteGeneral, 0, ',', ' ') ?> DH</div>
-            <div class="lbl">Total reste</div>
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= (int)$nbRdvAujourd ?> RDV aujourd'hui / <?= $nbrMax ?> prévus</div>
         </div>
     </div>
-
-    <!-- Liste factures -->
-    <?php if (empty($factures)): ?>
-        <div class="empty">Aucune facture enregistrée pour ce patient.</div>
-    <?php else: ?>
-    <?php
-    $anneeActuelle = null;
-    foreach ($factures as $fact):
-        $tsF     = strtotime($fact['date_facture'] ?? '');
-        $dateFact = ($tsF && $tsF > 86400) ? date('d/m/Y', $tsF) : '—';
-        $annee   = ($tsF && $tsF > 86400) ? date('Y', $tsF) : '—';
-        $details = $detailsParFact[$fact['n_facture']] ?? [];
-        $avecDette = $fact['dette_total'] > 0;
-
-        if ($annee !== $anneeActuelle):
-            $anneeActuelle = $annee;
-    ?>
-        <div class="separateur-annee"><?= $annee ?></div>
-    <?php endif; ?>
-
-    <div class="fact-card <?= $avecDette ? 'avec-dette' : '' ?>">
-        <div class="fact-header">
-            <span class="fact-num">N° <?= $fact['n_facture'] ?></span>
-            <span class="fact-date">📅 <?= $dateFact ?></span>
-            <span class="badge-total">💰 <?= number_format($fact['total'], 0, ',', ' ') ?> DH</span>
-            <span class="badge-verse">✅ <?= number_format($fact['verse_total'], 0, ',', ' ') ?> DH</span>
-            <?php if ($avecDette): ?>
-            <span class="badge-dette">⚠ Reste <?= number_format($fact['dette_total'], 0, ',', ' ') ?> DH</span>
-            <?php endif; ?>
-        </div>
-
-        <?php if (!empty($details)): ?>
-        <table class="actes-table">
-            <thead>
-                <tr>
-                    <th>Date acte</th>
-                    <th>Acte</th>
-                    <th style="text-align:right;">Prix</th>
-                    <th style="text-align:right;">Versé</th>
-                    <th style="text-align:right;">Reste</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($details as $da): ?>
-            <tr>
-                <td><?php
-                    $tsDA = !empty($da['date-H']) ? strtotime($da['date-H']) : false;
-                    echo ($tsDA && $tsDA > 86400) ? date('d/m/Y', $tsDA) : '—';
-                ?></td>
-                <td><?= htmlspecialchars($da['nom_acte'] ?? '—') ?></td>
-                <td style="text-align:right;"><?= number_format($da['prixU'], 0, ',', ' ') ?> DH</td>
-                <td style="text-align:right;"><?= number_format($da['Versé'], 0, ',', ' ') ?> DH</td>
-                <td style="text-align:right;color:<?= $da['dette'] > 0 ? '#e74c3c' : '#27ae60' ?>;font-weight:bold;"><?= number_format($da['dette'], 0, ',', ' ') ?> DH</td>
-            </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php else: ?>
-            <span style="font-size:11px;color:#aaa;">Aucun détail</span>
-        <?php endif; ?>
+    <div style="flex:1;"></div>
+    <a href="index.php"            class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
+    <button onclick="goHome()"     class="btn-h green">🏠 Dossier</button>
+    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
+    <a href="agenda.php"           class="btn-h navy">📅 Agenda</a>
+    <a href="planning.php"         class="btn-h blue">📊 Planning</a>
+    <a href="grille_semaine.php"   class="btn-h blue">📋 Grille</a>
+    <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
+    <a href="jours_feries.php"     class="btn-h purple">📅 Fériés</a>
+    <div class="hclock">
+        <div class="ct" id="clockTime">--:--:--</div>
+        <div class="cd" id="clockDate">---</div>
     </div>
-
-    <?php endforeach; ?>
-    <?php endif; ?>
-
+    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
 </div>
+
+<!-- ══ TITRE ══ -->
+<div class="page-title">🧾 Consultation des factures — Chiffre d'affaire (encaissé)</div>
+
+<!-- ══ CONTRÔLES ══ -->
+<div class="controls">
+    <div class="controls-row">
+        <span class="controls-label">Vue :</span>
+        <button class="tab-vue active" data-vue="patient">👤 Par patient</button>
+        <button class="tab-vue" data-vue="total">💰 Total</button>
+        <button class="tab-vue" data-vue="ECG">📈 ECG</button>
+        <button class="tab-vue" data-vue="EDC">🫀 EDC</button>
+        <button class="tab-vue" data-vue="DTSA">🩸 DTSA</button>
+        <button class="tab-vue" data-vue="DVMI">🦵 DVMI</button>
+        <span style="width:1px;height:20px;background:var(--th-border-card);margin:0 6px;"></span>
+        <input type="text" id="rechPatientFiltre" placeholder="🔍 Filtrer par nom ou N°..."
+               style="padding:5px 10px;border:1px solid var(--th-border-card);border-radius:4px;
+                      font-size:12px;width:220px;background:var(--th-bg-card);color:var(--th-color-text);">
+        <button class="btn-mini reset" id="btnRechClear" style="display:none;">✕</button>
+    </div>
+    <div class="controls-row">
+        <span class="controls-label">Période :</span>
+        <button class="tab-gran" data-gran="jour">Jour</button>
+        <button class="tab-gran active" data-gran="mois">Mois</button>
+        <button class="tab-gran" data-gran="trimestre">Trimestre</button>
+        <button class="tab-gran" data-gran="annee">Année</button>
+        <span style="width:1px;height:20px;background:var(--th-border-card);margin:0 6px;"></span>
+        <div class="date-range">
+            Du <input type="date" id="dateDebut">
+            au <input type="date" id="dateFin">
+            <button class="btn-mini appliquer" id="btnAppliquer">🔍 Appliquer</button>
+            <button class="btn-mini reset" id="btnReset">↺ Période par défaut</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ RÉSUMÉ ══ -->
+<div class="resume-bar">
+    <span id="resumeTexte">Chargement...</span>
+    <span class="montant" id="resumeMontant">-- DH</span>
+</div>
+
+<!-- ══ LISTE DE RÉSULTATS (multi-colonnes) ══ -->
+<div class="table-wrap">
+    <div class="liste-resultats col-4" id="listeResultats"></div>
+</div>
+
+<script>
+// ── État courant ────────────────────────────────────────────────
+let etat = { vue: 'patient', gran: 'mois', dateDebut: '', dateFin: '' };
+
+function formatDH(n) {
+    n = Math.round(n);
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' DH';
+}
+
+function chargerDonnees() {
+    const params = new URLSearchParams({
+        vue: etat.vue,
+        granularite: etat.gran,
+    });
+    if (etat.dateDebut && etat.dateFin) {
+        params.set('date_debut', etat.dateDebut);
+        params.set('date_fin', etat.dateFin);
+    }
+    document.getElementById('resumeTexte').textContent = 'Chargement...';
+    fetch('ajax_factures.php?' + params.toString())
+        .then(r => r.json())
+        .then(afficher)
+        .catch(() => { document.getElementById('resumeTexte').textContent = '❌ Erreur de chargement'; });
+}
+
+function afficher(data) {
+    // Met à jour les champs de date avec ceux réellement utilisés
+    document.getElementById('dateDebut').value = data.date_debut;
+    document.getElementById('dateFin').value   = data.date_fin;
+
+    // Nombre de colonnes : 3 pour "par patient", 4 pour les autres vues
+    const liste = document.getElementById('listeResultats');
+    liste.classList.remove('col-3', 'col-4');
+    liste.classList.add(data.vue === 'patient' ? 'col-3' : 'col-4');
+    liste.innerHTML = '';
+
+    if (!data.lignes.length) {
+        liste.innerHTML = '<div class="aucune-donnee">Aucune facture sur cette période.</div>';
+    } else {
+        data.lignes.forEach(function(l) {
+            const ligne = document.createElement('div');
+            ligne.className = 'ligne-compacte';
+            let labelHtml;
+            if (data.vue === 'patient' && l.n_pat) {
+                labelHtml = '<a class="lien-patient" href="dossier.php?id=' + l.n_pat + '">' +
+                            l.label + ' — N°' + l.n_pat + '</a>';
+                ligne.dataset.nom   = l.label.toLowerCase();
+                ligne.dataset.npat  = String(l.n_pat);
+            } else {
+                labelHtml = l.label;
+            }
+            ligne.innerHTML =
+                '<span class="lbl">' + labelHtml + '</span>' +
+                '<span class="cpt">' + l.nb + ' ' + data.colonne_compte.toLowerCase() + '</span>' +
+                '<span class="mtt">' + formatDH(l.montant) + '</span>';
+            liste.appendChild(ligne);
+        });
+    }
+
+    // Réapplique le filtre patient s'il était déjà saisi
+    const rech = document.getElementById('rechPatientFiltre');
+    if (rech.value.trim()) rech.dispatchEvent(new Event('input'));
+
+    // Résumé (le total reste affiché dans la barre du haut)
+    const labelVue = {
+        patient: 'tous patients', total: 'toutes recettes', ECG: 'ECG', EDC: 'EDC', DTSA: 'DTSA', DVMI: 'DVMI'
+    }[data.vue] || data.vue;
+    document.getElementById('resumeTexte').textContent =
+        'Du ' + data.date_debut.split('-').reverse().join('/') +
+        ' au ' + data.date_fin.split('-').reverse().join('/') +
+        ' — ' + labelVue;
+    document.getElementById('resumeMontant').textContent = formatDH(data.total_montant);
+}
+
+// ── Boutons "Vue" ────────────────────────────────────────────────
+document.querySelectorAll('.tab-vue').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-vue').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        etat.vue = btn.dataset.vue;
+        etat.dateDebut = ''; etat.dateFin = ''; // recalcule la période par défaut pour cette vue
+        const rech = document.getElementById('rechPatientFiltre');
+        rech.style.display = (etat.vue === 'patient') ? 'inline-block' : 'none';
+        rech.value = '';
+        document.getElementById('btnRechClear').style.display = 'none';
+        chargerDonnees();
+    });
+});
+
+// ── Boutons "Période" ────────────────────────────────────────────
+document.querySelectorAll('.tab-gran').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-gran').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        etat.gran = btn.dataset.gran;
+        etat.dateDebut = ''; etat.dateFin = ''; // recalcule la période par défaut pour cette granularité
+        chargerDonnees();
+    });
+});
+
+// ── Dates personnalisées ─────────────────────────────────────────
+document.getElementById('btnAppliquer').addEventListener('click', function() {
+    etat.dateDebut = document.getElementById('dateDebut').value;
+    etat.dateFin   = document.getElementById('dateFin').value;
+    chargerDonnees();
+});
+document.getElementById('btnReset').addEventListener('click', function() {
+    etat.dateDebut = ''; etat.dateFin = '';
+    chargerDonnees();
+});
+
+// ── Filtre patient (live, sans rechargement) ──────────────────────
+document.getElementById('rechPatientFiltre').addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    document.getElementById('btnRechClear').style.display = q ? 'inline-block' : 'none';
+    const estNumerique = /^\d+$/.test(q);
+    document.querySelectorAll('#listeResultats .ligne-compacte').forEach(function(ligne) {
+        let visible;
+        if (!q) {
+            visible = true;
+        } else if (estNumerique) {
+            visible = (ligne.dataset.npat || '') === q;
+        } else {
+            visible = (ligne.dataset.nom || '').includes(q);
+        }
+        ligne.style.display = visible ? 'flex' : 'none';
+    });
+});
+document.getElementById('btnRechClear').addEventListener('click', function() {
+    const rech = document.getElementById('rechPatientFiltre');
+    rech.value = '';
+    rech.dispatchEvent(new Event('input'));
+    rech.focus();
+});
+
+// ── Horloge ──────────────────────────────────────────────────────
+(function tick() {
+    const now  = new Date();
+    const jrs  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const mois = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                  'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    const pad  = n => String(n).padStart(2,'0');
+    document.getElementById('clockTime').textContent =
+        pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+    document.getElementById('clockDate').textContent =
+        jrs[now.getDay()]+' '+now.getDate()+' '+mois[now.getMonth()]+' '+now.getFullYear();
+    setTimeout(tick, 1000);
+})();
+
+// ── Chargement initial ────────────────────────────────────────────
+chargerDonnees();
+</script>
 </body>
 </html>
