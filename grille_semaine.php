@@ -470,6 +470,7 @@ td.col-ferie { background: #f3e5f5; }
     <!-- Recherche locale -->
     <input class="search-hdr" type="text" id="searchInput"
            placeholder="🔍 Rechercher patient..."
+           ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
            oninput="filtrerGrille(this.value)">
     <button id="btnClearSearch" onclick="clearSearch()"
             style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;

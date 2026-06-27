@@ -455,7 +455,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     </div>
     <!-- Recherche globale avec suggestions -->
     <div class="search-hdr-wrap">
-        <input class="search-hdr" type="text" id="rech-patient" placeholder="🔍 Rechercher patient...">
+        <input class="search-hdr" type="text" id="rech-patient" placeholder="🔍 Rechercher patient..."
+               ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')">
         <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:300px;background:var(--th-bg-card);
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;
              z-index:1000;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>

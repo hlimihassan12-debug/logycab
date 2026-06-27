@@ -234,6 +234,7 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
         </div>
     </div>
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <!-- Espace flexible -->
     <div style="flex:1;"></div>

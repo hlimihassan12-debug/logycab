@@ -153,6 +153,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <!-- Recherche rapide -->
     <div style="margin-left:24px;position:relative;">
         <input type="text" id="rech-patient" placeholder="🔍 Rechercher patient..."
+            ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
             style="padding:4px 10px;border:none;border-radius:4px;font-size:11px;width:200px;background:rgba(255,255,255,0.9);color:#333;">
         <div id="rech-suggestions" style="position:absolute;top:100%;left:0;width:260px;background:white;
              border:1px solid #ccc;border-radius:4px;max-height:200px;overflow-y:auto;

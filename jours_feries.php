@@ -158,6 +158,7 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
     </div>
     <!-- Recherche globale -->
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <!-- Espace flexible : pousse boutons/horloge/déconnexion à droite -->
     <div style="flex:1;"></div>

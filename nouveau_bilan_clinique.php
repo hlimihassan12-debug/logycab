@@ -344,6 +344,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         </div>
     </div>
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
+           ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <div style="flex:1;"></div>
     <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>

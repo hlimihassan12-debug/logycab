@@ -335,6 +335,7 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
     </div>
     <!-- Recherche locale (filtre les patients du jour) -->
     <input class="search-hdr" type="text" id="searchInput" placeholder="🔍 Rechercher patient..."
+           ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
            oninput="filtrerPatients(this.value)">
     <button id="btnClearSearch" onclick="clearSearch()"
             style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;
