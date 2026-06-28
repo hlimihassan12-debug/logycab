@@ -642,7 +642,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:80px;"></th>
                     <th style="background:var(--th-col-visite);color:white;">🏥 Dernière visite</th>
-                    <th style="background:#5b7fa6;color:white;">📅 RDV prévu</th>
+                    <th style="background:var(--th-col-rdvp);color:white;">📅 RDV prévu</th>
                     <th style="background:#27ae60;color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
                     <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV">
                         📆 RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
@@ -656,9 +656,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                         <strong style="color:var(--th-col-visite);"><?= $dv_dateOrd ?></strong><br>
                         <span style="color:var(--th-col-visite);font-size:11px;"><?= $dv_heure ?></span>
                     </td>
-                    <td style="background:#dce8f7;">
-                        <strong style="color:#5b7fa6;"><?= $rdvp_date ?></strong><br>
-                        <span style="color:#5b7fa6;font-size:11px;"><?= $rdvp_heure ?></span>
+                    <td style="background:var(--th-col-rdvp-bg);">
+                        <strong style="color:var(--th-col-rdvp);"><?= $rdvp_date ?></strong><br>
+                        <span style="color:var(--th-col-rdvp);font-size:11px;"><?= $rdvp_heure ?></span>
                     </td>
                     <td class="col-visite">
                         <strong style="color:#27ae60;"><?= date('d/m/Y') ?></strong><br>
@@ -684,7 +684,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>⏱ Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
-                    <td style="background:#dce8f7;color:#5b7fa6;font-weight:bold;"><?= $rdvp_delai ?></td>
+                    <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?></td>
                     <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-delai">
                         <span style="color:#8e44ad;font-weight:bold;" id="acc-rdvp-delai-txt">—</span>
@@ -694,7 +694,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
-                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_ecg!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-ecg"><span style="color:#ccc;">—</span></td>
                 </tr>
@@ -702,7 +702,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
-                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_edc!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edc"><span style="color:#ccc;">—</span></td>
                 </tr>
@@ -710,7 +710,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
-                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_dtsa!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-dtsa"><span style="color:#ccc;">—</span></td>
                 </tr>
@@ -895,7 +895,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:70px;"></th>
                     <th style="background:var(--th-col-visite);color:white;font-size:11px;">🏥 Dernière visite</th>
-                    <th style="background:#5b7fa6;color:white;font-size:11px;">📅 RDV prévu</th>
+                    <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">📅 RDV prévu</th>
                     <th style="background:#27ae60;color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
                     <th style="background:#8e44ad;color:white;font-size:11px;">📆 RDV prochain</th>
                 </tr>
@@ -907,9 +907,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                         <strong style="color:var(--th-col-visite);font-size:13px;"><?= $dv_dateOrd ?></strong><br>
                         <strong style="color:var(--th-col-visite);font-size:12px;"><?= $dv_heure ?></strong>
                     </td>
-                    <td style="background:#dce8f7;text-align:center;">
-                        <strong style="color:#5b7fa6;font-size:13px;"><?= $rdvp_date ?></strong><br>
-                        <strong style="color:#5b7fa6;font-size:12px;"><?= $rdvp_heure ?></strong>
+                    <td style="background:var(--th-col-rdvp-bg);text-align:center;">
+                        <strong style="color:var(--th-col-rdvp);font-size:13px;"><?= $rdvp_date ?></strong><br>
+                        <strong style="color:var(--th-col-rdvp);font-size:12px;"><?= $rdvp_heure ?></strong>
                     </td>
                     <td class="col-visite" style="text-align:center;">
                         <strong style="color:#27ae60;font-size:13px;"><?= date('d/m/Y') ?></strong><br>
@@ -975,7 +975,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>⏱ Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
-                    <td style="background:#dce8f7;color:#5b7fa6;font-weight:bold;"><?= $rdvp_delai ?? '—' ?></td>
+                    <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?? '—' ?></td>
                     <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
@@ -983,7 +983,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
-                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_ecg!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
@@ -991,7 +991,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
-                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_edc!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
@@ -999,7 +999,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
-                    <td style="background:#dce8f7;"><span style="color:<?= $rdvp_dtsa!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
