@@ -135,3 +135,47 @@ body.theme-c {
     --th-font-body  : 'Arial Narrow', Arial, sans-serif;
     --th-logo-spacing: 3px;
 }
+
+/* ══════════════════════════════════════════════
+   MODULE BIOLOGIE — Variables spécifiques
+   Identité : Vert scientifique #1a7a50
+   Valables pour theme-0/A/C (fonds clairs)
+══════════════════════════════════════════════ */
+body, body.theme-0,
+body.theme-a,
+body.theme-c {
+    --bio-color-primary   : #1a7a50;
+    --bio-color-secondary : #2da872;
+    --bio-bg-module       : #f0f9f5;
+    --bio-border-module   : #a8d8c0;
+
+    --bio-normal          : #27ae60;
+    --bio-normal-bg       : #eafaf1;
+    --bio-high            : #e67e22;
+    --bio-high-bg         : #fef5e7;
+    --bio-low             : #2980b9;
+    --bio-low-bg          : #eaf4fb;
+    --bio-critical        : #c0392b;
+    --bio-critical-bg     : #fdedec;
+    --bio-pending         : #8e44ad;
+    --bio-pending-bg      : #f5eef8;
+}
+
+/* Thème B (fond sombre) : variantes plus lumineuses */
+body.theme-b {
+    --bio-color-primary   : #2da872;
+    --bio-color-secondary : #54c990;
+    --bio-bg-module       : #0d1f17;
+    --bio-border-module   : #1a7a5044;
+
+    --bio-normal          : #2ecc71;
+    --bio-normal-bg       : #0d2b1a;
+    --bio-high            : #f39c12;
+    --bio-high-bg         : #2b1e08;
+    --bio-low             : #3498db;
+    --bio-low-bg          : #0d1e2b;
+    --bio-critical        : #e74c3c;
+    --bio-critical-bg     : #2b0e0d;
+    --bio-pending         : #9b59b6;
+    --bio-pending-bg      : #1e0d2b;
+}

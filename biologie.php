@@ -119,6 +119,7 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid var(--th-border-card); bo
 /* En-tête commun */
 .col-hdr { background: var(--th-bg-header-s); color: white; padding: 6px 10px;
            font-size: 11px; font-weight: bold; flex-shrink: 0;
+           border-left: 4px solid var(--bio-color-primary);
            display: flex; align-items: center; justify-content: space-between; }
 .col-body { flex: 1; overflow-y: auto; min-height: 0; }
 
@@ -147,10 +148,10 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid var(--th-border-card); bo
                 color: var(--th-color-text);
                 display: flex; align-items: center; gap: 6px;
                 transition: background 0.1s; }
-.analyse-item:hover { background: #eafaf1; color: #222; }
-.analyse-item.dans-panier { background: #d5f5e3; color: #1e8449; font-weight: bold; }
-.analyse-item .plus { color: #27ae60; font-size: 14px; font-weight: 900; flex-shrink: 0; }
-.analyse-item.dans-panier .plus { color: #1e8449; }
+.analyse-item:hover { background: var(--bio-normal-bg); color: var(--th-color-text); }
+.analyse-item.dans-panier { background: var(--bio-normal-bg); color: var(--bio-color-primary); font-weight: bold; }
+.analyse-item .plus { color: var(--bio-color-secondary); font-size: 14px; font-weight: 900; flex-shrink: 0; }
+.analyse-item.dans-panier .plus { color: var(--bio-color-primary); }
 
 /* ════ COL 3 : PANIER / SÉLECTION ════ */
 .col-panier { display: flex; flex-direction: column; overflow: hidden;
@@ -183,15 +184,19 @@ table.bio thead th { background: var(--th-bg-header-s); color: white; padding: 7
 table.bio tbody tr { border-bottom: 1px solid var(--th-sep-color); }
 table.bio tbody tr:hover { background: var(--th-bg-link-hover); }
 table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
-.td-rubrique { background: #f0eafa !important; font-size: 10px;
-               color: #7d3c98; font-weight: bold; padding: 2px 8px !important; }
+.td-rubrique { background: var(--bio-pending-bg) !important; font-size: 10px;
+               color: var(--bio-pending); font-weight: bold; padding: 2px 8px !important; }
 .td-analyse  { font-size: 12px; font-weight: bold; color: var(--th-color-primary); }
 .inp-res { width: 130px; padding: 1px 5px; border: 1px solid var(--th-border-card);
            border-radius: 3px; font-size: 11px; height: 22px;
            background: var(--th-bg-card); color: var(--th-color-text); }
 .inp-res:focus   { border-color: var(--th-color-secondary); outline: none; background: var(--th-bg-link-hover); }
-.inp-res.normal  { border-color: #27ae60; color: #27ae60; font-weight: bold; background: #f0fff5; }
-.inp-res.anormal { border-color: #e74c3c; color: #e74c3c; font-weight: bold; background: #fff5f5; }
+.inp-res.normal  { border-color: var(--bio-normal);   color: var(--bio-normal);   font-weight: bold; background: var(--bio-normal-bg); }
+.inp-res.anormal { border-color: var(--bio-critical); color: var(--bio-critical); font-weight: bold; background: var(--bio-critical-bg); }
+.inp-res.eleve   { border-color: var(--bio-high);     color: var(--bio-high);     font-weight: bold; background: var(--bio-high-bg); }
+.inp-res.bas     { border-color: var(--bio-low);      color: var(--bio-low);      font-weight: bold; background: var(--bio-low-bg); }
+.inp-res.critique{ border-color: var(--bio-critical); color: var(--bio-critical); font-weight: bold; background: var(--bio-critical-bg); }
+.inp-res.attente { border-color: var(--bio-pending);  color: var(--bio-pending);  font-weight: bold; background: var(--bio-pending-bg); }
 .btn-del-l { background: none; border: none; cursor: pointer; color: var(--th-color-text-muted); font-size: 14px; }
 .btn-del-l:hover { color: #e74c3c; }
 
@@ -215,7 +220,7 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
     body { overflow: visible; height: auto; }
     .col-resultats { overflow: visible; }
     .tbl-wrap { overflow: visible; }
-    table.bio thead th { background: #1a4a7a !important;
+    table.bio thead th { background: var(--bio-color-primary) !important;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>
@@ -684,7 +689,7 @@ function afficherResultats(lignes){
     let html='';
     lignes.forEach(l=>{
         const v=l.resultat||'';
-        const cls=v==='N'||v==='Normal'?'normal':(v!==''?'anormal':'');
+        const cls=classeStatut(v);
         html+=`<tr>
             <td class="td-analyse">${esc(l.nom_analyse)}</td>
             <td><input class="inp-res ${cls}" type="text" value="${esc(v)}"
@@ -697,9 +702,19 @@ function afficherResultats(lignes){
     tbody.innerHTML=html;
 }
 
+function classeStatut(v){
+    const s=v.trim().toLowerCase();
+    if(s===''                          ) return 'attente';
+    if(s==='n'||s==='normal'           ) return 'normal';
+    if(s==='e'||s==='eleve'||s==='h'   ) return 'eleve';
+    if(s==='b'||s==='bas'  ||s==='l'   ) return 'bas';
+    if(s==='c'||s==='critique'         ) return 'critique';
+    return 'anormal';
+}
+
 function styliserInput(inp){
     const v=inp.value.trim();
-    inp.className='inp-res '+(v==='N'||v==='Normal'?'normal':(v!==''?'anormal':''));
+    inp.className='inp-res '+classeStatut(v);
 }
 
 async function sauverResultat(n_analyse,inp){
