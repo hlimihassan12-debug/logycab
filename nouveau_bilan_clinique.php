@@ -344,7 +344,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         </div>
     </div>
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
-           ondblclick="location.href='recherche.php'+(this.value.trim()?('?q='+encodeURIComponent(this.value.trim())):'')"
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <div style="flex:1;"></div>
     <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
@@ -448,43 +447,62 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
+    <div class="sec">Mesures</div>
+    <style>
+        /* Supprimer les flèches spinner sur les champs number de la colonne Examen */
+        #inp_TAS::-webkit-inner-spin-button, #inp_TAS::-webkit-outer-spin-button,
+        #inp_TAD::-webkit-inner-spin-button, #inp_TAD::-webkit-outer-spin-button,
+        #inp_FC::-webkit-inner-spin-button,  #inp_FC::-webkit-outer-spin-button,
+        #inp_POIDS::-webkit-inner-spin-button,#inp_POIDS::-webkit-outer-spin-button
+        { -webkit-appearance:none; margin:0; }
+        #inp_TAS,#inp_TAD,#inp_FC,#inp_POIDS { -moz-appearance:textfield; }
+    </style>
+    <div style="display:flex;align-items:center;gap:3px;flex-wrap:nowrap;margin-bottom:8px;">
+        <label style="font-size:10px;color:var(--th-color-text-muted);">TAS <span style="color:red;">*</span></label>
+        <input type="number" id="inp_TAS" name="TAS" placeholder="TAS" required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
+        <label style="font-size:10px;color:var(--th-color-text-muted);">TAD <span style="color:red;">*</span></label>
+        <input type="number" id="inp_TAD" name="TAD" placeholder="TAD" required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
+        <label style="font-size:10px;color:var(--th-color-text-muted);">FC <span style="color:red;">*</span></label>
+        <input type="number" id="inp_FC"  name="FC"  placeholder="FC"  required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
+        <label style="font-size:10px;color:var(--th-color-text-muted);">Poids</label>
+        <input type="number" id="inp_POIDS" step="0.1" name="POIDS" placeholder="kg" style="width:36px;padding:3px 2px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
+        <label style="font-size:10px;color:var(--th-color-text-muted);">Taille</label>
+        <input type="text" name="TAILLE" placeholder="cm" readonly tabindex="-1" style="width:36px;padding:3px 2px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f5f5f5;color:#aaa;cursor:not-allowed;">
+    </div>
+
     <!-- ── Panel cases Examen ── -->
     <div id="panel_sympto" style="margin-bottom:6px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
-        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">🩺 Examen — cochez pour générer le rapport Examen</div>
-
-        <!-- Boutons Normal / Anormal -->
-        <div style="display:flex;gap:6px;margin-bottom:6px;">
-            <button type="button" id="btn_exam_normal"
-                onclick="setExamenNormal()"
-                style="flex:1;padding:5px 4px;border:2px solid #27ae60;border-radius:4px;background:#27ae60;color:white;font-size:11px;font-weight:bold;cursor:pointer;">
-                ✅ Examen normal
-            </button>
-            <button type="button" id="btn_exam_anormal"
-                onclick="setExamenAnormal()"
-                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:var(--th-bg-card);color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">
-                ⚠️ Examen anormal
-            </button>
-        </div>
-        <div style="margin-top:6px;margin-bottom:4px;">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px;">
+            <span onclick="toggleEcgSection('examen_content','arr_examen_title')" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:bold;color:var(--th-color-primary);">🩺 Examen <span id="arr_examen_title">▶</span></span>
+            <span style="flex:1;"></span>
             <button type="button" id="btn_generer_examen"
-                onclick="if(document.getElementById('bloc_normal')&&document.getElementById('bloc_normal').style.display!=='none'){genererConclusionNormal();}else{genererConclusion();} document.getElementById('bloc_normal').style.display='none'; document.getElementById('sympto_cases').style.display='none'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');"
-                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
+                onclick="genererRapportExamen(); document.getElementById('examen_content').style.display='none'; document.getElementById('arr_examen_title').textContent='▶'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');"
+                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
             <button type="button" id="lien_modifier_sympto" onclick="modifierExamen()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
-        <!-- ══ BLOC NORMAL (affiché par ✅) ══ -->
-        <div id="bloc_normal" style="display:none;">
-            <div style="font-size:11px;font-weight:bold;color:#27ae60;margin-bottom:3px;">Examen clinique normal</div>
+        <div id="examen_content" style="display:none;">
+
+        <!-- ══ BLOC NORMAL ══ -->
+        <div id="bloc_normal" style="display:block;">
+            <div class="exam-section" onclick="toggleEcgSection('bloc_normal_body','arr_bloc_normal')">
+                <span>Examen clinique normal</span><span id="arr_bloc_normal">▶</span>
+            </div>
+            <div id="bloc_normal_body" style="display:none;">
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
             <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
+            </div>
         </div>
 
-        <!-- ══ BLOC ANORMAL (affiché par ⚠️) ══ -->
-        <div id="sympto_cases" style="display:none;">
+        <!-- ══ BLOC ANORMAL ══ -->
+        <div id="sympto_cases" style="display:block;">
 
-            <div style="font-size:11px;font-weight:bold;color:#e67e22;margin-bottom:4px;">Examen clinique anormal</div>
+            <div class="exam-section" onclick="toggleEcgSection('sympto_cases_body','arr_sympto_cases')">
+                <span>Examen clinique anormal</span><span id="arr_sympto_cases">▶</span>
+            </div>
+            <div id="sympto_cases_body" style="display:none;">
 
             <!-- ── 🫀 Examen cardiaque ── -->
             <div class="exam-section" onclick="toggleEcgSection('sub_exam_card','arr_exam_card')">
@@ -520,6 +538,18 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <button type="button" onclick="appliquerMultiple('sub_ivd')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
+            <!-- Signes IVG — MULTIPLE + bouton OK -->
+            <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_ivg" onchange="toggleSub(this)"> Signes d'IVG</label>
+            <div id="sub_ivg" style="display:none;margin-left:14px;margin-bottom:4px;">
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="tachycardie de repos"> Tachycardie de repos</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="dyspnée stade NYHA I"> Dyspnée stade NYHA I</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="dyspnée stade NYHA II"> Dyspnée stade NYHA II</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="dyspnée stade NYHA III"> Dyspnée stade NYHA III</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="orthopnée"> Orthopnée</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="œdème aigu du poumon (OAP)"> Œdème aigu du poumon (OAP)</label>
+                <button type="button" onclick="appliquerMultiple('sub_ivg')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+            </div>
+
             <!-- Rythmique — EXCLUSIF -->
             <label style="font-size:11px;display:block;margin-bottom:2px;cursor:pointer;"><input type="checkbox" class="sympto-parent" data-target="sub_rythme" onchange="toggleSub(this)"> Symptomatologie rythmique</label>
             <div id="sub_rythme" style="display:none;margin-left:14px;margin-bottom:4px;">
@@ -540,7 +570,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <div id="sub_arterite" style="display:none;margin-left:14px;margin-bottom:4px;">
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade I"> Artérite stade I</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade II"> Artérite stade II</label>
-                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade VI"> Artérite stade VI</label>
+                <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="artérite stade III"> Artérite stade III</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-excl" onchange="exclusifVisible(this,'sub_arterite')" value="gangrène"> Gangrène</label>
                 <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
                     <span style="font-size:11px;">Autres :</span>
@@ -563,32 +593,13 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
             </div><!-- fin sub_exam_vasc -->
 
+            </div><!-- fin sympto_cases_body -->
+
         </div><!-- fin sympto_cases -->
 
-    </div><!-- fin panel_sympto -->
+        </div><!-- fin examen_content -->
 
-    <div class="sec">Mesures</div>
-    <style>
-        /* Supprimer les flèches spinner sur les champs number de la colonne Examen */
-        #inp_TAS::-webkit-inner-spin-button, #inp_TAS::-webkit-outer-spin-button,
-        #inp_TAD::-webkit-inner-spin-button, #inp_TAD::-webkit-outer-spin-button,
-        #inp_FC::-webkit-inner-spin-button,  #inp_FC::-webkit-outer-spin-button,
-        #inp_POIDS::-webkit-inner-spin-button,#inp_POIDS::-webkit-outer-spin-button
-        { -webkit-appearance:none; margin:0; }
-        #inp_TAS,#inp_TAD,#inp_FC,#inp_POIDS { -moz-appearance:textfield; }
-    </style>
-    <div style="display:flex;align-items:center;gap:3px;flex-wrap:nowrap;margin-bottom:8px;">
-        <label style="font-size:10px;color:var(--th-color-text-muted);">TAS <span style="color:red;">*</span></label>
-        <input type="number" id="inp_TAS" name="TAS" placeholder="TAS" required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
-        <label style="font-size:10px;color:var(--th-color-text-muted);">TAD <span style="color:red;">*</span></label>
-        <input type="number" id="inp_TAD" name="TAD" placeholder="TAD" required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
-        <label style="font-size:10px;color:var(--th-color-text-muted);">FC <span style="color:red;">*</span></label>
-        <input type="number" id="inp_FC"  name="FC"  placeholder="FC"  required style="width:36px;padding:3px 2px;border:1px solid #e67e22;border-radius:3px;font-size:11px;" oninput="majApercuExamen()">
-        <label style="font-size:10px;color:var(--th-color-text-muted);">Poids</label>
-        <input type="number" id="inp_POIDS" step="0.1" name="POIDS" placeholder="kg" style="width:36px;padding:3px 2px;border:1px solid #ddd;border-radius:3px;font-size:11px;">
-        <label style="font-size:10px;color:var(--th-color-text-muted);">Taille</label>
-        <input type="text" name="TAILLE" placeholder="cm" readonly tabindex="-1" style="width:36px;padding:3px 2px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f5f5f5;color:#aaa;cursor:not-allowed;">
-    </div>
+    </div><!-- fin panel_sympto -->
 
     <div class="champ" id="wrap_REMARQUE">
         <label>Remarque</label>
@@ -829,29 +840,19 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
     <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
-        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">📈 ECG — cochez pour générer le rapport ECG</div>
-        <div style="display:flex;gap:6px;margin-bottom:4px;">
-            <button type="button" id="btn_ecg_normal"
-                onclick="setEcgGlobal('normal')"
-                style="flex:1;padding:5px 4px;border:2px solid #27ae60;border-radius:4px;background:#27ae60;color:white;font-size:11px;font-weight:bold;cursor:pointer;">
-                ✅ ECG normal
-            </button>
-            <button type="button" id="btn_ecg_anormal"
-                onclick="setEcgGlobal('anormal')"
-                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:var(--th-bg-card);color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">
-                ⚠️ ECG anormal
-            </button>
-        </div>
-        <div style="margin-top:6px;margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+            <span onclick="toggleEcgSection('ecg_content','arr_ecg_title')" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:bold;color:var(--th-color-primary);">📈 ECG <span id="arr_ecg_title">▶</span></span>
             <button type="button" id="btn_generer_ecg"
-                onclick="genererRapportECG(); document.getElementById('ecg_normal_detail').style.display='none'; document.getElementById('ecg_detail').style.display='none'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');"
-                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
+                onclick="genererRapportECG(); document.getElementById('ecg_content').style.display='none'; document.getElementById('arr_ecg_title').textContent='▶'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');"
+                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
             <button type="button" id="lien_modifier_ecg" onclick="modifierECG()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
-        <!-- champ radio caché pour compatibilité avec le reste du JS -->
-        <input type="radio" name="ecg_global" value="normal"  id="ecg_r_normal"  style="display:none;" checked onchange="toggleECGAnormal(false)">
-        <input type="radio" name="ecg_global" value="anormal" id="ecg_r_anormal" style="display:none;" onchange="toggleECGAnormal(true)">
-        <!-- Cases ECG Normal (visible quand ECG normal coché) -->
+
+        <div id="ecg_content" style="display:none;">
+
+        <div class="exam-section" onclick="toggleEcgSection('ecg_normal_detail','arr_ecg_normal')">
+            <span>ECG normal</span><span id="arr_ecg_normal">▶</span>
+        </div>
         <div id="ecg_normal_detail" style="display:none;margin-top:4px;">
             <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
             <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
@@ -860,6 +861,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
         </div>
 
+        <div class="exam-section" onclick="toggleEcgSection('ecg_detail','arr_ecg_anormal')">
+            <span>ECG anormal</span><span id="arr_ecg_anormal">▶</span>
+        </div>
         <div id="ecg_detail" style="display:none;">
 
             <!-- Trouble de rythme -->
@@ -1002,6 +1006,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </div>
 
         </div><!-- fin ecg_detail -->
+
+        </div><!-- fin ecg_content -->
     </div><!-- fin panel_ecg_cases -->
 
     <!-- 12. C/C + Autres signes ECG côte à côte -->
@@ -1057,23 +1063,21 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <!-- ── Cases à cocher Echo ── -->
     <div id="panel_echo_cases" style="margin-bottom:6px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
 
-        <!-- Boutons Normale / Anormale -->
-        <div style="display:flex;gap:6px;margin-bottom:6px;">
-            <button type="button" id="btn_echo_normale" onclick="setEchoGlobal('normale')"
-                style="flex:1;padding:5px 4px;border:2px solid #27ae60;border-radius:4px;background:#27ae60;color:white;font-size:11px;font-weight:bold;cursor:pointer;">✅ Échographie normale</button>
-            <button type="button" id="btn_echo_anormale" onclick="setEchoGlobal('anormale')"
-                style="flex:1;padding:5px 4px;border:2px solid #e67e22;border-radius:4px;background:var(--th-bg-card);color:#e67e22;font-size:11px;font-weight:bold;cursor:pointer;">⚠️ Échographie anormale</button>
-        </div>
-        <div style="margin-top:6px;margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+            <span onclick="toggleEcgSection('echo_content','arr_echo_title')" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:bold;color:var(--th-color-primary);">🔊 Échographie <span id="arr_echo_title">▶</span></span>
             <button type="button" id="btn_generer_echo"
-                onclick="genererCmlmEcho(); document.getElementById('echo_normale_detail').style.display='none'; document.getElementById('cmlm_echo_detail').style.display='none'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');"
-                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;">▶ Générer &amp; 💾</button>
+                onclick="genererCmlmEcho(); document.getElementById('echo_content').style.display='none'; document.getElementById('arr_echo_title').textContent='▶'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');"
+                style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
             <button type="button" id="lien_modifier_echo" onclick="modifierEcho()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
+        <div id="echo_content" style="display:none;">
+
         <!-- ══ NORMALE ══ -->
+        <div class="exam-section" onclick="toggleEcgSection('echo_normale_detail','arr_echo_normale')">
+            <span>Échographie normale</span><span id="arr_echo_normale">▶</span>
+        </div>
         <div id="echo_normale_detail" style="display:none;">
-            <div style="font-size:11px;font-weight:bold;color:#27ae60;margin-bottom:3px;">Échographie normale</div>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
@@ -1084,6 +1088,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         </div>
 
         <!-- ══ ANORMALE ══ -->
+        <div class="exam-section" onclick="toggleEcgSection('cmlm_echo_detail','arr_echo_anormale')">
+            <span>Échographie anormale</span><span id="arr_echo_anormale">▶</span>
+        </div>
         <div id="cmlm_echo_detail" style="display:none;">
 
         <!-- style aide-mémoire sections -->
@@ -1423,6 +1430,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         </div>
 
         </div><!-- fin cmlm_echo_detail -->
+
+        </div><!-- fin echo_content -->
     </div><!-- fin panel_echo_cases -->
 
     <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
@@ -1453,25 +1462,25 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <!-- Motif -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📋 Motif</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MDC'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Antécédents -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">📂 Antécédents</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Facteurs de risque -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">⚠️ Facteurs de risque</div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text);line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Diagnostic -->
     <div style="margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--th-sep-color);">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:3px;">🩺 Diagnostic</div>
-        <div style="font-size:11px;color:var(--th-color-primary);font-weight:bold;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-weight:normal;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:11px;color:var(--th-color-text);font-weight:normal;line-height:1.5;white-space:pre-wrap;min-height:16px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-weight:normal;font-style:italic;">—</span>' ?></div>
     </div>
 
     <!-- Au total — Conduite à tenir -->
@@ -1705,6 +1714,56 @@ function genererConclusionNormal() {
     var ct = document.getElementById('conduite_textarea');
     if(ct && condParts.length > 0) ct.value = condParts.map(function(p){ return '- ' + p; }).join('\n');
     // Ne pas cacher panel_sympto — seulement les listes (géré par le bouton onclick)
+}
+
+/* ── Générer le rapport Examen : combine les cases Normal ET Anormal cochées ── */
+function genererRapportExamen() {
+    var parties = [];
+    var tas = document.getElementById('inp_TAS');
+    var tad = document.getElementById('inp_TAD');
+    var fc  = document.getElementById('inp_FC');
+    var mesure = '';
+    if (tas && tas.value) mesure += 'TA : ' + tas.value;
+    if (tad && tad.value) mesure += '/' + tad.value + ' mmHg';
+    if (fc  && fc.value)  mesure += (mesure ? ' — ' : '') + 'FC : ' + fc.value + ' bpm';
+    if (mesure) parties.push(mesure);
+
+    // Items du bloc "normal"
+    ['n_sympto','n_auscult','n_oedemes','n_vasc'].forEach(function(id) {
+        var cb = document.getElementById(id);
+        if (cb && cb.checked) parties.push(cb.value);
+    });
+
+    // Items exclusifs du bloc "anormal" (angor, dyspnée, rythme, artérite)
+    document.querySelectorAll('.sx-excl:checked').forEach(function(cb) {
+        if (cb.value) parties.push(cb.value);
+    });
+    var artAutres = document.getElementById('arterite_autres');
+    if (artAutres && artAutres.value.trim()) parties.push(artAutres.value.trim());
+
+    // Signes IVD / IVG (choix multiples)
+    document.querySelectorAll('.sx-ivd:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+    document.querySelectorAll('.sx-ivg:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+
+    // Phlébitique (choix multiples)
+    document.querySelectorAll('.sx-phleb:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+    var phlAutres = document.getElementById('phlebite_autres');
+    if (phlAutres && phlAutres.value.trim()) parties.push(phlAutres.value.trim());
+
+    var ap = document.getElementById('apercu_examen');
+    if (ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
+
+    // Conduite à tenir (CAT)
+    var condParts = [];
+    var ecvn = document.getElementById('cat_ecvn');
+    var apte = document.getElementById('cat_apte');
+    if (ecvn && ecvn.checked) condParts.push(ecvn.value);
+    else if (apte && apte.checked) condParts.push(apte.value);
+    document.querySelectorAll('.cat-check:checked').forEach(function(cb){ if(cb.value) condParts.push(cb.value); });
+    var autresN = document.getElementById('cat_autres_n');
+    if (autresN && autresN.value.trim()) condParts.push(autresN.value.trim());
+    var ct = document.getElementById('conduite_textarea');
+    if (ct && condParts.length > 0) ct.value = condParts.map(function(p){ return '- ' + p; }).join('\n');
 }
 
 /* ── Exclusion mutuelle bloc Normal ── */
@@ -2111,17 +2170,13 @@ function toggleEchoSub(id) {
 }
 
 function genererCmlmEcho() {
-    var isNormale = document.getElementById('echo_normale_detail') &&
-                    document.getElementById('echo_normale_detail').style.display !== 'none';
     var parties = [];
 
-    if (isNormale) {
-        document.querySelectorAll('.echo-n:checked').forEach(function(cb) {
-            if (cb.value && cb.value !== 'on') parties.push(cb.value);
-        });
-        if (parties.length === 0) parties.push('échodoppler cardiaque normale');
-    } else {
-        document.querySelectorAll('.cmlm-ec:checked').forEach(function(cb) {
+    document.querySelectorAll('.echo-n:checked').forEach(function(cb) {
+        if (cb.value && cb.value !== 'on') parties.push(cb.value);
+    });
+
+    document.querySelectorAll('.cmlm-ec:checked').forEach(function(cb) {
             var txt = (cb.value && cb.value !== 'on') ? cb.value : '';
             if (!txt) return;
 
@@ -2214,9 +2269,8 @@ function genererCmlmEcho() {
                 if (extras.length) txt += ' (' + extras.join(', ') + ')';
             }
             if (txt) parties.push(txt);
-        });
-        if (parties.length === 0) parties.push('échodoppler cardiaque anormale');
-    }
+    });
+    if (parties.length === 0) parties.push('échodoppler cardiaque normale');
 
     var result = parties.map(function(p){ return '- ' + p; }).join('\n');
     document.getElementById('cmlm_echo_val').value = result;
@@ -2475,6 +2529,11 @@ function genererConclusion() {
         if (cb.value) parties.push(cb.value);
     });
 
+    /* Signes IVG — plusieurs choix */
+    document.querySelectorAll('.sx-ivg:checked').forEach(function(cb) {
+        if (cb.value) parties.push(cb.value);
+    });
+
     /* Phlébitique — plusieurs choix */
     document.querySelectorAll('.sx-phleb:checked').forEach(function(cb) {
         if (cb.value) parties.push(cb.value);
@@ -2516,43 +2575,26 @@ function exclusifVisible(cb, groupId) {
     });
 }
 
-/* genererRapportECG : remplit apercu_ecg (C/C reste libre) */
+/* genererRapportECG : remplit apercu_ecg (C/C reste libre) — combine ECG normal ET anormal cochés */
 function genererRapportECG() {
     var fc  = document.getElementById('inp_FC');
     var prefixe = fc && fc.value ? 'FC : ' + fc.value + ' bpm' : '';
 
-    var detail = document.getElementById('ecg_detail');
-    var normalDetail = document.getElementById('ecg_normal_detail');
-    var estNormal = detail && detail.style.display === 'none';
-    var txt = '';
-
-    if (estNormal && normalDetail && normalDetail.style.display !== 'none') {
-        /* ECG normal : FC + cases cochées */
-        var lignes = [];
-        if (prefixe) lignes.push(prefixe);
-        normalDetail.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
-            var lbl = cb.parentElement;
-            if (lbl) lignes.push(lbl.textContent.trim());
-        });
-        txt = lignes.map(function(l){ return '- ' + l; }).join('\n');
-    } else {
-        var parties = [];
-        if (prefixe) parties.push(prefixe);
-        document.querySelectorAll('#panel_ecg_cases input[type="checkbox"]:checked').forEach(function(cb) {
-            if (cb.classList.contains('ecg-parent')) return;
-            if (cb.classList.contains('ecg-normal-cb')) return;
-            if (cb.value && cb.value !== 'on') { parties.push(cb.value); return; }
-            var lbl = cb.parentElement;
-            if (lbl) { var t = lbl.textContent.trim(); if (t) parties.push(t); }
-        });
-        /* Pacemaker : ajouter date si renseignée */
-        var paceDate = document.getElementById('ecg_pace_date');
-        if (paceDate && paceDate.value.trim()) {
-            var idx = parties.findIndex(function(p){ return p.indexOf('Électro-entraîné') !== -1 || p.indexOf('pacemaker') !== -1; });
-            if (idx !== -1) parties[idx] += ', posé le ' + paceDate.value.trim();
-        }
-        txt = parties.map(function(l){ return '- ' + l; }).join('\n');
+    var parties = [];
+    if (prefixe) parties.push(prefixe);
+    document.querySelectorAll('#panel_ecg_cases input[type="checkbox"]:checked').forEach(function(cb) {
+        if (cb.classList.contains('ecg-parent')) return;
+        if (cb.value && cb.value !== 'on') { parties.push(cb.value); return; }
+        var lbl = cb.parentElement;
+        if (lbl) { var t = lbl.textContent.trim(); if (t) parties.push(t); }
+    });
+    /* Pacemaker : ajouter date si renseignée */
+    var paceDate = document.getElementById('ecg_pace_date');
+    if (paceDate && paceDate.value.trim()) {
+        var idx = parties.findIndex(function(p){ return p.indexOf('Électro-entraîné') !== -1 || p.indexOf('pacemaker') !== -1; });
+        if (idx !== -1) parties[idx] += ', posé le ' + paceDate.value.trim();
     }
+    var txt = parties.map(function(l){ return '- ' + l; }).join('\n');
     var ap = document.getElementById('apercu_ecg');
     if (ap) { ap.value = txt; autoResize(ap); }
 }
@@ -2662,6 +2704,13 @@ function restaurerTout() {
     });
     var ecgDetail = document.getElementById('ecg_detail');
     if (ecgDetail) ecgDetail.style.display = 'none';
+    var ecgNormalDetail = document.getElementById('ecg_normal_detail');
+    if (ecgNormalDetail) ecgNormalDetail.style.display = 'none';
+    var ecgContent = document.getElementById('ecg_content');
+    if (ecgContent) ecgContent.style.display = 'none';
+    var arrEcgTitle = document.getElementById('arr_ecg_title'); if (arrEcgTitle) arrEcgTitle.textContent = '▶';
+    var arrEcgNormal = document.getElementById('arr_ecg_normal'); if (arrEcgNormal) arrEcgNormal.textContent = '▶';
+    var arrEcgAnormal = document.getElementById('arr_ecg_anormal'); if (arrEcgAnormal) arrEcgAnormal.textContent = '▶';
     // Remettre les blocs de cases visibles
     var ps = document.getElementById('panel_sympto');
     if (ps) ps.style.display = '';
@@ -2671,9 +2720,25 @@ function restaurerTout() {
     if (pec) pec.style.display = '';
     var lms = document.getElementById('lien_modifier_sympto');
     if (lms) lms.style.display = 'none';
-    /* Cacher les cases sympto (visibles seulement si Examen anormal) */
+    /* Blocs Examen normal/anormal — toujours présents, accordéon replié par défaut */
+    var bn = document.getElementById('bloc_normal');
+    if (bn) bn.style.display = 'block';
     var sc = document.getElementById('sympto_cases');
-    if (sc) sc.style.display = 'none';
+    if (sc) sc.style.display = 'block';
+    var ec = document.getElementById('examen_content');
+    if (ec) ec.style.display = 'none';
+    var bnb = document.getElementById('bloc_normal_body'); if (bnb) bnb.style.display = 'none';
+    var scb = document.getElementById('sympto_cases_body'); if (scb) scb.style.display = 'none';
+    var arrEx = document.getElementById('arr_examen_title'); if (arrEx) arrEx.textContent = '▶';
+    var arrBn = document.getElementById('arr_bloc_normal'); if (arrBn) arrBn.textContent = '▶';
+    var arrSc = document.getElementById('arr_sympto_cases'); if (arrSc) arrSc.textContent = '▶';
+    /* Accordéon Échographie — replié par défaut */
+    var echoContent = document.getElementById('echo_content'); if (echoContent) echoContent.style.display = 'none';
+    var echoNormaleDetail = document.getElementById('echo_normale_detail'); if (echoNormaleDetail) echoNormaleDetail.style.display = 'none';
+    var cmlmEchoDetail = document.getElementById('cmlm_echo_detail'); if (cmlmEchoDetail) cmlmEchoDetail.style.display = 'none';
+    var arrEchoTitle = document.getElementById('arr_echo_title'); if (arrEchoTitle) arrEchoTitle.textContent = '▶';
+    var arrEchoNormale = document.getElementById('arr_echo_normale'); if (arrEchoNormale) arrEchoNormale.textContent = '▶';
+    var arrEchoAnormale = document.getElementById('arr_echo_anormale'); if (arrEchoAnormale) arrEchoAnormale.textContent = '▶';
     var lme = document.getElementById('lien_modifier_ecg');
     if (lme) lme.style.display = 'none';
     var lmec = document.getElementById('lien_modifier_echo');
@@ -2762,11 +2827,9 @@ function modifierExamen() {
     if (bgh) bgh.style.display = 'inline-block';
     document.getElementById('lien_modifier_sympto').style.display = 'none';
     if (lh) lh.style.display = 'none';
-    if (modeExamen === 'normal') {
-        document.getElementById('bloc_normal').style.display = 'block';
-    } else if (modeExamen === 'anormal') {
-        document.getElementById('sympto_cases').style.display = 'block';
-    }
+    document.getElementById('examen_content').style.display = 'block';
+    var arr = document.getElementById('arr_examen_title');
+    if (arr) arr.textContent = '▼';
 }
 function modifierECG() {
     var bg = document.getElementById('btn_generer_ecg');
@@ -2776,11 +2839,9 @@ function modifierECG() {
     if (bgh) bgh.style.display = 'inline-block';
     document.getElementById('lien_modifier_ecg').style.display = 'none';
     if (lh) lh.style.display = 'none';
-    if (modeECG === 'normal') {
-        document.getElementById('ecg_normal_detail').style.display = 'block';
-    } else if (modeECG === 'anormal') {
-        document.getElementById('ecg_detail').style.display = 'block';
-    }
+    document.getElementById('ecg_content').style.display = 'block';
+    var arr = document.getElementById('arr_ecg_title');
+    if (arr) arr.textContent = '▼';
 }
 function modifierEcho() {
     var bg = document.getElementById('btn_generer_echo');
@@ -2790,11 +2851,9 @@ function modifierEcho() {
     if (bgh) bgh.style.display = 'inline-block';
     document.getElementById('lien_modifier_echo').style.display = 'none';
     if (lh) lh.style.display = 'none';
-    if (modeEcho === 'normale') {
-        document.getElementById('echo_normale_detail').style.display = 'block';
-    } else if (modeEcho === 'anormale') {
-        document.getElementById('cmlm_echo_detail').style.display = 'block';
-    }
+    document.getElementById('echo_content').style.display = 'block';
+    var arr = document.getElementById('arr_echo_title');
+    if (arr) arr.textContent = '▼';
 }
 
 
