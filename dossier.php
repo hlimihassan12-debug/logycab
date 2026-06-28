@@ -409,7 +409,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .tableau-rdv td:first-child { background: var(--th-bg-link-hover); font-size: 11px; font-weight: bold; color: var(--th-color-primary); text-align: right; white-space: nowrap; }
 .tableau-rdv tr:last-child td { border-bottom: none; }
 .col-visite   { background: #e8f8ee; }
-.col-rdv-fixe { background: #e8f0fb; }
+.col-rdv-fixe { background: var(--th-col-visite-bg); }
 .col-rdv-futur{ background: #f3eafb; }
 @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .row-bottom { grid-template-columns: 1fr; } }
 
@@ -549,7 +549,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
                     $estAujourdHui = ($tsOrd && date('Y-m-d', $tsOrd) === date('Y-m-d'));
                     $coulOrd = $estAujourdHui ? '#e74c3c' : 'var(--th-col-visite)';
-                    $bgOrd   = $estAujourdHui ? '#fdecea' : '#e8f0fb';
+                    $bgOrd   = $estAujourdHui ? '#fdecea' : 'var(--th-col-visite-bg)';
                     $bordOrd = $estAujourdHui ? '#e74c3c' : 'var(--th-col-visite)';
                 ?>
                 <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
@@ -751,7 +751,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <?php if ($factCourante): ?>
                 <?php $tsFA=strtotime($factCourante['date_facture']??''); $dfA=($tsFA&&$tsFA>86400)?date('d/m/Y',$tsFA):'—'; $estAujFA=($tsFA&&date('Y-m-d',$tsFA)===date('Y-m-d')); ?>
                 <div style="text-align:right;">
-                    <div style="font-size:12px;font-weight:bold;color:<?=$estAujFA?'#e74c3c':'var(--th-col-visite)'?>;background:<?=$estAujFA?'#fdecea':'#e8f0fb'?>;padding:2px 8px;border-radius:4px;border:1px solid <?=$estAujFA?'#e74c3c':'var(--th-col-visite)'?>;"><?= $dfA ?></div>
+                    <div style="font-size:12px;font-weight:bold;color:<?=$estAujFA?'#e74c3c':'var(--th-col-visite)'?>;background:<?=$estAujFA?'#fdecea':'var(--th-col-visite-bg)'?>;padding:2px 8px;border-radius:4px;border:1px solid <?=$estAujFA?'#e74c3c':'var(--th-col-visite)'?>;"><?= $dfA ?></div>
                     <div style="font-size:11px;color:#aaa;margin-top:2px;padding-right:2px;">N° <?= $factCourante['n_facture'] ?></div>
                 </div>
                 <?php endif; ?>
@@ -1019,7 +1019,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     $dateOrd2 = ($tsOrd2 && $tsOrd2 > 0) ? date('d/m/Y', $tsOrd2) : '—';
                     $estAuj2  = ($tsOrd2 && date('Y-m-d', $tsOrd2) === date('Y-m-d'));
                     $coul2 = $estAuj2 ? '#e74c3c' : 'var(--th-col-visite)';
-                    $bg2   = $estAuj2 ? '#fdecea' : '#e8f0fb';
+                    $bg2   = $estAuj2 ? '#fdecea' : 'var(--th-col-visite-bg)';
                     $bord2 = $estAuj2 ? '#e74c3c' : 'var(--th-col-visite)';
                 ?>
                 <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
@@ -1056,7 +1056,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—';
                     $estAujFact   = ($tsFactTitre && $tsFactTitre > 86400 && date('Y-m-d', $tsFactTitre) === date('Y-m-d'));
                     $coulFact = $estAujFact ? '#e74c3c' : 'var(--th-col-visite)';
-                    $bgFact   = $estAujFact ? '#fdecea' : '#e8f0fb';
+                    $bgFact   = $estAujFact ? '#fdecea' : 'var(--th-col-visite-bg)';
                     $bordFact = $estAujFact ? '#e74c3c' : 'var(--th-col-visite)';
                 ?>
                 <div style="text-align:right;">
