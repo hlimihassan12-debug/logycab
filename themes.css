@@ -9,6 +9,13 @@
    Bleu #1a4a7a / #2e6da4
 ══════════════════════════════════════════════ */
 body, body.theme-0 {
+    --th-col-visite        : #1a4a7a;
+    --th-col-visite-bg     : #e8f0fb;
+    --th-col-rdvp          : #5b7fa6;
+    --th-col-rdvp-bg       : #dce8f7;
+    --th-col-rdvn          : #8e44ad;
+    --th-col-rdvn-bg       : #f3eafb;
+    --th-col-rdvn-bg-hover : #e8d5f5;
     --th-bg-page      : #f0f4f8;
     --th-bg-header    : linear-gradient(135deg, #1a4a7a, #2e6da4);
     --th-bg-header-s  : #1a4a7a;       /* couleur solide pour usages sans dégradé */
@@ -42,6 +49,13 @@ body, body.theme-0 {
    Marine #0d2b4e + Bordeaux #8b1a2e
 ══════════════════════════════════════════════ */
 body.theme-a {
+    --th-col-visite        : #0d2b4e;
+    --th-col-visite-bg     : #e4eaf5;
+    --th-col-rdvp          : #486d8a;
+    --th-col-rdvp-bg       : #d8e2ee;
+    --th-col-rdvn          : #8e44ad;
+    --th-col-rdvn-bg       : #f3eafb;
+    --th-col-rdvn-bg-hover : #ddc5f0;
     --th-bg-page      : #f0f4f8;
     --th-bg-header    : linear-gradient(135deg, #0d2b4e, #1a5276);
     --th-bg-header-s  : #0d2b4e;
@@ -75,6 +89,13 @@ body.theme-a {
    Nuit #1a1a2e + Menthe #00d4aa
 ══════════════════════════════════════════════ */
 body.theme-b {
+    --th-col-visite        : #00d4aa;
+    --th-col-visite-bg     : #0d2b22;
+    --th-col-rdvp          : #0099cc;
+    --th-col-rdvp-bg       : #0d1e2b;
+    --th-col-rdvn          : #9b59b6;
+    --th-col-rdvn-bg       : #1e0d2b;
+    --th-col-rdvn-bg-hover : #2e1545;
     --th-bg-page      : #0f0f1e;
     --th-bg-header    : linear-gradient(135deg, #1a1a2e, #16213e);
     --th-bg-header-s  : #1a1a2e;
@@ -108,6 +129,13 @@ body.theme-b {
    Ardoise #2c3e50 + Or #c0973a
 ══════════════════════════════════════════════ */
 body.theme-c {
+    --th-col-visite        : #2c3e50;
+    --th-col-visite-bg     : #e8ecf2;
+    --th-col-rdvp          : #506878;
+    --th-col-rdvp-bg       : #d8e0e8;
+    --th-col-rdvn          : #8e44ad;
+    --th-col-rdvn-bg       : #f3eafb;
+    --th-col-rdvn-bg-hover : #e0caf2;
     --th-bg-page      : #fdf9f0;
     --th-bg-header    : linear-gradient(135deg, #2c3e50, #34495e);
     --th-bg-header-s  : #2c3e50;

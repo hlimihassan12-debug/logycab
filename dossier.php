@@ -548,9 +548,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     $tsOrd = strtotime($ordCourante['date_ordon']);
                     $dateOrdAff = ($tsOrd && $tsOrd > 0) ? date('d/m/Y', $tsOrd) : '—';
                     $estAujourdHui = ($tsOrd && date('Y-m-d', $tsOrd) === date('Y-m-d'));
-                    $coulOrd = $estAujourdHui ? '#e74c3c' : '#1a4a7a';
+                    $coulOrd = $estAujourdHui ? '#e74c3c' : 'var(--th-col-visite)';
                     $bgOrd   = $estAujourdHui ? '#fdecea' : '#e8f0fb';
-                    $bordOrd = $estAujourdHui ? '#e74c3c' : '#2e6da4';
+                    $bordOrd = $estAujourdHui ? '#e74c3c' : 'var(--th-col-visite)';
                 ?>
                 <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
                              color:<?= $coulOrd ?>;background:<?= $bgOrd ?>;
@@ -641,7 +641,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <thead>
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:80px;"></th>
-                    <th style="background:#2e6da4;color:white;">🏥 Dernière visite</th>
+                    <th style="background:var(--th-col-visite);color:white;">🏥 Dernière visite</th>
                     <th style="background:#5b7fa6;color:white;">📅 RDV prévu</th>
                     <th style="background:#27ae60;color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
                     <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV">
@@ -653,8 +653,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>📅 Date<br>⏰ Heure</td>
                     <td class="col-rdv-fixe">
-                        <strong style="color:#2e6da4;"><?= $dv_dateOrd ?></strong><br>
-                        <span style="color:#2e6da4;font-size:11px;"><?= $dv_heure ?></span>
+                        <strong style="color:var(--th-col-visite);"><?= $dv_dateOrd ?></strong><br>
+                        <span style="color:var(--th-col-visite);font-size:11px;"><?= $dv_heure ?></span>
                     </td>
                     <td style="background:#dce8f7;">
                         <strong style="color:#5b7fa6;"><?= $rdvp_date ?></strong><br>
@@ -693,7 +693,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- Ligne ECG -->
                 <tr>
                     <td>⚡ ECG (<?= $tot_ecg ?>)</td>
-                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:#dce8f7;"><span style="color:<?= $rdvp_ecg!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-ecg"><span style="color:#ccc;">—</span></td>
@@ -701,7 +701,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- Ligne EDC -->
                 <tr>
                     <td>🫀 EDC (<?= $tot_edc ?>)</td>
-                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:#dce8f7;"><span style="color:<?= $rdvp_edc!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edc"><span style="color:#ccc;">—</span></td>
@@ -709,7 +709,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- Ligne DTSA -->
                 <tr>
                     <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
-                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:#dce8f7;"><span style="color:<?= $rdvp_dtsa!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-dtsa"><span style="color:#ccc;">—</span></td>
@@ -751,7 +751,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <?php if ($factCourante): ?>
                 <?php $tsFA=strtotime($factCourante['date_facture']??''); $dfA=($tsFA&&$tsFA>86400)?date('d/m/Y',$tsFA):'—'; $estAujFA=($tsFA&&date('Y-m-d',$tsFA)===date('Y-m-d')); ?>
                 <div style="text-align:right;">
-                    <div style="font-size:12px;font-weight:bold;color:<?=$estAujFA?'#e74c3c':'#1a4a7a'?>;background:<?=$estAujFA?'#fdecea':'#e8f0fb'?>;padding:2px 8px;border-radius:4px;border:1px solid <?=$estAujFA?'#e74c3c':'#2e6da4'?>;"><?= $dfA ?></div>
+                    <div style="font-size:12px;font-weight:bold;color:<?=$estAujFA?'#e74c3c':'var(--th-col-visite)'?>;background:<?=$estAujFA?'#fdecea':'#e8f0fb'?>;padding:2px 8px;border-radius:4px;border:1px solid <?=$estAujFA?'#e74c3c':'var(--th-col-visite)'?>;"><?= $dfA ?></div>
                     <div style="font-size:11px;color:#aaa;margin-top:2px;padding-right:2px;">N° <?= $factCourante['n_facture'] ?></div>
                 </div>
                 <?php endif; ?>
@@ -894,7 +894,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <thead>
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:70px;"></th>
-                    <th style="background:#2e6da4;color:white;font-size:11px;">🏥 Dernière visite</th>
+                    <th style="background:var(--th-col-visite);color:white;font-size:11px;">🏥 Dernière visite</th>
                     <th style="background:#5b7fa6;color:white;font-size:11px;">📅 RDV prévu</th>
                     <th style="background:#27ae60;color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
                     <th style="background:#8e44ad;color:white;font-size:11px;">📆 RDV prochain</th>
@@ -904,8 +904,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <tr>
                     <td>📅 Date<br>⏰ Heure</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
-                        <strong style="color:#2e6da4;font-size:13px;"><?= $dv_dateOrd ?></strong><br>
-                        <strong style="color:#2e6da4;font-size:12px;"><?= $dv_heure ?></strong>
+                        <strong style="color:var(--th-col-visite);font-size:13px;"><?= $dv_dateOrd ?></strong><br>
+                        <strong style="color:var(--th-col-visite);font-size:12px;"><?= $dv_heure ?></strong>
                     </td>
                     <td style="background:#dce8f7;text-align:center;">
                         <strong style="color:#5b7fa6;font-size:13px;"><?= $rdvp_date ?></strong><br>
@@ -982,7 +982,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- Ligne ECG -->
                 <tr>
                     <td>⚡ ECG (<?= $tot_ecg ?>)</td>
-                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:#dce8f7;"><span style="color:<?= $rdvp_ecg!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
@@ -990,7 +990,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- Ligne EDC -->
                 <tr>
                     <td>🫀 EDC (<?= $tot_edc ?>)</td>
-                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:#dce8f7;"><span style="color:<?= $rdvp_edc!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
@@ -998,7 +998,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <!-- Ligne DTSA -->
                 <tr>
                     <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
-                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'#2e6da4':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:#dce8f7;"><span style="color:<?= $rdvp_dtsa!=='—'?'#5b7fa6':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
@@ -1018,9 +1018,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     $tsOrd2 = strtotime($ordCourante['date_ordon']);
                     $dateOrd2 = ($tsOrd2 && $tsOrd2 > 0) ? date('d/m/Y', $tsOrd2) : '—';
                     $estAuj2  = ($tsOrd2 && date('Y-m-d', $tsOrd2) === date('Y-m-d'));
-                    $coul2 = $estAuj2 ? '#e74c3c' : '#1a4a7a';
+                    $coul2 = $estAuj2 ? '#e74c3c' : 'var(--th-col-visite)';
                     $bg2   = $estAuj2 ? '#fdecea' : '#e8f0fb';
-                    $bord2 = $estAuj2 ? '#e74c3c' : '#2e6da4';
+                    $bord2 = $estAuj2 ? '#e74c3c' : 'var(--th-col-visite)';
                 ?>
                 <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
                              color:<?= $coul2 ?>;background:<?= $bg2 ?>;
@@ -1055,9 +1055,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     $tsFactTitre  = strtotime($factCourante['date_facture'] ?? '');
                     $dateFactTitre = ($tsFactTitre && $tsFactTitre > 86400) ? date('d/m/Y', $tsFactTitre) : '—';
                     $estAujFact   = ($tsFactTitre && $tsFactTitre > 86400 && date('Y-m-d', $tsFactTitre) === date('Y-m-d'));
-                    $coulFact = $estAujFact ? '#e74c3c' : '#1a4a7a';
+                    $coulFact = $estAujFact ? '#e74c3c' : 'var(--th-col-visite)';
                     $bgFact   = $estAujFact ? '#fdecea' : '#e8f0fb';
-                    $bordFact = $estAujFact ? '#e74c3c' : '#2e6da4';
+                    $bordFact = $estAujFact ? '#e74c3c' : 'var(--th-col-visite)';
                 ?>
                 <div style="text-align:right;">
                     <span style="font-family:Arial,sans-serif;font-weight:bold;font-size:12px;
