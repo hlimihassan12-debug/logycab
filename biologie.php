@@ -59,7 +59,8 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--th-bg-page
 .btn-h.navy   { background: var(--th-btn-navy); border: 1px solid rgba(255,255,255,0.3); }
 .btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
-.btn-h.purple { background: #8e44ad; }
+.btn-h.red    { background: var(--bio-critical); }
+.btn-h.purple { background: var(--bio-pending); }
 .btn-h.grey   { background: #888; pointer-events: none; opacity: 0.7; cursor: default; }
 .btn-h:not(.grey):hover { opacity: 0.85; }
 .search-hdr { padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 24px;
@@ -101,10 +102,10 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--th-bg-page
 .btn-bar { border: none; border-radius: 4px; padding: 3px 10px; cursor: pointer;
            font-size: 11px; font-weight: bold; color: white; height: 26px;
            display: inline-flex; align-items: center; }
-.btn-bar.green  { background: #27ae60; }
-.btn-bar.red    { background: #e74c3c; }
-.btn-bar.purple { background: #8e44ad; }
-.btn-bar.blue   { background: #2e6da4; }
+.btn-bar.green  { background: var(--th-btn-green); }
+.btn-bar.red    { background: var(--bio-critical); }
+.btn-bar.purple { background: var(--bio-pending); }
+.btn-bar.blue   { background: var(--th-btn-blue); }
 .btn-bar:hover  { opacity: 0.85; }
 input.date-bilan { padding: 3px 6px; border: 1px solid var(--th-border-card); border-radius: 4px;
                    font-size: 12px; cursor: pointer; background: var(--th-bg-card); color: var(--th-color-text); }
@@ -162,7 +163,7 @@ input.obs-bilan  { padding: 3px 6px; border: 1px solid var(--th-border-card); bo
                display: flex; align-items: center; gap: 5px; }
 .panier-item .del { background: none; border: none; cursor: pointer;
                     color: var(--th-color-text-muted); font-size: 13px; margin-left: auto; }
-.panier-item .del:hover { color: #e74c3c; }
+.panier-item .del:hover { color: var(--bio-critical); }
 
 /* Boutons panier — EN HAUT */
 .panier-header { padding: 6px 8px; border-bottom: 2px solid var(--th-border-statsbar);
@@ -198,7 +199,7 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 .inp-res.critique{ border-color: var(--bio-critical); color: var(--bio-critical); font-weight: bold; background: var(--bio-critical-bg); }
 .inp-res.attente { border-color: var(--bio-pending);  color: var(--bio-pending);  font-weight: bold; background: var(--bio-pending-bg); }
 .btn-del-l { background: none; border: none; cursor: pointer; color: var(--th-color-text-muted); font-size: 14px; }
-.btn-del-l:hover { color: #e74c3c; }
+.btn-del-l:hover { color: var(--bio-critical); }
 
 .placeholder { flex: 1; display: flex; align-items: center; justify-content: center;
                color: var(--th-color-text-muted); font-size: 13px; text-align: center; padding: 20px; }
@@ -209,9 +210,9 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
          border-radius: 6px; font-size: 12px; font-weight: bold; z-index: 9999;
          display: none; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
 .toast.show    { display: block; }
-.toast.success { background: #27ae60; }
-.toast.error   { background: #e74c3c; }
-.toast.info    { background: #2e6da4; }
+.toast.success { background: var(--th-btn-green); }
+.toast.error   { background: var(--bio-critical); }
+.toast.info    { background: var(--th-btn-blue); }
 
 @media print {
     .header, .patient-bar, .bilans-bar, .col-profils, .col-analyses,
@@ -243,10 +244,10 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <!-- Espace flexible -->
     <div style="flex:1;"></div>
-    <button onclick="ouvrirModalRapport()" class="btn-h" style="background:#c0392b;">📄 Rapport</button>
-    <a href="index.php" class="btn-h" style="background:#c0392b;">🏠 Accueil</a>
+    <button onclick="ouvrirModalRapport()" class="btn-h red">📄 Rapport</button>
+    <a href="index.php" class="btn-h red">🏠 Accueil</a>
     <button onclick="goHome()"        class="btn-h green" >🏠 Dossier</button>
-    <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
+    <button onclick="voirApercu()" class="btn-h green">📋 Aperçu</button>
     <a href="agenda.php"              class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"            class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"      class="btn-h blue"  >📋 Grille</a>
@@ -256,7 +257,7 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
     </div>
-    <a href="logout.php" class="btn-h" style="background:#e74c3c;" title="Déconnexion">⏻</a>
+    <a href="logout.php" class="btn-h red" title="Déconnexion">⏻</a>
 </div>
 
 <!-- BANDEAU PATIENT -->
