@@ -330,7 +330,7 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .btn-h { color: white; text-decoration: none; border: none; cursor: pointer;
          padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: bold;
          display: inline-flex; align-items: center; height: 24px; white-space: nowrap; }
-.btn-h.green  { background: #27ae60; }
+.btn-h.green  { background: var(--th-col-success); }
 .btn-h.navy   { background: var(--th-btn-navy); border: 1px solid rgba(255,255,255,0.3); }
 .btn-h.blue   { background: var(--th-btn-blue); }
 .btn-h.orange { background: #e67e22; }
@@ -386,7 +386,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .creneaux-grille { display: flex; flex-wrap: wrap; gap: 3px; }
 .creneau-btn { padding: 3px 7px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; font-size: 11px; font-weight: bold; min-width: 48px; text-align: center; transition: transform 0.1s; }
 .creneau-btn:hover { transform: scale(1.08); }
-.creneau-btn.libre  { background: #27ae60; color: white; border-color: #1e8449; }
+.creneau-btn.libre  { background: var(--th-col-success); color: white; border-color: #1e8449; }
 .creneau-btn.moyen  { background: var(--th-col-warn); color: white; border-color: #d68910; }
 .creneau-btn.plein  { background: #e74c3c; color: #fdd; border-color: #c0392b; cursor: not-allowed; opacity: 0.7; }
 .creneau-btn.selectionne { border-color: var(--th-btn-navy) !important; box-shadow: 0 0 0 3px rgba(26,74,122,0.35); transform: scale(1.1); }
@@ -395,7 +395,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .jauge-jour { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; }
 .jauge-bar  { flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
 .jauge-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
-.jauge-fill.ok   { background: #27ae60; }
+.jauge-fill.ok   { background: var(--th-col-success); }
 .jauge-fill.warn { background: var(--th-col-warn); }
 .jauge-fill.full { background: #e74c3c; }
 .row-bottom { padding: 0 8px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -408,7 +408,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .tableau-rdv td { padding: 5px 6px; border-bottom: 1px solid var(--th-sep-color); color: var(--th-color-text); }
 .tableau-rdv td:first-child { background: var(--th-bg-link-hover); font-size: 11px; font-weight: bold; color: var(--th-color-primary); text-align: right; white-space: nowrap; }
 .tableau-rdv tr:last-child td { border-bottom: none; }
-.col-visite   { background: #e8f8ee; }
+.col-visite   { background: var(--th-col-actuel-bg); }
 .col-rdv-fixe { background: var(--th-col-visite-bg); }
 .col-rdv-futur{ background: var(--th-col-rdvn-bg); }
 @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .row-bottom { grid-template-columns: 1fr; } }
@@ -467,7 +467,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
     <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
     <span                               class="btn-h grey"  >🏠 Dossier</span>
-    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:#27ae60;font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
+    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:var(--th-col-success);font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
     <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
     <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
@@ -506,7 +506,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 <div class="col-left">
     <div class="card">
         <div class="card-title">👤 Dossier patient
-            <span id="dossier_status" style="font-size:10px;color:#27ae60;font-weight:normal;"></span>
+            <span id="dossier_status" style="font-size:10px;color:var(--th-col-success);font-weight:normal;"></span>
         </div>
         <div style="text-align:center;margin-bottom:8px;">
             <button type="button" onclick="ouvrirPopupMAD('motif')"
@@ -616,9 +616,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         $rdvp_edc  = (strpos($rdvp_acte_str,'EDC')!==false)  ? 'EDC'  : '—';
         $rdvp_dtsa = (strpos($rdvp_acte_str,'DTSA')!==false) ? 'DTSA' : '—';
         // Actes Actuel (suggérés)
-        $act_ecg  = in_array('ECG',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">ECG</span>'  : '<span style="color:#27ae60;">✓</span>';
-        $act_edc  = in_array('EDC',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">EDC</span>'  : '<span style="color:#27ae60;">✓</span>';
-        $act_dtsa = in_array('DTSA', $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">DTSA</span>' : '<span style="color:#27ae60;">✓</span>';
+        $act_ecg  = in_array('ECG',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">ECG</span>'  : '<span style="color:var(--th-col-success);">✓</span>';
+        $act_edc  = in_array('EDC',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">EDC</span>'  : '<span style="color:var(--th-col-success);">✓</span>';
+        $act_dtsa = in_array('DTSA', $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">DTSA</span>' : '<span style="color:var(--th-col-success);">✓</span>';
         // Totaux historique
         $tot_ecg  = count($histECG);
         $tot_edc  = count($histEDC);
@@ -643,7 +643,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <th style="background:#1a4a7a;color:white;width:80px;"></th>
                     <th style="background:var(--th-col-visite);color:white;">🏥 Dernière visite</th>
                     <th style="background:var(--th-col-rdvp);color:white;">📅 RDV prévu</th>
-                    <th style="background:#27ae60;color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
+                    <th style="background:var(--th-col-success);color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
                     <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV"
                         style="background:var(--th-col-rdvn);color:white;">
                         📆 RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
@@ -662,14 +662,14 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                         <span style="color:var(--th-col-rdvp);font-size:11px;"><?= $rdvp_heure ?></span>
                     </td>
                     <td class="col-visite">
-                        <strong style="color:#27ae60;"><?= date('d/m/Y') ?></strong><br>
+                        <strong style="color:var(--th-col-success);"><?= date('d/m/Y') ?></strong><br>
                         <div style="display:flex;align-items:center;gap:3px;">
                             <input type="time" id="heure_consultation_acc"
                                    value="<?= $heureVisite ?>"
-                                   style="border:1px solid #b2dfb2;border-radius:3px;padding:1px 4px;font-size:11px;color:#27ae60;font-weight:bold;width:70px;background:#f0fff0;">
+                                   style="border:1px solid #b2dfb2;border-radius:3px;padding:1px 4px;font-size:11px;color:var(--th-col-success);font-weight:bold;width:70px;background:#f0fff0;">
                             <button type="button" onclick="enregistrerHeureVisite()"
                                     title="Enregistrer l'heure"
-                                    style="background:#27ae60;color:white;border:none;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;line-height:1.4;">💾</button>
+                                    style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;line-height:1.4;">💾</button>
                         </div>
                     </td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-date">
@@ -686,7 +686,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <td>⏱ Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?></td>
-                    <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
+                    <td class="col-visite" style="color:var(--th-col-success);font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-delai">
                         <span style="color:var(--th-col-rdvn);font-weight:bold;" id="acc-rdvp-delai-txt">—</span>
                     </td>
@@ -773,7 +773,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <td style="padding:4px 6px;color:var(--th-color-text-muted);font-size:11px;"><?= $da['date-H'] ? date('d/m/Y',strtotime($da['date-H'])) : '—' ?></td>
                     <td style="padding:4px 6px;"><?= htmlspecialchars($da['nom_acte'] ?? 'Acte '.$da['ACTE']) ?></td>
                     <td style="padding:4px 6px;text-align:right;"><?= number_format($da['Versé'],0,',',' ') ?></td>
-                    <td style="padding:4px 6px;text-align:right;color:<?=$da['dette']>0?'#e74c3c':'#27ae60'?>;"><?= number_format($da['dette'],0,',',' ') ?></td>
+                    <td style="padding:4px 6px;text-align:right;color:<?=$da['dette']>0?'#e74c3c':'var(--th-col-success)'?>;"><?= number_format($da['dette'],0,',',' ') ?></td>
                 </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -781,7 +781,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <tr>
                         <td colspan="2" style="padding:4px 6px;">Total</td>
                         <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['verse_total'],0,',',' ') ?> DH</td>
-                        <td style="padding:4px 6px;text-align:right;color:<?=$factCourante['dette_total']>0?'#e74c3c':'#27ae60'?>;"><?= number_format($factCourante['dette_total'],0,',',' ') ?> DH</td>
+                        <td style="padding:4px 6px;text-align:right;color:<?=$factCourante['dette_total']>0?'#e74c3c':'var(--th-col-success)'?>;"><?= number_format($factCourante['dette_total'],0,',',' ') ?> DH</td>
                     </tr>
                 </tfoot>
             </table>
@@ -791,12 +791,12 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚</button>
             </div>
             <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
             <div style="display:flex;justify-content:center;margin-top:8px;">
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
             </div>
             <?php endif; ?>
 
@@ -832,9 +832,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne('acc')" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfAjouterLigne('acc')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
                     <button type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
-                    <span id="nf_msg_acc" style="font-size:11px;color:#27ae60;align-self:center;"></span>
+                    <span id="nf_msg_acc" style="font-size:11px;color:var(--th-col-success);align-self:center;"></span>
                 </div>
             </div>
         </div>
@@ -870,7 +870,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;" title="Nouvelle ordonnance">✚</button>
+            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);" title="Nouvelle ordonnance">✚</button>
             <a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
             <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
         </div>
@@ -897,7 +897,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <th style="background:#1a4a7a;color:white;width:70px;"></th>
                     <th style="background:var(--th-col-visite);color:white;font-size:11px;">🏥 Dernière visite</th>
                     <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">📅 RDV prévu</th>
-                    <th style="background:#27ae60;color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
+                    <th style="background:var(--th-col-success);color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
                     <th style="background:var(--th-col-rdvn);color:white;font-size:11px;">📆 RDV prochain</th>
                 </tr>
             </thead>
@@ -913,14 +913,14 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                         <strong style="color:var(--th-col-rdvp);font-size:12px;"><?= $rdvp_heure ?></strong>
                     </td>
                     <td class="col-visite" style="text-align:center;">
-                        <strong style="color:#27ae60;font-size:13px;"><?= date('d/m/Y') ?></strong><br>
+                        <strong style="color:var(--th-col-success);font-size:13px;"><?= date('d/m/Y') ?></strong><br>
                         <div style="display:inline-flex;align-items:center;gap:3px;">
                             <input type="time" id="heure_consultation_cons"
                                    value="<?= $heureVisite ?>"
-                                   style="border:1px solid #b2dfb2;border-radius:3px;padding:1px 4px;font-size:11px;color:#27ae60;font-weight:bold;width:70px;background:#f0fff0;">
+                                   style="border:1px solid #b2dfb2;border-radius:3px;padding:1px 4px;font-size:11px;color:var(--th-col-success);font-weight:bold;width:70px;background:#f0fff0;">
                             <button type="button" onclick="enregistrerHeureVisite()"
                                     title="Enregistrer l'heure"
-                                    style="background:#27ae60;color:white;border:none;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;line-height:1.4;">💾</button>
+                                    style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;line-height:1.4;">💾</button>
                         </div>
                     </td>
                     <td class="col-rdv-futur" style="padding:4px;">
@@ -938,7 +938,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                             <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
                     <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)"
                             title="Enregistrer le RDV"
-                            style="background:#27ae60;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;">
+                            style="background:var(--th-col-success);color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="white" xmlns="http://www.w3.org/2000/svg">
                             <rect x="2" y="3" width="20" height="18" rx="2" ry="2" fill="none" stroke="white" stroke-width="1.5"/>
                             <rect x="5" y="3" width="14" height="8" rx="1" fill="white" opacity="0.3"/>
@@ -977,7 +977,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <td>⏱ Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?? '—' ?></td>
-                    <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
+                    <td class="col-visite" style="color:var(--th-col-success);font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
                 <!-- Ligne ECG -->
@@ -1093,7 +1093,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </td>
                     <td style="padding:4px 6px;"><?= htmlspecialchars($da['nom_acte'] ?? 'Acte '.$da['ACTE']) ?></td>
                     <td style="padding:4px 6px;text-align:right;"><?= number_format($da['Versé'], 0, ',', ' ') ?></td>
-                    <td style="padding:4px 6px;text-align:right;color:<?= $da['dette']>0?'#e74c3c':'#27ae60' ?>;"><?= number_format($da['dette'], 0, ',', ' ') ?></td>
+                    <td style="padding:4px 6px;text-align:right;color:<?= $da['dette']>0?'#e74c3c':'var(--th-col-success)' ?>;"><?= number_format($da['dette'], 0, ',', ' ') ?></td>
                 </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -1101,7 +1101,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <tr>
                         <td colspan="2" style="padding:4px 6px;">Total</td>
                         <td style="padding:4px 6px;text-align:right;"><?= number_format($factCourante['verse_total'], 0, ',', ' ') ?> DH</td>
-                        <td style="padding:4px 6px;text-align:right;color:<?= $factCourante['dette_total']>0?'#e74c3c':'#27ae60' ?>;"><?= number_format($factCourante['dette_total'], 0, ',', ' ') ?> DH</td>
+                        <td style="padding:4px 6px;text-align:right;color:<?= $factCourante['dette_total']>0?'#e74c3c':'var(--th-col-success)' ?>;"><?= number_format($factCourante['dette_total'], 0, ',', ' ') ?> DH</td>
                     </tr>
                 </tfoot>
             </table>
@@ -1111,13 +1111,13 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
             </div>
             <?php else: ?>
                 <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
                 <div style="display:flex;justify-content:center;margin-top:8px;">
-                    <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:#27ae60;">✚ Nouvelle facture</button>
+                    <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
                 </div>
             <?php endif; ?>
             </div>
@@ -1155,9 +1155,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne('cons')" style="background:#2ecc71;color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfAjouterLigne('cons')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
                     <button type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
-                    <span id="nf_msg_cons" style="font-size:11px;color:#27ae60;align-self:center;"></span>
+                    <span id="nf_msg_cons" style="font-size:11px;color:var(--th-col-success);align-self:center;"></span>
                 </div>
             </div>
 
@@ -1198,7 +1198,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;" title="Nouvelle ordonnance">✚</button>
+            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);" title="Nouvelle ordonnance">✚</button>
 			<a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
         <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
 		</div>
@@ -1276,7 +1276,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                 <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);">0 / 0</span>
                 <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
                 <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
-                <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:#27ae60;">✚</button>
+                <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);">✚</button>
             </div>
         <?php endif; ?>
 
@@ -1315,7 +1315,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
         <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;flex:1;text-align:center;"><?= $labelNav ?> <span style="color:var(--th-color-text-muted);font-weight:normal;">(<?= $posExam ?>)</span></span>
         <a href="<?= $urlNext ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Suivant (tous)">▶</a>
         <a href="<?= $urlLast ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus ancien (tous)">▶|</a>
-        <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="nav-btn" style="background:#27ae60;padding:1px 5px;font-size:11px;margin-left:2px;" title="Nouveau bilan">✚</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="nav-btn" style="background:var(--th-col-success);padding:1px 5px;font-size:11px;margin-left:2px;" title="Nouveau bilan">✚</a>
         <button type="button" onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;margin-left:4px;" title="Biologie → plus récent">🧪</button>
     </div>
     <div class="card">
@@ -1357,7 +1357,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
         </div>
         <?php endif; ?>
 <!-- ══ ECG COMPACT ══ -->
@@ -1386,7 +1386,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
         </div>
     </div>
 
@@ -1416,7 +1416,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:#27ae60;padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
         </div>
     </div>
 
@@ -1476,8 +1476,8 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 <!-- ══ POPUP NOUVELLE ORDONNANCE ══ -->
 <div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
     <div style="background:var(--th-bg-card);border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #27ae60;">
-            <strong style="color:#27ae60;font-size:15px;">✚ Nouvelle ordonnance</strong>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--th-col-success);">
+            <strong style="color:var(--th-col-success);font-size:15px;">✚ Nouvelle ordonnance</strong>
             <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -1504,9 +1504,9 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
                 <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
                 <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
-                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
-                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
-                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
+                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
+                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
+                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
             </div>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
                 <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
@@ -1536,9 +1536,9 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <tbody id="no_lignes"></tbody>
         </table>
         <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
-            <button type="button" onclick="noAjouterLigne()" style="background:#2ecc71;color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
+            <button type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
             <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600;">💾 Enregistrer</button>
-            <span id="no_msg" style="font-size:12px;color:#27ae60;"></span>
+            <span id="no_msg" style="font-size:12px;color:var(--th-col-success);"></span>
         </div>
     </div>
 
@@ -1623,7 +1623,7 @@ function sauvegarderChamp(champ, valeur) {
     fetch('ajax_maj_dossier.php', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ id:<?= $id ?>, champ, valeur }) })
     .then(r=>r.json()).then(data => {
-        if (s) { s.textContent=data.success?'✅ Enregistré':'❌ Erreur'; s.style.color=data.success?'#27ae60':'#e74c3c';
+        if (s) { s.textContent=data.success?'✅ Enregistré':'❌ Erreur'; s.style.color=data.success?'var(--th-col-success)':'#e74c3c';
             if(data.success) setTimeout(()=>{s.textContent='';},2000); }
     }).catch(()=>{ if(s){s.textContent='❌ Erreur réseau';s.style.color='#e74c3c';} });
 }
@@ -1970,7 +1970,7 @@ function rdvChargerCreneaux(date, prefixe, heureAuto) {
             divActes.appendChild(wrap);
         } else {
             const ok = document.createElement('div');
-            ok.style.cssText = 'font-size:11px;color:#27ae60;font-weight:bold;margin-top:4px;';
+            ok.style.cssText = 'font-size:11px;color:var(--th-col-success);font-weight:bold;margin-top:4px;';
             ok.textContent   = '✅ Actes à jour';
             divActes.appendChild(ok);
         }
@@ -2217,7 +2217,7 @@ function enregistrerHeureVisite() {
             // Feedback visuel discret : le bouton vire brièvement au vert foncé
             document.querySelectorAll('button[onclick="enregistrerHeureVisite()"]').forEach(btn => {
                 btn.style.background = '#1a7a3a';
-                setTimeout(() => btn.style.background = '#27ae60', 1200);
+                setTimeout(() => btn.style.background = 'var(--th-col-success)', 1200);
             });
         } else {
             alert('❌ Erreur : ' + (data.error || 'inconnue'));
@@ -2467,7 +2467,7 @@ function calcNbrJAcc() {
                 <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
                 <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
                 <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
-                        style="background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:bold;margin-left:auto;">
+                        style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:bold;margin-left:auto;">
                     📅 RDV
                 </button>
             </div>
@@ -2530,7 +2530,7 @@ function calcNbrJAcc() {
                 📋 Attestation de maladie de longue durée
             </a>
             <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
-               style="display:block;background:#27ae60;color:white;text-decoration:none;
+               style="display:block;background:var(--th-col-success);color:white;text-decoration:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 🏅 Certificat médical d'aptitude physique
             </a>
@@ -3304,7 +3304,7 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
             <button type="button" onclick="madToutDecocher()"
                 style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:4px 12px;font-size:11px;cursor:pointer;">✕ Tout décocher</button>
             <button type="button" onclick="madValiderTout()"
-                style="background:#27ae60;color:white;border:none;border-radius:3px;padding:4px 16px;font-size:12px;font-weight:bold;cursor:pointer;">✓ Valider et insérer</button>
+                style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:4px 16px;font-size:12px;font-weight:bold;cursor:pointer;">✓ Valider et insérer</button>
         </div>
     </div>
 </div>
