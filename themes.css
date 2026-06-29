@@ -19,6 +19,8 @@ body, body.theme-0 {
     --th-bg-page      : #f0f4f8;
     --th-bg-header    : linear-gradient(135deg, #1a4a7a, #2e6da4);
     --th-bg-header-s  : #1a4a7a;       /* couleur solide pour usages sans dégradé */
+    --th-col-header-accent : #FFD700;
+    --th-col-warn          : #f39c12;
     --th-bg-statsbar  : #ffffff;
     --th-bg-card      : #ffffff;
     --th-bg-link-hover: #f0f4f8;
@@ -59,6 +61,8 @@ body.theme-a {
     --th-bg-page      : #f0f4f8;
     --th-bg-header    : linear-gradient(135deg, #0d2b4e, #1a5276);
     --th-bg-header-s  : #0d2b4e;
+    --th-col-header-accent : #FFD700;
+    --th-col-warn          : #f39c12;
     --th-bg-statsbar  : #ffffff;
     --th-bg-card      : #ffffff;
     --th-bg-link-hover: #f5f0f0;
@@ -99,6 +103,8 @@ body.theme-b {
     --th-bg-page      : #0f0f1e;
     --th-bg-header    : linear-gradient(135deg, #1a1a2e, #16213e);
     --th-bg-header-s  : #1a1a2e;
+    --th-col-header-accent : #FFD700;
+    --th-col-warn          : #f39c12;
     --th-bg-statsbar  : #12122a;
     --th-bg-card      : #1a1a2e;
     --th-bg-link-hover: #12122a;
@@ -139,6 +145,8 @@ body.theme-c {
     --th-bg-page      : #fdf9f0;
     --th-bg-header    : linear-gradient(135deg, #2c3e50, #34495e);
     --th-bg-header-s  : #2c3e50;
+    --th-col-header-accent : #FFD700;
+    --th-col-warn          : #f39c12;
     --th-bg-statsbar  : #fdf5e8;
     --th-bg-card      : #ffffff;
     --th-bg-link-hover: #fdf5e8;

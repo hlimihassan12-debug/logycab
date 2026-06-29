@@ -362,9 +362,9 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
                 padding: 3px 10px; text-align: center; min-width: 130px; flex-shrink: 0; }
 .header-clock .ct { font-size: 15px; font-weight: bold; letter-spacing: 1px; color: white; }
 .header-clock .cd { font-size: 9px; opacity: 0.75; }
-.patient-bar { background: #000000; color: #FFD700; padding: 6px 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; }
-.patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: #FFD700; }
-.patient-bar .info span { font-weight: bold; color: #FFD700; }
+.patient-bar { background: #000000; color: var(--th-col-header-accent); padding: 6px 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; }
+.patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: var(--th-col-header-accent); }
+.patient-bar .info span { font-weight: bold; color: var(--th-col-header-accent); }
 .main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
 body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .col-left { display: flex; flex-direction: column; gap: 8px; }
@@ -387,7 +387,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .creneau-btn { padding: 3px 7px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; font-size: 11px; font-weight: bold; min-width: 48px; text-align: center; transition: transform 0.1s; }
 .creneau-btn:hover { transform: scale(1.08); }
 .creneau-btn.libre  { background: #27ae60; color: white; border-color: #1e8449; }
-.creneau-btn.moyen  { background: #f39c12; color: white; border-color: #d68910; }
+.creneau-btn.moyen  { background: var(--th-col-warn); color: white; border-color: #d68910; }
 .creneau-btn.plein  { background: #e74c3c; color: #fdd; border-color: #c0392b; cursor: not-allowed; opacity: 0.7; }
 .creneau-btn.selectionne { border-color: var(--th-btn-navy) !important; box-shadow: 0 0 0 3px rgba(26,74,122,0.35); transform: scale(1.1); }
 .creneaux-msg     { font-size: 11px; color: #e74c3c; margin-top: 4px; font-weight: bold; }
@@ -396,7 +396,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .jauge-bar  { flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
 .jauge-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
 .jauge-fill.ok   { background: #27ae60; }
-.jauge-fill.warn { background: #f39c12; }
+.jauge-fill.warn { background: var(--th-col-warn); }
 .jauge-fill.full { background: #e74c3c; }
 .row-bottom { padding: 0 8px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ta-val { font-size: 16px; font-weight: bold; }
@@ -491,11 +491,11 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
     <!-- Navigation patient -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
-        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
-        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
-        <span style="color:#FFD700;font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
-        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
-        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:#FFD700;text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
+        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
+        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
+        <span style="color:var(--th-col-header-accent);font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
+        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
+        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
     </div>
 </div>
 
