@@ -401,8 +401,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .row-bottom { padding: 0 8px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ta-val { font-size: 16px; font-weight: bold; }
 .fdr-badge { background: #ffe0e0; color: #c0392b; padding: 1px 6px; border-radius: 8px; font-size: 11px; margin: 1px; display: inline-block; }
-.delai-btn-rdv { padding: 3px 8px; border: 1px solid #8e44ad; border-radius: 3px; cursor: pointer; font-size: 11px; background:var(--th-bg-card); color: #8e44ad; }
-.delai-btn-rdv:hover, .delai-btn-rdv.actif { background: #8e44ad; color: white; }
+.delai-btn-rdv { padding: 3px 8px; border: 1px solid var(--th-col-rdvn); border-radius: 3px; cursor: pointer; font-size: 11px; background:var(--th-bg-card); color: var(--th-col-rdvn); }
+.delai-btn-rdv:hover, .delai-btn-rdv.actif { background: var(--th-col-rdvn); color: white; }
 .tableau-rdv { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 .tableau-rdv th { padding: 7px 6px; text-align: center; font-size: 11px; }
 .tableau-rdv td { padding: 5px 6px; border-bottom: 1px solid var(--th-sep-color); color: var(--th-color-text); }
@@ -410,7 +410,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .tableau-rdv tr:last-child td { border-bottom: none; }
 .col-visite   { background: #e8f8ee; }
 .col-rdv-fixe { background: var(--th-col-visite-bg); }
-.col-rdv-futur{ background: #f3eafb; }
+.col-rdv-futur{ background: var(--th-col-rdvn-bg); }
 @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .row-bottom { grid-template-columns: 1fr; } }
 
 /* ── Vue bascule ── */
@@ -426,8 +426,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .tbl-acc td { padding:5px 7px; border-bottom:1px solid var(--th-sep-color); text-align:center; font-size:12px; color: var(--th-color-text); }
 .tbl-acc td:first-child { background:var(--th-bg-link-hover); font-size:11px; font-weight:bold; color:var(--th-color-primary); text-align:right; white-space:nowrap; }
 .tbl-acc tr:last-child td { border-bottom:none; }
-.cell-rdv-prochain { background:#f3eafb; cursor:pointer; transition:background 0.2s; color:#333; }
-.cell-rdv-prochain:hover { background:#e8d5f5; }
+.cell-rdv-prochain { background:var(--th-col-rdvn-bg); cursor:pointer; transition:background 0.2s; color:#333; }
+.cell-rdv-prochain:hover { background:var(--th-col-rdvn-bg-hover); }
 .cell-rdv-vide { color:#ccc; font-size:18px; }
 
 /* ── Popup RDV prochain ── */
@@ -436,7 +436,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 .popup-rdv-ov.ouvert { display:flex !important; }
 .popup-rdv-box { background:var(--th-bg-card); border-radius:10px; padding:0; max-width:420px; width:96%;
     box-shadow:0 10px 40px rgba(0,0,0,0.3); overflow:hidden; }
-.popup-rdv-header { background:#8e44ad; color:white; padding:12px 16px;
+.popup-rdv-header { background:var(--th-col-rdvn); color:white; padding:12px 16px;
     display:flex; justify-content:space-between; align-items:center; }
 .popup-rdv-body { padding:14px 16px; color:#222; }
 </style>
@@ -644,7 +644,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <th style="background:var(--th-col-visite);color:white;">🏥 Dernière visite</th>
                     <th style="background:var(--th-col-rdvp);color:white;">📅 RDV prévu</th>
                     <th style="background:#27ae60;color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
-                    <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV">
+                    <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV"
+                        style="background:var(--th-col-rdvn);color:white;">
                         📆 RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
                 </tr>
             </thead>
@@ -673,8 +674,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     </td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-date">
                         <?php if ($rdvf_date): ?>
-                            <strong style="color:#8e44ad;"><?= $rdvf_date ?></strong><br>
-                            <span style="color:#8e44ad;font-size:11px;"><?= $rdvf_heure ?></span>
+                            <strong style="color:var(--th-col-rdvn);"><?= $rdvf_date ?></strong><br>
+                            <span style="color:var(--th-col-rdvn);font-size:11px;"><?= $rdvf_heure ?></span>
                         <?php else: ?>
                             <span class="cell-rdv-vide">＋</span>
                         <?php endif; ?>
@@ -687,7 +688,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?></td>
                     <td class="col-visite;color:#27ae60;font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-delai">
-                        <span style="color:#8e44ad;font-weight:bold;" id="acc-rdvp-delai-txt">—</span>
+                        <span style="color:var(--th-col-rdvn);font-weight:bold;" id="acc-rdvp-delai-txt">—</span>
                     </td>
                 </tr>
                 <!-- Ligne ECG -->
@@ -897,7 +898,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                     <th style="background:var(--th-col-visite);color:white;font-size:11px;">🏥 Dernière visite</th>
                     <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">📅 RDV prévu</th>
                     <th style="background:#27ae60;color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
-                    <th style="background:#8e44ad;color:white;font-size:11px;">📆 RDV prochain</th>
+                    <th style="background:var(--th-col-rdvn);color:white;font-size:11px;">📆 RDV prochain</th>
                 </tr>
             </thead>
             <tbody>
@@ -955,8 +956,8 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
                                    onchange="rdvDateChange(this.value,'rdv')"
                                    ondblclick="if(this.value) window.location.href='agenda.php?date='+this.value"
                                    title="Double-clic → ouvrir l'agenda ce jour"
-                                   style="flex:1;padding:3px 4px;border:1px solid #8e44ad;border-radius:3px;font-size:11px;cursor:pointer;">
-                            <div id="rdv_heure_affichage_cons" style="background:#e8d5f5;color:#8e44ad;padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;white-space:nowrap;">
+                                   style="flex:1;padding:3px 4px;border:1px solid var(--th-col-rdvn);border-radius:3px;font-size:11px;cursor:pointer;">
+                            <div id="rdv_heure_affichage_cons" style="background:var(--th-col-rdvn-bg-hover);color:var(--th-col-rdvn);padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;white-space:nowrap;">
                                 <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
                             </div>
                         </div>
@@ -1496,7 +1497,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
         </div>
         <div style="margin-bottom:12px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
-            <label style="font-size:10px;color:#8e44ad;font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
+            <label style="font-size:10px;color:var(--th-col-rdvn);font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
             <input type="hidden" id="no_rdv"   value="">
             <input type="hidden" id="no_heure" value="">
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
@@ -1509,8 +1510,8 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
                 <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
-                       style="flex:1;border:1px solid #8e44ad;border-radius:4px;padding:5px 8px;font-size:12px;">
-                <div id="no_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
+                       style="flex:1;border:1px solid var(--th-col-rdvn);border-radius:4px;padding:5px 8px;font-size:12px;">
+                <div id="no_heure_affichage" style="background:var(--th-col-rdvn-bg-hover);color:var(--th-col-rdvn);padding:5px 12px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">—:——</div>
             </div>
             <div class="jauge-jour" id="no_jauge" style="display:none;">
                 <span id="no_jauge_txt" style="white-space:nowrap;color:var(--th-color-text-muted);font-size:11px;"></span>
@@ -2298,7 +2299,7 @@ function mettreAJourAccueilRdv(date, heure, acte) {
     const cellDate = document.getElementById('acc-rdvp-date');
     if (cellDate) {
         const dateFr = date ? date.split('-').reverse().join('/') : '—';
-        cellDate.innerHTML = `<strong style="color:#8e44ad;">${dateFr}</strong>${heure ? '<br><span style="color:#8e44ad;font-size:11px;">'+heure+'</span>' : ''}`;
+        cellDate.innerHTML = `<strong style="color:var(--th-col-rdvn);">${dateFr}</strong>${heure ? '<br><span style="color:var(--th-col-rdvn);font-size:11px;">'+heure+'</span>' : ''}`;
     }
     // Délai (calculé depuis aujourd'hui)
     if (date) {
@@ -2318,7 +2319,7 @@ function mettreAJourAccueilRdv(date, heure, acte) {
         if (!el) return;
         const trouve = acte && acte.toUpperCase().indexOf(a.toUpperCase()) !== -1;
         el.innerHTML = trouve
-            ? `<span style="color:#8e44ad;font-weight:bold;">${a.toUpperCase()}</span>`
+            ? `<span style="color:var(--th-col-rdvn);font-weight:bold;">${a.toUpperCase()}</span>`
             : `<span style="color:#ccc;">—</span>`;
     });
 }
@@ -2476,8 +2477,8 @@ function calcNbrJAcc() {
                        onchange="rdvDateChange(this.value,'rdv')"
                        ondblclick="if(this.value) window.location.href='agenda.php?date='+this.value"
                        title="Double-clic → ouvrir l'agenda ce jour"
-                       style="flex:1;padding:5px 8px;border:1px solid #8e44ad;border-radius:4px;font-size:12px;cursor:pointer;">
-                <div id="rdv_heure_affichage" style="background:#e8d5f5;color:#8e44ad;padding:5px 10px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">
+                       style="flex:1;padding:5px 8px;border:1px solid var(--th-col-rdvn);border-radius:4px;font-size:12px;cursor:pointer;">
+                <div id="rdv_heure_affichage" style="background:var(--th-col-rdvn-bg-hover);color:var(--th-col-rdvn);padding:5px 10px;border-radius:4px;font-size:13px;font-weight:bold;white-space:nowrap;">
                     <?= !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '—:——' ?>
                 </div>
             </div>
@@ -2497,11 +2498,11 @@ function calcNbrJAcc() {
                 <input type="text" id="acte_rdv_futur" value="<?= htmlspecialchars($ordCourante['acte1'] ?? '') ?>"
                        oninput="syncActe(this.value,'rdv')"
                        placeholder="Acte…"
-                       style="width:100%;padding:4px 8px;border:1px solid #8e44ad;border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
+                       style="width:100%;padding:4px 8px;border:1px solid var(--th-col-rdvn);border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
                     <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
                     <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
-                        style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                        style="background:var(--th-col-rdvn);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
             </div>
