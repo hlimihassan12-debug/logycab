@@ -2,11 +2,34 @@
 require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
 $db = getDB();
-$modeInit = $_GET['mode'] ?? 'ajouter';
-// Thème
+
+// ── Compteur RDV du jour (pour le logo, comme sur les autres pages) ──
+$todayAff = date('Y-m-d');
+$stmtCfgG = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
+$stmtCfgG->execute();
+$nbrMaxG = (int)($stmtCfgG->fetchColumn() ?: 20);
+$stmtNbG = $db->prepare("
+    SELECT COUNT(*) FROM ORD
+    WHERE CONVERT(date,[DATE REDEZ VOUS]) = ? OR CONVERT(date,Date_Rdv) = ?
+");
+$stmtNbG->execute([$todayAff, $todayAff]);
+$nbPatientsG = (int)$stmtNbG->fetchColumn();
+
+function strftime_fr_g($date) {
+    $jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    $mois  = ['','Janvier','Février','Mars','Avril','Mai','Juin',
+               'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    $ts = strtotime($date);
+    return $jours[date('w',$ts)].' '.date('j',$ts).' '.$mois[(int)date('n',$ts)].' '.date('Y',$ts);
+}
+$dateAffG = strftime_fr_g($todayAff);
+
+// ── Thème (cookie partagé avec les autres pages) ──
 $themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
 $theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
 if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
+$modeInit = $_GET['mode'] ?? 'ajouter';
 if (!in_array($modeInit, ['ajouter','modifier','supprimer'])) $modeInit = 'ajouter';
 $idInit = (int)($_GET['id'] ?? 0);
 ?>
@@ -18,29 +41,41 @@ $idInit = (int)($_GET['id'] ?? 0);
 <link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-page); color:var(--th-color-text); }
+body { font-family:Arial,sans-serif; font-size:13px; background:var(--th-bg-page); color:var(--th-color-text); }
 
 .header {
     background:var(--th-bg-header);
     color:white; padding:8px 16px;
-    display:flex; align-items:center; gap:10px;
+    display:flex; align-items:center; gap:8px;
 }
+.logo-block { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.logo-block .heart { font-size:18px; color:#ff6b6b; }
+.logo-block .nom-logo { font-size:15px; font-weight:900; letter-spacing:1px; line-height:1.1; }
+.logo-block .sub { font-size:9px; opacity:0.85; white-space:nowrap; }
+.btn-search { background:rgba(255,255,255,0.18); border:none; color:white;
+    border-radius:4px; padding:4px 9px; cursor:pointer; font-size:13px; text-decoration:none;
+    display:inline-flex; align-items:center; }
+.btn-search:hover { background:rgba(255,255,255,0.3); }
 .header h1 { font-size:14px; margin-left:8px; }
 .bh { display:inline-flex; align-items:center; padding:4px 10px; border-radius:4px;
       font-size:11px; font-weight:bold; color:white; text-decoration:none;
-      border:none; cursor:pointer; }
-.bh-green  { background:#27ae60; }
+      border:none; cursor:pointer; white-space:nowrap; }
+.bh-green  { background:var(--th-btn-green); }
 .bh-red    { background:#c0392b; }
 .bh-navy   { background:var(--th-btn-navy); }
-.header-clock { margin-left:auto; background:rgba(255,255,255,0.12);
-    border-radius:6px; padding:4px 10px; text-align:center; }
+.bh-blue   { background:var(--th-btn-blue); }
+.bh-orange { background:#e67e22; }
+.bh-purple { background:#8e44ad; }
+.header-clock { background:rgba(255,255,255,0.12);
+    border-radius:6px; padding:4px 10px; text-align:center; flex-shrink:0; }
 .header-clock .ct { font-size:14px; font-weight:bold; }
 .header-clock .cd { font-size:9px; opacity:0.75; }
 
 .page { display:flex; justify-content:center; padding:24px 16px; }
 
 .carte { background:var(--th-bg-card); border-radius:6px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.1); width:500px; max-width:98vw; }
+    box-shadow:0 2px 12px rgba(0,0,0,0.1); width:500px; max-width:98vw;
+    border:1px solid var(--th-border-card); }
 
 .carte-titre {
     background:var(--th-bg-header);
@@ -58,7 +93,7 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
     border-bottom:2px solid transparent;
     margin-bottom:-2px; margin-right:4px;
 }
-.ong.on      { background:var(--th-color-secondary); color:white; border-bottom-color:var(--th-color-secondary); }
+.ong.on      { background:#2e6da4; color:white; border-bottom-color:#2e6da4; }
 .ong.del     { background:#fde8e8; color:#c0392b; }
 .ong.del.on  { background:#e74c3c; color:white; border-bottom-color:#e74c3c; }
 
@@ -71,7 +106,7 @@ table.f { width:100%; border-collapse:collapse; }
 table.f tr { border-bottom:1px solid #f0f0f0; }
 table.f tr:last-child { border-bottom:none; }
 table.f td { padding:6px 8px; vertical-align:middle; }
-table.f td.L { width:155px; font-size:11px; color:var(--th-color-text-muted); font-weight:bold; white-space:nowrap; }
+table.f td.L { width:155px; font-size:11px; color:#555; font-weight:bold; white-space:nowrap; }
 table.f td.V { }
 
 /* Champs */
@@ -83,22 +118,22 @@ table.f td.V { }
 .inp:focus { outline:none; border-color:#2e6da4; box-shadow:0 0 0 2px rgba(46,109,164,0.12); }
 .inp.err { border-color:#e74c3c; background:#fff8f8; }
 .info-box {
-    background:var(--th-bg-link-hover); border:1px solid var(--th-border-statsbar);
+    background:#f4f7fa; border:1px solid #dde3ea;
     border-radius:3px; padding:5px 7px;
-    font-size:12px; color:var(--th-color-primary); font-weight:bold;
+    font-size:12px; color:#1a4a7a; font-weight:bold;
 }
 
 /* Age + DDN */
 .age-row { display:flex; gap:8px; align-items:flex-start; }
 .age-bloc { width:60px; text-align:center; }
-.age-val { font-size:18px; font-weight:bold; color:var(--th-color-primary);
+.age-val { font-size:18px; font-weight:bold; color:#1a4a7a;
     background:#f0f4f8; border:1px solid #dde3ea;
     border-radius:3px; padding:3px 6px; display:block; }
 .age-lbl { font-size:9px; color:#888; }
 .age-inp { width:60px; padding:5px 7px; border:1px solid #ccd6e0;
     border-radius:3px; font-size:14px; font-weight:bold;
     color:#1a4a7a; text-align:center; font-family:Arial,sans-serif; }
-.age-inp:focus { outline:none; border-color:var(--th-color-secondary); }
+.age-inp:focus { outline:none; border-color:#2e6da4; }
 
 /* Radios */
 .radios { display:flex; flex-direction:column; gap:3px; padding:2px 0; }
@@ -114,7 +149,7 @@ table.f td.V { }
 /* Zone recherche */
 .zrech { display:flex; gap:6px; margin-bottom:12px; }
 .zrech input { flex:1; padding:5px 8px; border:1px solid #ccd6e0; border-radius:3px; font-size:12px; }
-.zrech button { background:var(--th-btn-navy); color:white; border:none; border-radius:3px;
+.zrech button { background:#1a4a7a; color:white; border:none; border-radius:3px;
     padding:5px 12px; font-size:12px; font-weight:bold; cursor:pointer; }
 
 /* Alerte */
@@ -143,21 +178,28 @@ table.f td.V { }
 
 <script src="home.js"></script>
 <div class="header">
-    <a href="recherche.php" class="bh bh-navy" title="Rechercher un patient">🔍</a>
-    <a href="index.php"     class="bh bh-red">🏠 Accueil</a>
-    <button onclick="goHome()" class="bh bh-green">🏠 Dossier</button>
-    <button onclick="voirApercu()" class="bh bh-navy" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
-    <a href="agenda.php"    class="bh bh-navy">📅 Agenda</a>
-    <a href="planning.php"  class="bh bh-navy" style="background:#2e6da4;">📊 Planning</a>
-    <a href="grille_semaine.php" class="bh bh-navy" style="background:#2e6da4;">📋 Grille</a>
-    <button onclick="voirBiologie()" class="bh bh-navy" style="background:#e67e22;">🧪 Biologie</button>
-    <a href="jours_feries.php" class="bh bh-navy" style="background:#8e44ad;">📅 Fériés</a>
-    <a href="logout.php" class="bh bh-navy" style="background:#e74c3c;" title="Déconnexion">⏻</a>
-    <h1>👤 Gestion des patients</h1>
-    <div class="header-clock" style="margin-left:auto;">
-        <div class="ct" id="clockTime">--:--:--</div>
-        <div class="cd" id="clockDate">---</div>
+    <div class="logo-block">
+        <span class="heart">❤</span>
+        <div>
+            <div class="nom-logo">LOGYCAB</div>
+            <div class="sub"><?= $nbPatientsG ?> RDV aujourd'hui / <?= $nbrMaxG ?> prévus</div>
+        </div>
     </div>
+    <a href="recherche.php" class="btn-search" title="Recherche">🔍</a>
+    <div style="flex:1;"></div>
+    <a href="index.php"            class="bh bh-red">🏠 Accueil</a>
+    <button onclick="goHome()"     class="bh bh-green">🏠 Dossier</button>
+    <button onclick="voirApercu()" class="bh bh-green">📋 Aperçu</button>
+    <a href="agenda.php"           class="bh bh-navy">📅 Agenda</a>
+    <a href="planning.php"         class="bh bh-blue">📊 Planning</a>
+    <a href="grille_semaine.php"   class="bh bh-blue">📋 Grille</a>
+    <button onclick="voirBiologie()" class="bh bh-orange">🧪 Biologie</button>
+    <a href="jours_feries.php"     class="bh bh-purple">📅 Fériés</a>
+    <div class="header-clock">
+        <div class="ct" id="clockTime">--:--:--</div>
+        <div class="cd" id="clockDate"><?= htmlspecialchars($dateAffG) ?></div>
+    </div>
+    <a href="logout.php" class="bh bh-red" title="Déconnexion">⏻</a>
 </div>
 
 <div class="page">

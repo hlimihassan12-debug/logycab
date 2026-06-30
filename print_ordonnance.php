@@ -201,7 +201,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         <div class="med-detail">
             <span class="med-poso"><?= htmlspecialchars($m['posologie'] ?? '') ?></span>
             <?php if (!empty($m['DUREE'])): ?>
-            <span class="med-duree">Traitement de <?= htmlspecialchars($m['DUREE']) ?></span>
+            <span class="med-duree">Tt de <?= htmlspecialchars(preg_replace('/^traitement\s*(de)?\s*/i', '', trim($m['DUREE']))) ?></span>
             <?php endif; ?>
         </div>
     </div>

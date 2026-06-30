@@ -403,6 +403,12 @@ function rdvSetDelai(mois, jours) {
 let rowIdx = <?= count($medicaments) ?>;
 
 function ajouterLigne() {
+    const dateVal = document.getElementById('date_ordon').value;
+    if (!dateVal) {
+        alert('⛔ Renseignez d\'abord la date de l\'ordonnance avant d\'ajouter un médicament.');
+        document.getElementById('date_ordon').focus();
+        return;
+    }
     const tbody = document.getElementById('meds_tbody');
     const i = rowIdx++;
 
