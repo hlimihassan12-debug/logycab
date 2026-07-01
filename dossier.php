@@ -365,9 +365,9 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .patient-bar { background: #000000; color: var(--th-col-header-accent); padding: 6px 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: var(--th-col-header-accent); }
 .patient-bar .info span { font-weight: bold; color: var(--th-col-header-accent); }
-.main { display: grid; grid-template-columns: 200px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
-body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
-.col-left { display: flex; flex-direction: column; gap: 8px; }
+.main { display: grid; grid-template-columns: 320px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
+body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
+.col-left { display: flex; flex-direction: column; gap: 8px; padding-top: 32px; }
 .col-mid  { display: flex; flex-direction: column; gap: 8px; }
 .col-right{ display: flex; flex-direction: column; gap: 8px; }
 .card { background: var(--th-bg-card); border-radius: 6px; padding: 10px; box-shadow: 0 1px 4px var(--th-border-card); }
@@ -489,6 +489,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
     <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
     <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
+    <div class="info"><label>🏥 Recrutement</label><span><?= $datePVAff ?></span></div>
     <!-- Navigation patient -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
         <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
@@ -504,35 +505,68 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
 <!-- ══ COLONNE GAUCHE ══ -->
 <div class="col-left">
-    <div class="card">
-        <div class="card-title">👤 Dossier patient
-            <span id="dossier_status" style="font-size:10px;color:var(--th-col-success);font-weight:normal;"></span>
+    <?php
+    $fdrs = [];
+    $nomsfdrs = [
+        'FDR_Age'=>"L'âge",'FDR_ATCD_IDM_Fam'=>'ATCD IDM famille','FDR_ATCD_AVC_Fam'=>'ATCD AVC',
+        'FDR_Tabac'=>'Tabagisme','FDR_Diabete'=>'Diabète','FDR_HTA'=>'HTA',
+        'FDR_LDL_Oui'=>'LDL cholestérol','FDR_TG_Oui'=>'Triglycérides',
+        'FDR_Obesite'=>'Obésité','FDR_Surpoids'=>'Surpoids','FDR_Tour_Taille'=>'Tour de taille',
+        'FDR_Sedentarite'=>'Sédentarité','FDR_Synd_Metabolique'=>'Synd. métabolique',
+        'FDR_Stress_Depression'=>'Stress/Dépression','FDR_Sommeil'=>'Troubles du sommeil','FDR_Drogues'=>'Drogues',
+    ];
+    if ($examen) { foreach ($nomsfdrs as $champFDR => $nomFDR) { if (!empty($examen[$champFDR])) $fdrs[] = $nomFDR; } }
+    ?>
+
+    <!-- Motif -->
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:var(--th-btn-navy);border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
+            <span style="font-size:11px;font-weight:bold;color:white;">📋 Motif</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
         </div>
-        <div style="text-align:center;margin-bottom:8px;">
-            <button type="button" onclick="ouvrirPopupMAD('motif')"
-                style="background:#1a4a7a;color:white;border:none;border-radius:5px;padding:4px 14px;font-size:11px;font-weight:bold;cursor:pointer;letter-spacing:0.5px;">
-                MDC | ATCD | DIC | FDR
-            </button>
+        <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+        ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
+    </div>
+
+    <!-- Antécédents -->
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#e67e22;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
+            <span style="font-size:11px;font-weight:bold;color:white;">📂 Antécédents</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
         </div>
-        <?php
-        $fdrs = [];
-        $nomsfdrs = [
-            'FDR_Age'=>"L'âge",'FDR_ATCD_IDM_Fam'=>'ATCD IDM famille','FDR_ATCD_AVC_Fam'=>'ATCD AVC',
-            'FDR_Tabac'=>'Tabagisme','FDR_Diabete'=>'Diabète','FDR_HTA'=>'HTA',
-            'FDR_LDL_Oui'=>'LDL cholestérol','FDR_TG_Oui'=>'Triglycérides',
-            'FDR_Obesite'=>'Obésité','FDR_Surpoids'=>'Surpoids','FDR_Tour_Taille'=>'Tour de taille',
-            'FDR_Sedentarite'=>'Sédentarité','FDR_Synd_Metabolique'=>'Synd. métabolique',
-            'FDR_Stress_Depression'=>'Stress/Dépression','FDR_Sommeil'=>'Troubles du sommeil','FDR_Drogues'=>'Drogues',
-        ];
-        if ($examen) { foreach ($nomsfdrs as $champFDR => $nomFDR) { if (!empty($examen[$champFDR])) $fdrs[] = $nomFDR; } }
-        ?>
+        <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+        ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
+    </div>
+
+    <!-- Facteurs de risque -->
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#c0392b;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
+            <span style="font-size:11px;font-weight:bold;color:white;">⚠️ Facteurs de risque</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#8e44ad;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
+        </div>
+        <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+        ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
+    </div>
+
+    <!-- Diagnostic -->
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#27ae60;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
+            <span style="font-size:11px;font-weight:bold;color:white;">🩺 Diagnostic</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
+        </div>
+        <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+        ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
     </div>
 
     <!-- Remarque patient -->
     <div class="card" style="flex:1;">
         <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">📝 Remarque</div>
         <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:80px;field-sizing:content;box-sizing:border-box;"
+            style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:60px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
     </div>
 
@@ -592,8 +626,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
              VUE ACCUEIL
         ══════════════════════════════════════════════════ -->
         <div id="section-accueil">
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:10px;align-items:start;">
-        <div><!-- COL GAUCHE : tableau + médicaments -->
+
         <?php
         // ── Calculs spécifiques vue accueil ──────────────────
         $rdvp_delai = '—';
@@ -628,12 +661,43 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
         $rdvf_heure = !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '';
         $rdvf_acte  = htmlspecialchars($ordCourante['acte1'] ?? '');
         // Heure visite enregistrée
-        $heureVisite = htmlspecialchars($ordCourante['HeureVisite'] ?? '');
+        $heureVisite = htmlspecialchars($ordCourante['HeureRDV'] ?? '');
         ?>
 
-        <!-- Recrutement accueil -->
-        <div style="font-size:11px;color:var(--th-color-text-muted);margin-bottom:6px;">
-            <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
+        <!-- MÉDICAMENTS (identique) -->
+        <div class="champ" style="margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
+            </div>
+            <?php if (!empty($medicaments)): ?>
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Médicament</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Posologie</span>
+                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Durée</span>
+            </div>
+            <?php foreach ($medicaments as $m): ?>
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
+                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+            </div>
+            <?php endforeach; ?>
+            <?php else: ?><p style="color:var(--th-color-text-muted);font-size:12px;">Aucun médicament</p><?php endif; ?>
+        </div>
+
+        <!-- NAVIGATION ORDONNANCE (vue accueil) -->
+        <div class="nav-ord-barre">
+            <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
+            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
+            <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
+            <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
+            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);" title="Nouvelle ordonnance">✚</button>
+            <a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
+            <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
         </div>
 
         <!-- Tableau principal accueil -->
@@ -718,35 +782,15 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             </tbody>
         </table>
 
-        <!-- MÉDICAMENTS (identique) -->
-        <div class="champ" style="margin-top:4px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
-                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
-            </div>
-            <?php if (!empty($medicaments)): ?>
-            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
-                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Médicament</span>
-                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Posologie</span>
-                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Durée</span>
-            </div>
-            <?php foreach ($medicaments as $m): ?>
-            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
-                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-            </div>
-            <?php endforeach; ?>
-            <?php else: ?><p style="color:var(--th-color-text-muted);font-size:12px;">Aucun médicament</p><?php endif; ?>
-        </div>
 
-        </div><!-- FIN COL GAUCHE ACCUEIL -->
-        <div><!-- COL DROITE : facturation + certificat -->
+
+        <!-- FACTURATION + CERTIFICAT côte à côte -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+        <div><!-- Facturation -->
+
 
         <!-- FACTURATION ACCUEIL (sans colonne Prix) -->
-        <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+        <div>
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
                 <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">💰 Facturation</span>
                 <?php if ($factCourante): ?>
@@ -839,8 +883,9 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             </div>
         </div>
 
-        <!-- CERTIFICAT (bouton seulement, zone cachée) -->
-        <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+        </div><!-- FIN Facturation -->
+        <div><!-- Certificat -->
+        <div>
             <button type="button"
                 onclick="var z=document.getElementById('cert-zone-acc');z.style.display=z.style.display==='none'?'block':'none'"
                 style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
@@ -860,20 +905,10 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
             </div>
         </div>
 
-        </div><!-- FIN COL DROITE ACCUEIL -->
-        </div><!-- FIN GRILLE ACCUEIL -->
 
-        <!-- NAVIGATION ORDONNANCE (vue accueil) -->
-        <div class="nav-ord-barre">
-            <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
-            <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
-            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
-            <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
-            <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);" title="Nouvelle ordonnance">✚</button>
-            <a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
-            <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
-        </div>
+        </div><!-- FIN Certificat -->
+        </div><!-- FIN grille Fact+Cert -->
+
 
         </div><!-- FIN section-accueil -->
 
@@ -881,11 +916,6 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
              VUE CONSULTATION (identique à l'original)
         ══════════════════════════════════════════════════ -->
         <div id="section-consultation" style="display:none;">
-
-        <!-- Recrutement consultation -->
-        <div style="font-size:11px;color:var(--th-color-text-muted);margin-bottom:6px;">
-            <span>🏥 <strong>Recrutement :</strong> <?= $datePVAff ?></span>
-        </div>
 
         <div id="ord-affichage" style="display:grid;grid-template-columns:1fr 380px;gap:8px;align-items:start;margin-bottom:8px;">
 
@@ -1205,66 +1235,7 @@ body.vue-accueil .main { grid-template-columns: 200px 1fr 320px; }
 
         </div><!-- FIN vue-ordonnance -->
 
-        <!-- ── Grille Motif / Antécédents / FDR / Diagnostic ── -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-top:8px;border-top:2px solid #e0e8f0;padding-top:6px;">
 
-            <!-- Motif de consultation -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">📋 Motif</span>
-                    <div style="display:flex;gap:3px;">
-                        <button type="button" onclick="ouvrirPopupMAD('motif')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Motif">📋</button>
-                        <button type="button" onclick="viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
-                    </div>
-                </div>
-                <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
-                ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
-            </div>
-
-            <!-- Antécédents -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">📂 Antécédents</span>
-                    <div style="display:flex;gap:3px;">
-                        <button type="button" onclick="ouvrirPopupMAD('atcd')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Antécédents">📋</button>
-                        <button type="button" onclick="viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
-                    </div>
-                </div>
-                <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
-                ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
-            </div>
-
-            <!-- Facteurs de risque -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">⚠️ Facteurs de risque</span>
-                    <div style="display:flex;gap:3px;">
-                        <button type="button" onclick="ouvrirPopupMAD('fdr')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Facteurs de risque">📋</button>
-                        <button type="button" onclick="viderChamp('champ_fdr','CHAMP_FDR')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
-                    </div>
-                </div>
-                <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
-                ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
-            </div>
-
-            <!-- Diagnostic -->
-            <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:5px 6px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:11px;font-weight:bold;color:var(--th-color-primary);">🩺 Diagnostic</span>
-                    <div style="display:flex;gap:3px;">
-                        <button type="button" onclick="ouvrirPopupMAD('diag')" style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;" title="Ouvrir liste Diagnostic">📋</button>
-                        <button type="button" onclick="viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;">✕</button>
-                    </div>
-                </div>
-                <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
-                    style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:55px;field-sizing:content;"
-                ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
-            </div>
-
-        </div><!-- fin grille MAD -->
 
         </div><!-- FIN section-consultation -->
 
@@ -1308,7 +1279,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 <div class="col-right" id="col-right-exam">
 
     <!-- Barre navigation globale — en tête de col-right -->
-    <div style="background:#e8f0fa;border:1px solid #c5d8ed;border-radius:5px;padding:4px 8px;display:flex;align-items:center;gap:3px;">
+    <div style="background:var(--th-bg-link-hover);border:1px solid var(--th-border-card);border-radius:5px;padding:4px 8px;display:flex;align-items:center;gap:3px;">
         <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;margin-right:4px;">🔀</span>
         <a href="<?= $urlFirst ?>" class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus récent (tous)">|◀</a>
         <a href="<?= $urlPrev ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Précédent (tous)">◀</a>

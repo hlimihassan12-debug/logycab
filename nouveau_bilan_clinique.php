@@ -635,7 +635,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Examen</label>
         <textarea id="apercu_examen" name="CMLM_EXAMEN"
-            style="min-height:45px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:11px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
     </form>
 </div>
@@ -856,7 +856,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="champ" style="margin-top:6px;">
         <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport ECG</label>
         <textarea id="apercu_ecg" name="CMLM_ECG"
-            style="min-height:65px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:11px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
     </div>
     </form>
 </div>
@@ -866,7 +866,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 ══════════════════════════════════════════════ -->
 <div class="col-card">
     <!-- ══ 🫀 Echo-Doppler ══ -->
-    <div style="margin-top:8px;padding-top:6px;border-top:2px solid #e0e0e0;">
     <form id="form-echo">
     <input type="hidden" name="onglet" value="echo">
     <input type="hidden" name="ajax" value="1">
@@ -1277,28 +1276,122 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
         <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Echo</label>
         <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:80px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:11px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
             oninput="majApercuEcho(); autoResize(this)"></textarea>
     </div>
     </form>
-    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
-     COLONNE 4 : CONDUITE A TENIR + BIOLOGIE
+     COLONNE 4 : BIOLOGIE
 ══════════════════════════════════════════════ -->
 <div class="col-card">
-    <div>
-    <div style="display:flex;align-items:center;gap:5px;margin:10px 0 6px;">
-        <button type="button" onclick="toggleConduitePanel()" title="Choisir dans la liste"
-            style="flex:1;background:var(--th-btn-blue);color:white;border:none;border-radius:3px;padding:4px 8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:left;">📋 Au total CAT</button>
-        <button type="button"
-            onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
-            style="background:#27ae60;color:white;border:none;border-radius:3px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
+    <!-- ══ 🧪 Biologie ══ -->
+    <div class="col-title">
+        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🧪 Biologie</span>
+        <a href="biologie.php?id=<?= $id ?>" target="_blank"
+           style="background:#e67e22;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:bold;text-decoration:none;white-space:nowrap;">✚ Saisir</a>
     </div>
 
-    <!-- Panneau Conduite à tenir (caché par défaut) -->
-    <div id="panel_conduite" style="display:none;border:1px solid var(--th-border-statsbar);border-radius:4px;padding:6px 8px;background:var(--th-bg-link-hover);margin-bottom:4px;max-height:340px;overflow-y:auto;">
+    <?php if (empty($bilansNBC)): ?>
+        <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun bilan enregistré</p>
+    <?php else: ?>
+
+    <!-- Historique compact : date + anormaux en surbrillance -->
+    <div style="margin-bottom:10px;">
+        <div class="sec" style="margin-top:0;">Historique (3 derniers)</div>
+        <?php foreach ($bilansNBC as $bNBC):
+            $anormaux = array_filter($bNBC['lignes'], fn($l) => trim($l['resultat']) !== '' && strtoupper(trim($l['resultat'])) !== 'N');
+        ?>
+        <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
+            <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
+            <?php if (!empty($anormaux)): ?>
+            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
+            <?php foreach ($anormaux as $an): ?>
+            <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
+                <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
+            </span>
+            <?php endforeach; ?>
+            <?php else: ?>
+            <span style="font-size:10px;color:#27ae60;margin-left:4px;">— Normal</span>
+            <?php endif; ?>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Détail du bilan sélectionné (navigation) -->
+    <div class="sec">Détail bilan</div>
+
+    <!-- Barre de navigation bilans -->
+    <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">
+            <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
+        </span>
+        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+    </div>
+
+    <!-- Zone résultats du bilan sélectionné -->
+    <div id="bio-nbc-resultats" style="font-size:11px;display:block;">
+        <?php if ($bilansNBC): ?>
+        <?php foreach ($bilansNBC[0]['lignes'] as $lig):
+            $v = trim($lig['resultat']);
+            $an = ($v !== '' && strtoupper($v) !== 'N');
+        ?>
+        <div style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #f8f8f8;">
+            <span style="color:<?= $an ? '#c0392b' : '#aaa' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;">
+                <?= htmlspecialchars($lig['nom']) ?>
+            </span>
+            <span style="color:<?= $an ? '#c0392b' : '#bbb' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
+                <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
+            </span>
+        </div>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+
+    <?php endif; ?>
+
+</div>
+
+</div><!-- FIN cols -->
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;margin-top:10px;">
+    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📋 Motif</span>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+    </div>
+    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📂 Antécédents</span>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+    </div>
+    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">⚠️ Facteurs de risque</span>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+    </div>
+    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Diagnostic</span>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+    </div>
+    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
+        <div style="margin-bottom:4px;display:flex;align-items:center;gap:5px;">
+            <button type="button" onclick="toggleConduitePanel()" title="Choisir dans la liste"
+                style="flex:1;background:var(--th-btn-blue);color:white;border:none;border-radius:3px;padding:4px 8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:left;">&#x1F4CB; Au total CAT</button>
+            <button type="button"
+                onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
+                style="background:#27ae60;color:white;border:none;border-radius:3px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">&#x25B6; G&eacute;n&eacute;rer &amp; &#x1F4BE;</button>
+        </div>
+        <div id="panel_conduite" style="display:none;border:1px solid var(--th-border-statsbar);border-radius:4px;padding:6px 8px;background:var(--th-bg-link-hover);margin-bottom:4px;max-height:340px;overflow-y:auto;">
 
         <!-- ══ SECTION 1 : Maladie chronique (ex-CMLM) ══ -->
         <div class="cat-section">
@@ -1401,110 +1494,12 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <input type="text" id="cat_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;" oninput="majConduiteTextarea()">
         </div>
     </div>
-
-    <div class="champ">
+        <div class="champ">
         <textarea name="Conduite_ATenir" id="conduite_textarea" form="form-examen" style="min-height:70px;" placeholder="Cliquez 📋 pour choisir, ou saisie directe…"></textarea>
     </div>
     </div>
-    <!-- ══ 🧪 Biologie ══ -->
-    <div style="margin-top:8px;padding-top:6px;border-top:2px solid #e0e0e0;">
-    <div class="col-title">
-        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;">🧪 Biologie</span>
-        <a href="biologie.php?id=<?= $id ?>" target="_blank"
-           style="background:#e67e22;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:bold;text-decoration:none;white-space:nowrap;">✚ Saisir</a>
-    </div>
+</div><!-- fin bandeau 5 cartes -->
 
-    <?php if (empty($bilansNBC)): ?>
-        <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun bilan enregistré</p>
-    <?php else: ?>
-
-    <!-- Historique compact : date + anormaux en surbrillance -->
-    <div style="margin-bottom:10px;">
-        <div class="sec" style="margin-top:0;">Historique (3 derniers)</div>
-        <?php foreach ($bilansNBC as $bNBC):
-            $anormaux = array_filter($bNBC['lignes'], fn($l) => trim($l['resultat']) !== '' && strtoupper(trim($l['resultat'])) !== 'N');
-        ?>
-        <div style="padding:4px 0;border-bottom:1px solid #f0f0f0;">
-            <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= htmlspecialchars($bNBC['date_fr']) ?></span>
-            <?php if (!empty($anormaux)): ?>
-            <span style="font-size:10px;color:#555;margin-left:4px;">:</span>
-            <?php foreach ($anormaux as $an): ?>
-            <span style="display:inline-block;background:#fdecea;color:#c0392b;font-weight:bold;font-size:10px;border-radius:3px;padding:0 4px;margin:1px 2px;">
-                <?= htmlspecialchars($an['nom']) ?> <?= htmlspecialchars($an['resultat']) ?>
-            </span>
-            <?php endforeach; ?>
-            <?php else: ?>
-            <span style="font-size:10px;color:#27ae60;margin-left:4px;">— Normal</span>
-            <?php endif; ?>
-        </div>
-        <?php endforeach; ?>
-    </div>
-
-    <!-- Détail du bilan sélectionné (navigation) -->
-    <div class="sec">Détail bilan</div>
-
-    <!-- Barre de navigation bilans -->
-    <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">
-            <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
-        </span>
-        <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
-    </div>
-
-    <!-- Zone résultats du bilan sélectionné -->
-    <div id="bio-nbc-resultats" style="font-size:11px;display:block;">
-        <?php if ($bilansNBC): ?>
-        <?php foreach ($bilansNBC[0]['lignes'] as $lig):
-            $v = trim($lig['resultat']);
-            $an = ($v !== '' && strtoupper($v) !== 'N');
-        ?>
-        <div style="display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #f8f8f8;">
-            <span style="color:<?= $an ? '#c0392b' : '#aaa' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;">
-                <?= htmlspecialchars($lig['nom']) ?>
-            </span>
-            <span style="color:<?= $an ? '#c0392b' : '#bbb' ?>;font-weight:<?= $an ? 'bold' : 'normal' ?>;font-size:<?= $an ? '11px' : '10px' ?>;margin-left:6px;white-space:nowrap;">
-                <?= $v !== '' ? htmlspecialchars($v) : '—' ?>
-            </span>
-        </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-    <?php endif; ?>
-    </div>
-</div>
-
-</div><!-- FIN cols -->
-
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:10px;">
-    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📋 Motif</span>
-        </div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
-    </div>
-    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📂 Antécédents</span>
-        </div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
-    </div>
-    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">⚠️ Facteurs de risque</span>
-        </div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
-    </div>
-    <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Diagnostic</span>
-        </div>
-        <div style="font-size:11px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
-    </div>
-</div>
 
 
 
