@@ -123,6 +123,12 @@ function dateActe($row) {
     return ($ts && $ts > 86400) ? date('d/m/y', $ts) : '—';
 }
 
+// Renvoie "02/07/2026 (jeudi)" à partir d'un timestamp
+function dateAvecJour($ts) {
+    $jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+    return date('d/m/Y', $ts) . ' (' . $jours[(int)date('w', $ts)] . ')';
+}
+
 // ── DATE RECRUTEMENT — calculée ICI, avant tout usage ──
 $datePremVisite = null;
 if (!empty($patient['DateRecrt'])) {
@@ -365,17 +371,17 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .patient-bar { background: #000000; color: var(--th-col-header-accent); padding: 6px 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 12px; }
 .patient-bar .info label { font-size: 10px; opacity: 0.8; text-transform: uppercase; display: block; color: var(--th-col-header-accent); }
 .patient-bar .info span { font-weight: bold; color: var(--th-col-header-accent); }
-.main { display: grid; grid-template-columns: 320px 1fr 320px; gap: 8px; padding: 8px; align-items: start; }
-body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
+.main { display: grid; grid-template-columns: 400px 1fr 400px; gap: 8px; padding: 8px; align-items: start; }
+body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 .col-left { display: flex; flex-direction: column; gap: 8px; padding-top: 32px; }
 .col-mid  { display: flex; flex-direction: column; gap: 8px; }
 .col-right{ display: flex; flex-direction: column; gap: 8px; }
 .card { background: var(--th-bg-card); border-radius: 6px; padding: 10px; box-shadow: 0 1px 4px var(--th-border-card); }
 .card-title { color: var(--th-color-primary); font-size: 12px; font-weight: bold; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid var(--th-border-statsbar); display: flex; justify-content: space-between; align-items: center; }
 .nav-btns { display: flex; gap: 3px; }
-.nav-btn { background: var(--th-btn-navy); color: white; border: none; padding: 3px 7px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
+.nav-btn { background: var(--th-btn-navy); color: white; border: none; padding: 5px 11px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
 .nav-btn:hover { background: var(--th-color-secondary); }
-.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 3px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); }
+.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); }
 .champ { margin-bottom: 6px; }
 .champ label { font-size: 10px; color: var(--th-color-text-muted); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
 .champ input, .champ select, .champ textarea { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; color: #222; background:var(--th-bg-card); }
@@ -422,7 +428,8 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
 
 /* ── Tableau accueil ── */
 .tbl-acc { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px; border-radius:6px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.12); }
-.tbl-acc th { padding:6px 8px; text-align:center; font-size:11px; }
+.tbl-acc th { padding:10px 14px; text-align:center; font-size:11px; border-right:2px solid rgba(255,255,255,0.25); }
+.tbl-acc th:last-child { border-right:none; }
 .tbl-acc td { padding:5px 7px; border-bottom:1px solid var(--th-sep-color); text-align:center; font-size:12px; color: var(--th-color-text); }
 .tbl-acc td:first-child { background:var(--th-bg-link-hover); font-size:11px; font-weight:bold; color:var(--th-color-primary); text-align:right; white-space:nowrap; }
 .tbl-acc tr:last-child td { border-bottom:none; }
@@ -521,52 +528,52 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
     <!-- Motif -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:var(--th-btn-navy);border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
-            <span style="font-size:11px;font-weight:bold;color:white;">📋 Motif</span>
-            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
+            <span style="font-size:14px;font-weight:bold;color:white;">📋 Motif</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:14px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
     </div>
 
     <!-- Antécédents -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#e67e22;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
-            <span style="font-size:11px;font-weight:bold;color:white;">📂 Antécédents</span>
-            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
+            <span style="font-size:14px;font-weight:bold;color:white;">📂 Antécédents</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:14px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
     </div>
 
     <!-- Facteurs de risque -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#c0392b;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
-            <span style="font-size:11px;font-weight:bold;color:white;">⚠️ Facteurs de risque</span>
-            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#8e44ad;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
+            <span style="font-size:14px;font-weight:bold;color:white;">⚠️ Facteurs de risque</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#8e44ad;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:14px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
     </div>
 
     <!-- Diagnostic -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#27ae60;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
-            <span style="font-size:11px;font-weight:bold;color:white;">🩺 Diagnostic</span>
-            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:10px;cursor:pointer;" title="Vider">✕</button>
+            <span style="font-size:14px;font-weight:bold;color:white;">🩺 Diagnostic</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:11px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-size:14px;font-family:Arial,sans-serif;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
     </div>
 
     <!-- Remarque patient -->
     <div class="card" style="flex:1;">
-        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">📝 Remarque</div>
+        <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">📝 Remarque</div>
         <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:11px;resize:vertical;min-height:60px;field-sizing:content;box-sizing:border-box;"
+            style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-size:14px;resize:vertical;min-height:60px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
     </div>
 
@@ -603,14 +610,14 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
         $dv_dateOrd = '—'; $dv_heure = '—'; $dv_actes = '—';
         if ($ordPrecedente) {
             $ts = strtotime($ordPrecedente['date_ordon'] ?? '');
-            $dv_dateOrd = ($ts && $ts > 86400) ? date('d/m/Y', $ts) : '—';
+            $dv_dateOrd = ($ts && $ts > 86400) ? dateAvecJour($ts) : '—';
             $dv_heure   = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
             $dv_actes   = !empty($dernActesFact) ? implode(', ', $dernActesFact) : htmlspecialchars($ordPrecedente['acte1'] ?? '—');
         }
         $rdvp_date = '—'; $rdvp_heure = '—'; $rdvp_acte = '—';
         if ($ordPrecedente) {
             $ts = !empty($ordPrecedente['DATE REDEZ VOUS']) ? strtotime($ordPrecedente['DATE REDEZ VOUS']) : false;
-            $rdvp_date  = ($ts && $ts > 86400) ? date('d/m/Y', $ts) : '—';
+            $rdvp_date  = ($ts && $ts > 86400) ? dateAvecJour($ts) : '—';
             $rdvp_heure = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
             $rdvp_acte  = htmlspecialchars($ordPrecedente['acte1'] ?? '—');
         }
@@ -620,6 +627,26 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
             if ($ts && $ts > 86400) $rdvFuturVal = date('Y-m-d', $ts);
         }
         $acteNouveauRDV = $ordCourante['acte1'] ?? '';
+
+        // ── Données pour pré-remplir la modale en mode "Modifier" ──
+        $noPrefill = null;
+        if ($ordCourante) {
+            $dOrdVal = '';
+            if (!empty($ordCourante['date_ordon'])) {
+                $tsO = strtotime($ordCourante['date_ordon']);
+                if ($tsO && $tsO > 86400) $dOrdVal = date('Y-m-d', $tsO);
+            }
+            $noPrefill = [
+                'n_ordon'    => (int)$ordCourante['n_ordon'],
+                'date_ordon' => $dOrdVal,
+                'acte'       => $ordCourante['acte1'] ?? '',
+                'date_rdv'   => $rdvFuturVal,
+                'heure_rdv'  => $ordCourante['HeureRDV'] ?? '',
+                'lignes'     => array_map(function($m) {
+                    return ['med' => (int)$m['produit'], 'poso' => $m['posologie'] ?? '', 'duree' => $m['DUREE'] ?? ''];
+                }, $medicaments),
+            ];
+        }
         ?>
 
         <!-- ══════════════════════════════════════════════════
@@ -656,8 +683,10 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
         $tot_ecg  = count($histECG);
         $tot_edc  = count($histEDC);
         $tot_dtsa = count($histDTSA);
+        // Date du jour avec jour de la semaine (colonne Actuel)
+        $dateAujFr = dateAvecJour(time());
         // RDV prochain existant
-        $rdvf_date  = $rdvFuturVal ? date('d/m/Y', strtotime($rdvFuturVal)) : '';
+        $rdvf_date  = $rdvFuturVal ? dateAvecJour(strtotime($rdvFuturVal)) : '';
         $rdvf_heure = !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '';
         $rdvf_acte  = htmlspecialchars($ordCourante['acte1'] ?? '');
         // Heure visite enregistrée
@@ -680,9 +709,9 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
             </div>
             <?php foreach ($medicaments as $m): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
-                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:16px;font-weight:700;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:16px;font-weight:700;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:16px;font-weight:700;background:#f9f9f9;">
             </div>
             <?php endforeach; ?>
             <?php else: ?><p style="color:var(--th-color-text-muted);font-size:12px;">Aucun médicament</p><?php endif; ?>
@@ -695,9 +724,9 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);" title="Nouvelle ordonnance">✚</button>
+            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);padding:4px 10px;" title="Nouvelle ordonnance">✚ Nouvelle ordonnance</button>
             <a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
-            <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
+            <button type="button" onclick="afficherModifierOrdonnanceModal()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
         </div>
 
         <!-- Tableau principal accueil -->
@@ -726,7 +755,7 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
                         <span style="color:var(--th-col-rdvp);font-size:11px;"><?= $rdvp_heure ?></span>
                     </td>
                     <td class="col-visite">
-                        <strong style="color:var(--th-col-success);"><?= date('d/m/Y') ?></strong><br>
+                        <strong style="color:var(--th-col-success);"><?= $dateAujFr ?></strong><br>
                         <div style="display:flex;align-items:center;gap:3px;">
                             <input type="time" id="heure_consultation_acc"
                                    value="<?= $heureVisite ?>"
@@ -943,7 +972,7 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
                         <strong style="color:var(--th-col-rdvp);font-size:12px;"><?= $rdvp_heure ?></strong>
                     </td>
                     <td class="col-visite" style="text-align:center;">
-                        <strong style="color:var(--th-col-success);font-size:13px;"><?= date('d/m/Y') ?></strong><br>
+                        <strong style="color:var(--th-col-success);font-size:13px;"><?= $dateAujFr ?></strong><br>
                         <div style="display:inline-flex;align-items:center;gap:3px;">
                             <input type="time" id="heure_consultation_cons"
                                    value="<?= $heureVisite ?>"
@@ -1068,9 +1097,9 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
             </div>
             <?php foreach ($medicaments as $m): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:3px;">
-                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
-                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:3px 5px;border:1px solid #ddd;border-radius:3px;font-size:11px;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['PRODUIT'] ?? '') ?>" readonly style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:16px;font-weight:700;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['posologie'] ?? '') ?>" readonly style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:16px;font-weight:700;background:#f9f9f9;">
+                <input type="text" value="<?= htmlspecialchars($m['DUREE'] ?? '') ?>" readonly style="padding:4px 6px;border:1px solid #ddd;border-radius:3px;font-size:16px;font-weight:700;background:#f9f9f9;">
             </div>
             <?php endforeach; ?>
             <?php else: ?><p style="color:var(--th-color-text-muted);font-size:12px;">Aucun médicament</p><?php endif; ?>
@@ -1228,9 +1257,9 @@ body.vue-accueil .main { grid-template-columns: 320px 1fr 320px; }
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
             <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn" title="Suivante">▶</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn" title="Dernière">▶|</a>
-            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);" title="Nouvelle ordonnance">✚</button>
+            <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);padding:4px 10px;" title="Nouvelle ordonnance">✚ Nouvelle ordonnance</button>
 			<a href="ordonnances.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;" title="Toutes les ordonnances">📋 Liste</a>
-        <button type="button" onclick="afficherModifierOrdonnance()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
+        <button type="button" onclick="afficherModifierOrdonnanceModal()" class="nav-btn" style="background:#e67e22;" title="Modifier ordonnance">✏️</button>
 		</div>
 
         </div><!-- FIN vue-ordonnance -->
@@ -1280,134 +1309,134 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 
     <!-- Barre navigation globale — en tête de col-right -->
     <div style="background:var(--th-bg-link-hover);border:1px solid var(--th-border-card);border-radius:5px;padding:4px 8px;display:flex;align-items:center;gap:3px;">
-        <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;margin-right:4px;">🔀</span>
-        <a href="<?= $urlFirst ?>" class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus récent (tous)">|◀</a>
-        <a href="<?= $urlPrev ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Précédent (tous)">◀</a>
-        <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;flex:1;text-align:center;"><?= $labelNav ?> <span style="color:var(--th-color-text-muted);font-weight:normal;">(<?= $posExam ?>)</span></span>
-        <a href="<?= $urlNext ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Suivant (tous)">▶</a>
-        <a href="<?= $urlLast ?>"  class="nav-btn" style="padding:1px 5px;font-size:11px;" title="Plus ancien (tous)">▶|</a>
-        <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="nav-btn" style="background:var(--th-col-success);padding:1px 5px;font-size:11px;margin-left:2px;" title="Nouveau bilan">✚</a>
-        <button type="button" onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;margin-left:4px;" title="Biologie → plus récent">🧪</button>
+        <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);white-space:nowrap;margin-right:4px;">🔀</span>
+        <a href="<?= $urlFirst ?>" class="nav-btn" style="padding:1px 5px;font-size:14px;" title="Plus récent (tous)">|◀</a>
+        <a href="<?= $urlPrev ?>"  class="nav-btn" style="padding:1px 5px;font-size:14px;" title="Précédent (tous)">◀</a>
+        <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;flex:1;text-align:center;"><?= $labelNav ?> <span style="color:var(--th-color-text-muted);font-weight:normal;">(<?= $posExam ?>)</span></span>
+        <a href="<?= $urlNext ?>"  class="nav-btn" style="padding:1px 5px;font-size:14px;" title="Suivant (tous)">▶</a>
+        <a href="<?= $urlLast ?>"  class="nav-btn" style="padding:1px 5px;font-size:14px;" title="Plus ancien (tous)">▶|</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="nav-btn" style="background:var(--th-col-success);padding:1px 5px;font-size:14px;margin-left:2px;" title="Nouveau bilan">✚</a>
+        <button type="button" onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:12px;margin-left:4px;" title="Biologie → plus récent">🧪</button>
     </div>
     <div class="card">
         <?php if ($examen): ?>
         <?php
             $dateExamRaw = $examen['DateExam'] ?? null;
             $dateExamAff = '—';
-            $dateExamStyle = 'font-size:11px;font-weight:bold;color:var(--th-color-primary);';
+            $dateExamStyle = 'font-size:14px;font-weight:bold;color:var(--th-color-primary);';
             if ($dateExamRaw) {
                 $tsExam = strtotime($dateExamRaw);
                 if ($tsExam && $tsExam > 86400) {
                     $dateExamAff = date('d/m/Y', $tsExam);
                     // Rouge si c'est aujourd'hui
                     if (date('Y-m-d', $tsExam) === date('Y-m-d')) {
-                        $dateExamStyle = 'font-size:11px;font-weight:bold;color:#e74c3c;';
+                        $dateExamStyle = 'font-size:14px;font-weight:bold;color:#e74c3c;';
                     }
                 }
             }
         ?>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:var(--th-color-primary);font-size:12px;font-weight:bold;">🩺 Examen</span>
+            <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">🩺 Examen</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
             </div>
         </div>
         <?php if ($examen && !empty($examen['CMLM_EXAMEN'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:14px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($examen['CMLM_EXAMEN'])) ?>
         </div>
         <?php elseif ($examen): ?>
-            <p style="color:var(--th-color-text-muted);font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
+            <p style="color:var(--th-color-text-muted);font-size:14px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
-            <p style="color:var(--th-color-text-muted);font-size:12px;">Aucun examen enregistré</p>
+            <p style="color:var(--th-color-text-muted);font-size:15px;">Aucun examen enregistré</p>
         <?php endif; ?>
         <!-- Navigation Examen en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
-            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
-            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:10px;" title="Nouvel examen">✚</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent (plus récent)">◀</a>
+            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
+            <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
+            <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel examen">✚</a>
         </div>
         <?php endif; ?>
 <!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
-        <div class="card-title" style="font-size:11px;margin-bottom:4px;">
+        <div class="card-title" style="font-size:14px;margin-bottom:4px;">
             <span>⚡ ECG</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
-                <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <?php if ($ecgCourant && !empty($ecgCourant['CMLM_ECG'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:14px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($ecgCourant['CMLM_ECG'])) ?>
         </div>
         <?php elseif ($ecgCourant): ?>
-            <p style="color:var(--th-color-text-muted);font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
+            <p style="color:var(--th-color-text-muted);font-size:14px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
-            <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun ECG enregistré</p>
+            <p style="color:var(--th-color-text-muted);font-size:14px;">Aucun ECG enregistré</p>
         <?php endif; ?>
         <!-- Navigation ECG en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
-            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:10px;" title="Nouvel ECG">✚</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent (plus récent)">◀</a>
+            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
+            <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel ECG">✚</a>
         </div>
     </div>
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
     <div class="card" style="padding:6px;">
-        <div class="card-title" style="font-size:11px;margin-bottom:4px;">
+        <div class="card-title" style="font-size:14px;margin-bottom:4px;">
             <span>🫀 Echo-Doppler</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
-                <span style="font-size:10px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <?php if ($echoCourant && !empty($echoCourant['CMLM_ECHO'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:14px;color:#0d2b4e;font-weight:500;line-height:1.6;">
             <?= nl2br(htmlspecialchars($echoCourant['CMLM_ECHO'])) ?>
         </div>
         <?php elseif ($echoCourant): ?>
-            <p style="color:var(--th-color-text-muted);font-size:11px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
+            <p style="color:var(--th-color-text-muted);font-size:14px;font-style:italic;">Aperçu non généré — ouvrir le bilan clinique</p>
         <?php else: ?>
-            <p style="color:var(--th-color-text-muted);font-size:11px;">Aucun Echo enregistré</p>
+            <p style="color:var(--th-color-text-muted);font-size:14px;">Aucun Echo enregistré</p>
         <?php endif; ?>
         <!-- Navigation Echo en bas -->
         <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent (plus récent)">◀</a>
-            <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
-            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant (plus ancien)">▶</a>
-            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:10px;" title="Nouvel Echo">✚</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent (plus récent)">◀</a>
+            <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
+            <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
+            <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel Echo">✚</a>
         </div>
     </div>
 
 <!-- ══ BIOLOGIE COMPACT ══ -->
         <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:var(--th-color-primary);font-size:12px;font-weight:bold;">🧪 Biologie</span>
+                <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">🧪 Biologie</span>
                 <div style="display:flex;align-items:center;gap:5px;">
-                    <span id="bio-nb-anormal" style="font-size:10px;font-weight:bold;color:#e74c3c;display:none;"></span>
-                    <span id="bio-date-affich" style="font-size:10px;font-weight:bold;color:var(--th-color-primary);">—</span>
+                    <span id="bio-nb-anormal" style="font-size:12px;font-weight:bold;color:#e74c3c;display:none;"></span>
+                    <span id="bio-date-affich" style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">—</span>
                     <button type="button" onclick="toggleApercu('apercu-bio-dossier',this)"
                         id="bio-btn-apercu"
-                        style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:10px;padding:1px 5px;cursor:pointer;"
+                        style="display:none;background:none;border:1px solid #2e6da4;border-radius:3px;color:#2e6da4;font-size:12px;padding:1px 5px;cursor:pointer;"
                         title="Aperçu rapport">👁</button>
                 </div>
             </div>
  
             <!-- Aperçu biologie anormale — visible directement -->
             <div id="apercu-bio-dossier" style="margin-top:4px;">
-                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:11px;color:#0d2b4e;font-weight:500;line-height:1.6;" id="apercu-bio-texte">
+                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-size:14px;color:#0d2b4e;font-weight:500;line-height:1.6;" id="apercu-bio-texte">
                     <?php
                     $apercuBioLignes = [];
                     foreach ($lignesBioActuel as $bl) {
@@ -1427,14 +1456,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
  
             <!-- Navigation entre bilans -->
             <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
-                <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus récent">|◀</button>
-                <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Précédent">◀</button>
-                <span id="bio-nav-pos" style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;">
+                <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</button>
+                <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent">◀</button>
+                <span id="bio-nav-pos" style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;">
                     <?= $bilansListe ? '1 / '.count($bilansListe) : '0' ?>
                 </span>
-                <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Suivant">▶</button>
-                <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:10px;" title="Plus ancien">▶|</button>
-                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:10px;" title="Ouvrir module Biologie">✚</a>
+                <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant">▶</button>
+                <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</button>
+                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:12px;" title="Ouvrir module Biologie">✚</a>
             </div>
         </div><!-- FIN card biologie -->
 
@@ -1451,23 +1480,33 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <strong style="color:var(--th-col-success);font-size:15px;">✚ Nouvelle ordonnance</strong>
             <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-            <div>
-                <label style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
-                <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;">
-            </div>
-            <div>
-                <label style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
-                <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
-                       style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
-                <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                    <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
-                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
-                    <?php endforeach; ?>
-                </div>
-            </div>
+        <!-- BLOC 1 : DATE ORDONNANCE -->
+        <div style="margin-bottom:14px;">
+            <label style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;display:block;margin-bottom:4px;">DATE ORDONNANCE</label>
+            <input type="date" id="no_date" value="<?= date('Y-m-d') ?>" style="width:220px;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;">
+            <input type="hidden" id="no_nord" value="0">
         </div>
-        <div style="margin-bottom:12px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
+
+        <!-- BLOC 2 : MÉDICAMENTS -->
+        <div style="font-size:12px;font-weight:bold;color:var(--th-color-primary);margin-bottom:8px;">💊 Médicaments :</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead style="background:#1a4a7a;color:white;">
+                <tr>
+                    <th style="padding:6px 8px;text-align:left;">Médicament</th>
+                    <th style="padding:6px 8px;text-align:left;">Posologie</th>
+                    <th style="padding:6px 4px;text-align:left;width:112px;">Durée rapide</th>
+                    <th style="padding:6px 8px;text-align:left;">Durée</th>
+                    <th style="padding:6px 8px;width:30px;"></th>
+                </tr>
+            </thead>
+            <tbody id="no_lignes"></tbody>
+        </table>
+        <div style="margin-top:10px;margin-bottom:16px;">
+            <button type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
+        </div>
+
+        <!-- BLOC 3 : RDV + ACTE -->
+        <div style="margin-bottom:14px;background:#f8f0ff;border-radius:6px;padding:10px;border:1px solid #c9a0f0;">
             <label style="font-size:10px;color:var(--th-col-rdvn);font-weight:bold;display:block;margin-bottom:6px;">📅 DATE &amp; HEURE RDV</label>
             <input type="hidden" id="no_rdv"   value="">
             <input type="hidden" id="no_heure" value="">
@@ -1493,22 +1532,21 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <div class="creneaux-msg"     id="no_msg_rdv"  style="display:none;"></div>
                 <div class="creneaux-grille"  id="no_grille"></div>
             </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid #dcc4f0;">
+                <label style="font-size:10px;color:var(--th-color-text-muted);font-weight:bold;display:block;margin-bottom:4px;">ACTE</label>
+                <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
+                       style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
+                <div style="display:flex;gap:3px;flex-wrap:wrap;">
+                    <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
+                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         </div>
-        <div style="font-size:12px;font-weight:bold;color:var(--th-color-primary);margin-bottom:8px;">💊 Médicaments :</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
-            <thead style="background:#1a4a7a;color:white;">
-                <tr>
-                    <th style="padding:6px 8px;text-align:left;">Médicament</th>
-                    <th style="padding:6px 8px;text-align:left;">Posologie</th>
-                    <th style="padding:6px 8px;text-align:left;">Durée</th>
-                    <th style="padding:6px 8px;width:30px;"></th>
-                </tr>
-            </thead>
-            <tbody id="no_lignes"></tbody>
-        </table>
-        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
-            <button type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
-            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:4px;padding:7px 18px;cursor:pointer;font-size:13px;font-weight:600;">💾 Enregistrer</button>
+
+        <!-- BLOC 4 : ENREGISTREMENT GLOBAL -->
+        <div style="display:flex;gap:10px;align-items:center;">
+            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Tout enregistrer</button>
             <span id="no_msg" style="font-size:12px;color:var(--th-col-success);"></span>
         </div>
     </div>
@@ -1519,13 +1557,15 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 
 
 <script>
+let rechSuggestions = [];
 document.getElementById('rech-patient').addEventListener('input', function() {
     const val = this.value.trim();
     const sugg = document.getElementById('rech-suggestions');
-    if (val.length < 2) { sugg.style.display = 'none'; return; }
+    if (val.length < 2) { sugg.style.display = 'none'; rechSuggestions = []; return; }
     fetch('ajax_recherche.php?q=' + encodeURIComponent(val))
         .then(r => r.json())
         .then(data => {
+            rechSuggestions = data;
             sugg.innerHTML = '';
             if (!data.length) { sugg.style.display = 'none'; return; }
             data.forEach(p => {
@@ -1543,7 +1583,11 @@ document.getElementById('rech-patient').addEventListener('input', function() {
 document.getElementById('rech-patient').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const val = this.value.trim();
-        if (/^\d+$/.test(val)) window.location.href = 'dossier.php?id=' + val;
+        if (/^\d+$/.test(val)) {
+            window.location.href = 'dossier.php?id=' + val;
+        } else if (rechSuggestions.length > 0) {
+            window.location.href = 'dossier.php?id=' + rechSuggestions[0].id;
+        }
     }
 });
 document.addEventListener('click', e => {
@@ -1725,7 +1769,7 @@ function jfAfficher(data, onChoix, onGarder) {
 
     document.body.insertAdjacentHTML('beforeend', `
     <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
-         background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+         background:rgba(0,0,0,0.5);z-index:100000;display:flex;align-items:center;justify-content:center;">
         <div style="background:var(--th-bg-card);border-radius:10px;padding:24px 28px;
                     max-width:500px;width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:6px;">${titre}</div>
@@ -1990,6 +2034,7 @@ function rdvSetDelai(mois, jours, prefixe) {
 }
 
 function afficherNouvelleOrdonnance() {
+    document.getElementById('no_nord').value = '0';   // mode CRÉATION
     document.getElementById('modal-nouvelle-ordonnance').style.display='block';
     document.body.style.overflow='hidden';
     if(document.getElementById('no_lignes').children.length===0) noAjouterLigne();
@@ -2003,11 +2048,16 @@ function masquerNouvelleOrdonnance() {
 document.addEventListener('DOMContentLoaded', ()=>{
     const modal=document.getElementById('modal-nouvelle-ordonnance');
     if(modal) modal.addEventListener('click',e=>{if(e.target===modal)masquerNouvelleOrdonnance();});
+    <?php if (isset($_GET['edit']) && $_GET['edit'] === '1' && $ordCourante): ?>
+    afficherModifierOrdonnanceModal();
+    <?php endif; ?>
 });
 
 const noMeds = <?= json_encode(array_map(fn($m)=>['id'=>$m['NuméroPRODUIT'],'nom'=>$m['PRODUIT']],$listeMeds)) ?>;
 const noPosologies = <?= json_encode($posologies) ?>;
 const noDurees     = <?= json_encode($durees) ?>;
+// Données de l'ordonnance actuellement affichée (pour le bouton ✏️ Modifier)
+const noPrefillData = <?= json_encode($noPrefill) ?>;
 let noIdx=0;
 function noAjouterLigne() {
     const dateVal = document.getElementById('no_date').value;
@@ -2026,14 +2076,39 @@ function noAjouterLigne() {
     let optsDuree='<option value="">— Durée —</option>';
     noDurees.forEach(d=>{optsDuree+=`<option value="${d}">${d}</option>`;});
     const tr=document.createElement('tr'); tr.style.borderBottom='1px solid #eee';
-    tr.innerHTML=`<td style="padding:3px 4px;"><select id="no_med_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsMed}</select></td>
-        <td style="padding:3px 4px;"><select id="no_poso_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsPoso}</select></td>
-        <td style="padding:3px 4px;"><select id="no_duree_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:3px;font-size:11px;">${optsDuree}</select></td>
+    tr.innerHTML=`<td style="padding:3px 4px;"><select id="no_med_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsMed}</select></td>
+        <td style="padding:3px 4px;"><select id="no_poso_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsPoso}</select></td>
+        <td style="padding:3px 2px;">
+            <div style="display:flex;flex-wrap:wrap;gap:2px;max-width:106px;">
+                <button type="button" onclick="noSetDuree(${i},'7 jours')"  style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">7J</button>
+                <button type="button" onclick="noSetDuree(${i},'15 jours')" style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">15J</button>
+                <button type="button" onclick="noSetDuree(${i},'1 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">1M</button>
+                <button type="button" onclick="noSetDuree(${i},'2 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">2M</button>
+                <button type="button" onclick="noSetDuree(${i},'3 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">3M</button>
+                <button type="button" onclick="noSetDuree(${i},'6 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">6M</button>
+            </div>
+        </td>
+        <td style="padding:3px 4px;"><select id="no_duree_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsDuree}</select></td>
         <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
     document.getElementById('no_lignes').appendChild(tr);
 }
 
+// Remplit le champ Durée d'une ligne médicament (ajoute la valeur si absente de la liste)
+function noSetDuree(i, valeur) {
+    const sel = document.getElementById('no_duree_' + i);
+    if (!sel) return;
+    let existe = false;
+    for (const o of sel.options) { if (o.value === valeur) { existe = true; break; } }
+    if (!existe) {
+        const opt = document.createElement('option');
+        opt.value = valeur; opt.textContent = valeur;
+        sel.appendChild(opt);
+    }
+    sel.value = valeur;
+}
+
 function noEnregistrer(patientId) {
+    const n_ordon=parseInt(document.getElementById('no_nord').value)||0;
     const date_ordon=document.getElementById('no_date').value;
     const acte=document.getElementById('no_acte').value;
     const date_rdv=document.getElementById('no_rdv').value;
@@ -2054,7 +2129,7 @@ function noEnregistrer(patientId) {
     });
     msgEl.textContent='Enregistrement…'; msgEl.style.color='#999';
     fetch('ajax_nouvelle_ordonnance.php',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({id:patientId,date_ordon,acte,date_rdv,heure_rdv,lignes})})
+        body:JSON.stringify({id:patientId,n_ordon,date_ordon,acte,date_rdv,heure_rdv,lignes})})
     .then(r=>r.json()).then(data=>{
         if(data.success) window.location.href=`dossier.php?id=${patientId}&ord=${data.n_ordon}`;
         else { document.getElementById('no_msg').textContent='❌ '+data.error; document.getElementById('no_msg').style.color='#e74c3c'; }
@@ -2196,8 +2271,41 @@ function enregistrerHeureVisite() {
     })
     .catch(() => alert('❌ Erreur réseau'));
 }
-function afficherModifierOrdonnance() {
-    window.location.href = 'modifier_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>';
+function afficherModifierOrdonnanceModal() {
+    if (!noPrefillData) { alert('⛔ Aucune ordonnance à modifier.'); return; }
+    const d = noPrefillData;
+
+    // Ouvre la modale (sans passer par afficherNouvelleOrdonnance, qui remettrait no_nord à 0)
+    document.getElementById('modal-nouvelle-ordonnance').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Marque le mode MODIFICATION avec le numéro de l'ordonnance à mettre à jour
+    document.getElementById('no_nord').value = d.n_ordon;
+
+    // Date + Acte
+    document.getElementById('no_date').value = d.date_ordon;
+    document.getElementById('no_acte').value = d.acte;
+    syncActe(d.acte, 'no');
+
+    // RDV : date, heure, créneaux
+    document.getElementById('no_rdv').value = d.date_rdv;
+    document.getElementById('no_heure').value = d.heure_rdv;
+    document.getElementById('no_rdv_visible').value = d.date_rdv;
+    if (d.date_rdv) rdvChargerCreneaux(d.date_rdv, 'no', false);
+
+    // Médicaments : on vide la liste actuelle puis on recrée une ligne par médicament
+    document.getElementById('no_lignes').innerHTML = '';
+    if (d.lignes && d.lignes.length) {
+        d.lignes.forEach(l => {
+            noAjouterLigne();
+            const i = noIdx - 1;
+            document.getElementById('no_med_'   + i).value = l.med;
+            document.getElementById('no_poso_'  + i).value = l.poso;
+            noSetDuree(i, l.duree);
+        });
+    } else {
+        noAjouterLigne();
+    }
 }
 
 // ── Horloge temps réel ────────────────────────────────

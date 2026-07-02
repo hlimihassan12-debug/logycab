@@ -37,13 +37,7 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
 $db = getDB();
 $dt = new DateTime($date);
 
-// ── 1. Lundi = fermé ──────────────────────────────────────────────────────
-if ((int)$dt->format('N') === 1) {
-    echo json_encode(['date_ok' => false, 'raison' => 'Le cabinet est fermé le lundi.']);
-    exit;
-}
-
-// ── 2. Jour férié ─────────────────────────────────────────────────────────
+// ── 1. Jour férié ─────────────────────────────────────────────────────────
 $stmtF = $db->prepare("SELECT COUNT(*) FROM T_JourFeries WHERE CAST(DateFerie AS DATE) = ?");
 $stmtF->execute([$date]);
 if ((int)$stmtF->fetchColumn() > 0) {
@@ -51,7 +45,7 @@ if ((int)$stmtF->fetchColumn() > 0) {
     exit;
 }
 
-// ── 3. Max patients ce jour ───────────────────────────────────────────────
+// ── 2. Max patients ce jour ───────────────────────────────────────────────
 $stmtM = $db->prepare("SELECT valeur FROM T_Config WHERE cle = ?");
 $stmtM->execute(['MaxPatients_' . $date]);
 $maxVal = $stmtM->fetchColumn();
@@ -62,7 +56,7 @@ if ($maxVal === false) {
 }
 $maxJour = (int)($maxVal ?: 21);
 
-// ── 4. Total patients inscrits ce jour ───────────────────────────────────
+// ── 3. Total patients inscrits ce jour ───────────────────────────────────
 $stmtT = $db->prepare("
     SELECT COUNT(*) FROM ORD
     WHERE (
@@ -74,7 +68,7 @@ $stmtT = $db->prepare("
 $stmtT->execute([$date, $date]);
 $totalJour = (int)$stmtT->fetchColumn();
 
-// ── 5. Occupation par créneau (HeureRDV stocké en texte 'HH:MM') ─────────
+// ── 4. Occupation par créneau (HeureRDV stocké en texte 'HH:MM') ─────────
 $stmtC = $db->prepare("
     SELECT HeureRDV, COUNT(*) AS nb
     FROM ORD
@@ -93,7 +87,7 @@ while ($row = $stmtC->fetch(PDO::FETCH_ASSOC)) {
     $occup[$h] = (int)$row['nb'];
 }
 
-// ── 6. Construire créneaux 09:00 → 16:00 par 30min ───────────────────────
+// ── 5. Construire créneaux 09:00 → 16:00 par 30min ───────────────────────
 $creneaux     = [];
 $premierLibre = null;
 
@@ -110,7 +104,7 @@ for ($t = strtotime('09:00'); $t <= strtotime('16:00'); $t += 1800) {
     $creneaux[] = ['heure' => $h, 'nb' => $nb, 'statut' => $statut];
 }
 
-// ── 7. Réponse ────────────────────────────────────────────────────────────
+// ── 6. Réponse ────────────────────────────────────────────────────────────
 echo json_encode([
     'date_ok'       => true,
     'raison'        => '',

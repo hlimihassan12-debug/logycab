@@ -84,10 +84,10 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
 .ord-actions { margin-left: auto; display: flex; gap: 6px; }
 
 .meds-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
-.med-ligne { background: #f8f9fa; border-radius: 4px; padding: 3px 7px; font-size: 10.5px; color: #333; display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap; }
-.med-nom { font-weight: bold; color: #1a4a7a; }
-.med-poso { color: #555; }
-.med-duree { color: #27ae60; font-weight: bold; margin-left: auto; white-space: nowrap; }
+.med-ligne { background: #f8f9fa; border-radius: 4px; padding: 4px 8px; font-size: 13px; font-weight: 700; color: #333; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.med-nom { font-weight: 700; color: #1a4a7a; }
+.med-poso { color: #444; }
+.med-duree { color: #27ae60; font-weight: 700; margin-left: auto; white-space: nowrap; }
 
 .btn-action { border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 10px; font-weight: bold; text-decoration: none; display: inline-block; }
 .btn-modifier { background: #e67e22; color: white; }
@@ -179,7 +179,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; font-size: 13px; }
                     <span class="ord-heure">⏰ <?= htmlspecialchars($heure) ?></span>
                     <?php endif; ?>
                     <div class="ord-actions">
-                        <a href="modifier_ordonnance.php?id=<?= $id ?>&ord=<?= $ord['n_ordon'] ?>" class="btn-action btn-modifier">✏️</a>
+                        <a href="dossier.php?id=<?= $id ?>&ord=<?= $ord['n_ordon'] ?>&edit=1" class="btn-action btn-modifier">✏️</a>
                     </div>
                 </div>
 

@@ -5,7 +5,8 @@ require_once __DIR__ . '/backend/db.php';
 header('Content-Type: application/json');
 
 $data = json_decode(file_get_contents('php://input'), true);
-$id   = (int)($data['id'] ?? 0);
+$id      = (int)($data['id'] ?? 0);
+$n_ordon = (int)($data['n_ordon'] ?? 0);   // > 0 = mode MODIFICATION, sinon = mode CRÉATION
 
 // ── Validations obligatoires ──────────────────────────────────────────
 if ($id == 0) {
@@ -46,36 +47,67 @@ $db = getDB();
 try {
     $db->beginTransaction();
 
-    // INSERT ordonnance avec toutes les dates
-    $stmt = $db->prepare("
-    INSERT INTO ORD (
-        id, date_ordon, acte1,
-        [DATE REDEZ VOUS], HeureRDV,
-        jour_rdv, mois_rdv, JourRDV
-    )
-    VALUES (
-        ?,
-        CONVERT(datetime, ?, 120),
-        ?,
-        CONVERT(datetime, ?, 120),
-        ?,
-        ?, ?,
-        CONVERT(datetime, ?, 120)
-    )
-");
-$stmt->execute([
-    $id,
-    $date_ordon,        // date_ordon → CONVERT
-    $acte,
-    $date_rdv,          // DATE REDEZ VOUS → CONVERT
-    $heure_rdv,
-    $jour_rdv,
-    $mois_rdv,
-    $date_rdv,          // JourRDV → CONVERT
-]);
-    $nOrd = $db->query("SELECT MAX(n_ordon) FROM ORD WHERE id = $id")->fetchColumn();
+    if ($n_ordon > 0) {
+        // ══ MODE MODIFICATION ══════════════════════════════════════
+        // Vérifie que cette ordonnance appartient bien à ce patient (sécurité)
+        $stmtChk = $db->prepare("SELECT COUNT(*) FROM ORD WHERE n_ordon = ? AND id = ?");
+        $stmtChk->execute([$n_ordon, $id]);
+        if ((int)$stmtChk->fetchColumn() === 0) {
+            throw new Exception('Ordonnance introuvable pour ce patient');
+        }
 
-    // INSERT médicaments
+        $stmt = $db->prepare("
+            UPDATE ORD SET
+                date_ordon = CONVERT(datetime, ?, 120),
+                acte1 = ?,
+                [DATE REDEZ VOUS] = CONVERT(datetime, ?, 120),
+                HeureRDV = ?,
+                jour_rdv = ?, mois_rdv = ?,
+                JourRDV = CONVERT(datetime, ?, 120)
+            WHERE n_ordon = ? AND id = ?
+        ");
+        $stmt->execute([
+            $date_ordon, $acte, $date_rdv, $heure_rdv,
+            $jour_rdv, $mois_rdv, $date_rdv,
+            $n_ordon, $id
+        ]);
+
+        // Remplace les médicaments : on efface puis on réinsère (plus simple et fiable)
+        $db->prepare("DELETE FROM PROD WHERE N_ord = ?")->execute([$n_ordon]);
+        $nOrd = $n_ordon;
+
+    } else {
+        // ══ MODE CRÉATION (inchangé) ═══════════════════════════════
+        $stmt = $db->prepare("
+        INSERT INTO ORD (
+            id, date_ordon, acte1,
+            [DATE REDEZ VOUS], HeureRDV,
+            jour_rdv, mois_rdv, JourRDV
+        )
+        VALUES (
+            ?,
+            CONVERT(datetime, ?, 120),
+            ?,
+            CONVERT(datetime, ?, 120),
+            ?,
+            ?, ?,
+            CONVERT(datetime, ?, 120)
+        )
+    ");
+    $stmt->execute([
+        $id,
+        $date_ordon,        // date_ordon → CONVERT
+        $acte,
+        $date_rdv,          // DATE REDEZ VOUS → CONVERT
+        $heure_rdv,
+        $jour_rdv,
+        $mois_rdv,
+        $date_rdv,          // JourRDV → CONVERT
+    ]);
+        $nOrd = $db->query("SELECT MAX(n_ordon) FROM ORD WHERE id = $id")->fetchColumn();
+    }
+
+    // INSERT médicaments (nouvelle ordonnance OU lignes fraîches après un DELETE)
     if (!empty($lignes)) {
         $stmtMed = $db->prepare("
             INSERT INTO PROD (N_ord, produit, posologie, DUREE, Ordre)
