@@ -48,8 +48,8 @@ $texteECG = $ecg ? htmlspecialchars(trim($ecg['CMLM_ECG'] ?? '')) : '';
 
 $echo = null;
 if (!$excl_echo) {
-    if ($date_echo) { $s = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? AND CONVERT(varchar(8), DATEchog, 112) = ? ORDER BY DATEchog DESC"); $s->execute([$id, $date_echo]); }
-    else            { $s = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC"); $s->execute([$id]); }
+    if ($date_echo) { $s = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? AND CONVERT(varchar(8), DATEchog, 112) = ? ORDER BY DATEchog DESC, [N°] DESC"); $s->execute([$id, $date_echo]); }
+    else            { $s = $db->prepare("SELECT TOP 1 * FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC, [N°] DESC"); $s->execute([$id]); }
     $echo = $s->fetch();
 }
 $texteEcho = $echo ? htmlspecialchars(trim($echo['CMLM_ECHO'] ?? '')) : '';

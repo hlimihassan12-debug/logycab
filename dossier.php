@@ -2613,12 +2613,11 @@ function calcNbrJAcc() {
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 🏅 Certificat médical d'aptitude physique
             </a>
-            <button onclick="ouvrirModalRapport();"
-               style="display:block;width:100%;background:#c0392b;color:white;border:none;
-                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
-                      cursor:pointer;text-align:left;">
+            <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#c0392b;color:white;text-decoration:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 📄 Compte rendu de l'examen cardio-vasculaire
-            </button>
+            </a>
             <a href="print_lettre.php?id=<?= $id ?>" target="_blank"
                style="display:block;background:#16a085;color:white;text-decoration:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
@@ -2639,67 +2638,7 @@ function calcNbrJAcc() {
     </div>
 </div>
 
-<div id="modal-rapport" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-     background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:var(--th-bg-card);border-radius:10px;width:380px;max-width:96%;
-                box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
-        <!-- Header -->
-        <div style="background:#c0392b;color:white;padding:10px 16px;
-                    display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-weight:bold;font-size:13px;">🖨️ Rapport cardio-vasculaire</span>
-            <button onclick="fermerModalRapport()" style="background:none;border:none;color:white;
-                    font-size:18px;cursor:pointer;line-height:1;">✕</button>
-        </div>
-        <!-- Corps -->
-        <div style="padding:16px;">
-            <div id="rapport-loading" style="text-align:center;color:var(--th-color-text-muted);font-size:12px;padding:20px 0;">
-                Chargement des dates…
-            </div>
-            <div id="rapport-contenu" style="display:none;">
-                <!-- Ligne Examen -->
-                <div id="ligne-examen" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Examen clinique :</span>
-                    <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
-                    <button onclick="toggleExclusionRubrique('examen')" id="btn-excl-examen"
-                        title="Exclure cette rubrique du rapport"
-                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
-                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-                </div>
-                <!-- Ligne ECG -->
-                <div id="ligne-ecg" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">📈 ECG :</span>
-                    <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
-                    <button onclick="toggleExclusionRubrique('ecg')" id="btn-excl-ecg"
-                        title="Exclure cette rubrique du rapport"
-                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
-                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-                </div>
-                <!-- Ligne Echo -->
-                <div id="ligne-echo" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">🫀 Echo-Doppler :</span>
-                    <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
-                    <button onclick="toggleExclusionRubrique('echo')" id="btn-excl-echo"
-                        title="Exclure cette rubrique du rapport"
-                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
-                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-                </div>
-                <!-- Boutons action -->
-                <div style="display:flex;justify-content:flex-end;gap:8px;">
-                    <button onclick="fermerModalRapport()"
-                        style="background:#95a5a6;color:white;border:none;border-radius:5px;
-                               padding:6px 16px;font-size:12px;cursor:pointer;">Annuler</button>
-                    <button onclick="imprimerRapport()"
-                        style="background:#c0392b;color:white;border:none;border-radius:5px;
-                               padding:6px 16px;font-size:12px;font-weight:bold;cursor:pointer;">🖨️ Imprimer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-/* ── Exclusions rubriques rapport ── */
-var rapportExclusions = { examen: false, ecg: false, echo: false };
 
 function ouvrirMenuRapports() {
     document.getElementById('modal-rapports-menu').style.display = 'flex';
@@ -2707,113 +2646,6 @@ function ouvrirMenuRapports() {
 function fermerMenuRapports() {
     document.getElementById('modal-rapports-menu').style.display = 'none';
 }
-
-function ouvrirModalRapport() {
-    rapportExclusions = { examen: false, ecg: false, echo: false };
-    // Réinitialiser l'affichage des boutons exclusion
-    ['examen','ecg','echo'].forEach(function(r) {
-        var btn = document.getElementById('btn-excl-' + r);
-        var ligne = document.getElementById('ligne-' + r);
-        if (btn) { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
-        if (ligne) ligne.style.opacity = '1';
-    });
-
-    document.getElementById('modal-rapport').style.display = 'flex';
-    document.getElementById('rapport-loading').style.display = 'block';
-    document.getElementById('rapport-contenu').style.display = 'none';
-
-    fetch('ajax_dates_rapport.php?id=<?= $id ?>')
-        .then(function(r){ return r.json(); })
-        .then(function(d) {
-            remplirSelectRapport('sel-examen', d.examen || []);
-            remplirSelectRapport('sel-ecg',    d.ecg    || []);
-            remplirSelectRapport('sel-echo',   d.echo   || []);
-            document.getElementById('rapport-loading').style.display = 'none';
-            document.getElementById('rapport-contenu').style.display = 'block';
-        })
-        .catch(function(e) {
-            document.getElementById('rapport-loading').textContent = 'Erreur de chargement.';
-        });
-}
-
-function remplirSelectRapport(selectId, dates) {
-    var sel = document.getElementById(selectId);
-    sel.innerHTML = '';
-    if (!dates || dates.length === 0) {
-        var opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = '— aucun —';
-        sel.appendChild(opt);
-        sel.disabled = true;
-        // Exclure automatiquement si aucune donnée
-        var rubrique = selectId.replace('sel-','');
-        rapportExclusions[rubrique] = true;
-        var btn = document.getElementById('btn-excl-' + rubrique);
-        var ligne = document.getElementById('ligne-' + rubrique);
-        if (btn) { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
-        if (ligne) ligne.style.opacity = '0.4';
-    } else {
-        sel.disabled = false;
-        dates.forEach(function(d, i) {
-            var opt = document.createElement('option');
-            opt.value = d.date_tri;   // format YYYYMMDD pour la requête SQL
-            opt.textContent = d.date_fr; // format JJ/MM/AAAA pour l'affichage
-            if (i === 0) opt.selected = true; // dernière date par défaut
-            sel.appendChild(opt);
-        });
-    }
-}
-
-function toggleExclusionRubrique(rubrique) {
-    rapportExclusions[rubrique] = !rapportExclusions[rubrique];
-    var btn   = document.getElementById('btn-excl-' + rubrique);
-    var ligne = document.getElementById('ligne-' + rubrique);
-    var sel   = document.getElementById('sel-' + rubrique);
-    if (rapportExclusions[rubrique]) {
-        // Exclure : griser, barrer, bouton ↩
-        if (btn)   { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
-        if (ligne) ligne.style.opacity = '0.4';
-        if (sel)   sel.disabled = true;
-    } else {
-        // Réintégrer
-        if (btn)   { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
-        if (ligne) ligne.style.opacity = '1';
-        if (sel)   sel.disabled = false;
-    }
-}
-
-function fermerModalRapport() {
-    document.getElementById('modal-rapport').style.display = 'none';
-}
-
-function imprimerRapport() {
-    var url = 'print_rapport.php?id=<?= $id ?>';
-    if (!rapportExclusions.examen) {
-        var v = document.getElementById('sel-examen').value;
-        if (v) url += '&date_ex=' + encodeURIComponent(v);
-    } else {
-        url += '&excl_examen=1';
-    }
-    if (!rapportExclusions.ecg) {
-        var v = document.getElementById('sel-ecg').value;
-        if (v) url += '&date_ecg=' + encodeURIComponent(v);
-    } else {
-        url += '&excl_ecg=1';
-    }
-    if (!rapportExclusions.echo) {
-        var v = document.getElementById('sel-echo').value;
-        if (v) url += '&date_echo=' + encodeURIComponent(v);
-    } else {
-        url += '&excl_echo=1';
-    }
-    window.open(url, '_blank');
-    fermerModalRapport();
-}
-
-// Fermer si clic sur le fond
-document.getElementById('modal-rapport').addEventListener('click', function(e) {
-    if (e.target === this) fermerModalRapport();
-});
 
 /* ══ Panneaux Motif / Antécédents / Diagnostic ══ */
 function togglePanel(id) {
