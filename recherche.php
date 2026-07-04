@@ -147,10 +147,14 @@ if (strlen($g5_val) >= 1) {
 }
 
 // ── Assemblage gauche à droite ───────────────────────────────────
+$toutAfficher = ($_GET['tout'] ?? '') === '1';
 $patients = [];
-$rechercheLancee = !empty($groupes);
+$rechercheLancee = $toutAfficher || !empty($groupes);
 $libelleRecherche = '';
-if ($rechercheLancee) {
+if ($toutAfficher) {
+    $libelleRecherche = 'tous les patients';
+    $patients = $db->query("SELECT [N°PAT], NOMPRENOM, [TEL D], MUTUELLE, DDN, CIN, DateRecrt FROM ID ORDER BY NOMPRENOM")->fetchAll();
+} elseif ($rechercheLancee) {
     $whereSql = '';
     $whereParams = [];
     $libelles = [];
@@ -169,7 +173,7 @@ if ($rechercheLancee) {
     $sqlFrom = $needsOrd
         ? "FROM ID i INNER JOIN ORD o ON o.id = i.[N°PAT]"
         : "FROM ID i";
-    $sql = "SELECT DISTINCT TOP 50 i.[N°PAT], i.NOMPRENOM, i.[TEL D], i.MUTUELLE $sqlFrom WHERE $whereSql ORDER BY i.NOMPRENOM";
+    $sql = "SELECT DISTINCT TOP 50 i.[N°PAT], i.NOMPRENOM, i.[TEL D], i.MUTUELLE, i.DDN, i.CIN, i.DateRecrt $sqlFrom WHERE $whereSql ORDER BY i.NOMPRENOM";
     $stmt = $db->prepare($sql);
     $stmt->execute($whereParams);
     $patients = $stmt->fetchAll();
@@ -205,25 +209,25 @@ body { font-family: Arial, sans-serif; background: var(--th-bg-page); color: var
 .header { background: var(--th-bg-header-s); color: white; padding: 12px 20px; display: flex; align-items: center; gap: 15px; }
 .header a { color: white; text-decoration: none; background: var(--th-btn-blue); padding: 6px 14px; border-radius: 4px; font-size: 14px; }
 .header h1 { font-size: 18px; }
-.container { padding: 20px; max-width: 900px; margin: 0 auto; }
+.container { padding: 20px; max-width: 1600px; margin: 0 auto; }
 .search-box { background: var(--th-bg-card); border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px var(--th-border-card); }
 .search-box h2 { color: var(--th-color-primary); margin-bottom: 12px; font-size: 16px; }
 .search-row { display: flex; gap: 10px; }
 .search-row input { flex: 1; padding: 10px 14px; border: 2px solid var(--th-color-secondary); border-radius: 4px; font-size: 15px; background: var(--th-bg-card); color: var(--th-color-text); }
 .search-row button { background: var(--th-btn-navy); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 15px; }
 .search-row button:hover { background: var(--th-btn-blue); }
-.adv-input { padding: 7px 10px; border: 2px solid var(--th-color-secondary); border-radius: 4px;
+.adv-input { padding: 5px 8px; border: 2px solid var(--th-color-secondary); border-radius: 4px;
              font-size: 13px; background: var(--th-bg-card); color: var(--th-color-text); }
 .adv-input[type="date"] { cursor: pointer; }
 .adv-sep { font-size: 12px; color: var(--th-color-text-muted); }
-.adv-bar { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
-.adv-grp { display: flex; flex-direction: column; gap: 6px; }
+.adv-bar { display: flex; align-items: flex-end; gap: 8px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+.adv-grp { display: flex; flex-direction: column; gap: 3px; }
 .adv-label { font-size: 11px; color: var(--th-color-text-muted); font-weight: bold; }
-.adv-mod { padding: 7px 8px; border: 1px solid var(--th-color-secondary); border-radius: 4px;
+.adv-mod { padding: 5px 6px; border: 1px solid var(--th-color-secondary); border-radius: 4px;
            font-size: 12px; background: var(--th-bg-card); color: var(--th-color-text); cursor: pointer; }
 .adv-conn { padding: 6px 4px; border: none; border-radius: 4px; font-size: 12px; font-weight: bold;
             background: var(--th-btn-navy); color: white; cursor: pointer; flex-shrink: 0;
-            margin-bottom: 6px; width: 56px; text-align: center; }
+            margin-bottom: 3px; width: 56px; text-align: center; }
 .search-hdr { padding: 2px 8px; border-radius: 4px; font-size: 11px; height: 26px;
     border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
     color: white; outline: none; width: 190px; flex-shrink: 0; }
@@ -250,6 +254,12 @@ thead th { padding: 10px 12px; text-align: left; font-size: 13px; }
 tbody tr { border-bottom: 1px solid var(--th-sep-color); cursor: pointer; }
 tbody tr:hover { background: var(--th-bg-link-hover); }
 tbody td { padding: 10px 12px; font-size: 13px; }
+.resultats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.patient-card { background: var(--th-bg-card); border-radius: 8px; box-shadow: 0 2px 8px var(--th-border-card); padding: 10px 14px; cursor: pointer; }
+.patient-card:hover { background: var(--th-bg-link-hover); }
+.patient-card .pc-nom { font-weight: bold; color: var(--th-color-primary); font-size: 14px; text-decoration: none; display: block; margin-bottom: 5px; }
+.patient-card .pc-ligne { font-size: 12px; color: var(--th-color-text-muted); display: flex; justify-content: space-between; padding: 2px 0; border-top: 1px solid var(--th-sep-color); }
+.patient-card .pc-ligne span:first-child { font-weight: bold; color: var(--th-color-text); }
 .nb { color: var(--th-color-text-muted); font-size: 13px; margin-bottom: 10px; }
 a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-weight: bold; }
 </style>
@@ -372,35 +382,41 @@ a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-wei
                            value="<?= htmlspecialchars($g5_val) ?>" placeholder="AB123456">
                 </div>
 
-            </div>
-            <div style="margin-top:12px;text-align:right;">
-                <button type="submit">🔍 Rechercher</button>
+                <div class="adv-grp" style="justify-content:flex-end;">
+                    <a href="recherche.php?tout=1" class="adv-mod" style="display:block;text-align:center;text-decoration:none;font-weight:bold;">📋 Tout afficher</a>
+                    <button type="submit" class="adv-mod" style="font-weight:bold;">🔍 Rechercher</button>
+                </div>
+
             </div>
         </form>
     </div>
     <?php if ($rechercheLancee): ?>
         <p class="nb"><?= count($patients) ?> résultat(s) pour <?= $libelleRecherche ?></p>
         <?php if (!empty($patients)): ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>N°</th>
-                    <th>Nom complet</th>
-                    <th>Téléphone</th>
-                    <th>Mutuelle</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($patients as $p): ?>
-                <tr onclick="window.location='<?= $destination ?><?= $p['N°PAT'] ?>'">
-                    <td><?= $p['N°PAT'] ?></td>
-                    <td><a class="lien-patient" href="<?= $destination ?><?= $p['N°PAT'] ?>"><?= htmlspecialchars($p['NOMPRENOM']) ?></a></td>
-                    <td><?= htmlspecialchars($p['TEL D'] ?? '') ?></td>
-                    <td><?= htmlspecialchars($p['MUTUELLE'] ?? '') ?></td>
-                </tr>
+        <div class="resultats-grid">
+            <?php foreach ($patients as $p):
+                $ageAff = '—';
+                if (!empty($p['DDN'])) {
+                    $tsDdn = strtotime($p['DDN']);
+                    if ($tsDdn && $tsDdn > 86400) {
+                        $ageAff = (new DateTime($p['DDN']))->diff(new DateTime())->y . ' ans (' . date('d/m/Y', $tsDdn) . ')';
+                    }
+                }
+                $recrtAff = '—';
+                if (!empty($p['DateRecrt'])) {
+                    $tsRec = strtotime($p['DateRecrt']);
+                    if ($tsRec && $tsRec > 86400) $recrtAff = date('d/m/Y', $tsRec);
+                }
+            ?>
+                <div class="patient-card" onclick="window.location='<?= $destination ?><?= $p['N°PAT'] ?>'">
+                    <a class="pc-nom" href="<?= $destination ?><?= $p['N°PAT'] ?>">N°<?= $p['N°PAT'] ?> — <?= htmlspecialchars($p['NOMPRENOM']) ?></a>
+                    <div class="pc-ligne"><span>Recrutement</span><span><?= $recrtAff ?><?php if (!empty($p['MUTUELLE'])): ?> · <?= htmlspecialchars($p['MUTUELLE']) ?><?php endif; ?></span></div>
+                    <div class="pc-ligne"><span>Âge / naissance</span><span><?= $ageAff ?></span></div>
+                    <div class="pc-ligne"><span>Téléphone</span><span><?= htmlspecialchars($p['TEL D'] ?? '') ?: '—' ?></span></div>
+                    <div class="pc-ligne"><span>CIN</span><span><?= htmlspecialchars($p['CIN'] ?? '') ?: '—' ?></span></div>
+                </div>
             <?php endforeach; ?>
-            </tbody>
-        </table>
+        </div>
         <?php else: ?>
             <p style="color:var(--th-color-text-muted);text-align:center;padding:30px;">Aucun patient trouvé pour <?= $libelleRecherche ?></p>
         <?php endif; ?>

@@ -173,7 +173,7 @@ body { font-family:Arial,sans-serif; font-size:12px; color:#111; background:whit
 <?php endif; ?>
 
 <div class="au-total-titre">Au total — Conduite à tenir :</div>
-<div class="au-total-corps"><?= $conduiteATenir ?: '—' ?></div>
+<div class="au-total-corps"><?= $conduiteATenir ?: 'Traitement prescrit et RDV fixé' ?></div>
 
 <script>window.addEventListener('afterprint', function(){ window.close(); });</script>
 </body></html>

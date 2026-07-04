@@ -299,6 +299,7 @@ table.f td.V { }
 
 <div style="margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
     <button class="ba ba-save" id="btn-aj-enreg" onclick="enreg('ajouter')">💾 Enregistrer</button>
+    <button type="button" onclick="history.back()" style="background:#888;color:white;border:none;padding:8px 14px;border-radius:4px;font-size:13px;font-weight:bold;cursor:pointer;">✕ Fermer</button>
     <a id="aj-dos"   href="#" style="background:#1a4a7a;display:none;" class="ba-nav">🏠 Dossier</a>
     <a id="aj-bilan" href="#" style="background:#27ae60;display:none;" class="ba-nav">📋 Aperçu bilan</a>
 </div>

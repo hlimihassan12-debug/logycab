@@ -2048,8 +2048,10 @@ function naviguerBilan(type, dir) {
         if(type==='examen'){
             ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
              'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
-             'Autres_Symptomes','Conclusion','REMARQUE','Conduite_ATenir','CMLM_EXAMEN']
+             'Autres_Symptomes','Conclusion','REMARQUE','CMLM_EXAMEN']
             .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+            var eCat = document.querySelector('[name=Conduite_ATenir]');
+            if (eCat) eCat.value = d['Conduite_ATenir'] || 'Traitement prescrit et RDV fixé';
         }
         if(type==='ecg'){
             ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
