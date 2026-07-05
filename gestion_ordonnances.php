@@ -132,7 +132,7 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
     box-shadow:0 4px 12px rgba(0,0,0,0.15);
 }
 .autocomplete-list div {
-    padding:7px 12px; cursor:pointer; font-size:12px;
+    padding:7px 12px; cursor:pointer; font-size:12px; color:#222;
 }
 .autocomplete-list div:hover { background:#e8f0fa; }
 
@@ -263,7 +263,7 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
         <div class="card-titre" style="display:flex;justify-content:space-between;align-items:center;">
             <span>📋 Liste du catalogue</span>
             <input type="text" id="p1_filtre" placeholder="🔍 Filtrer..." oninput="p1Filtrer()"
-                   style="border:1px solid #cdd;border-radius:4px;padding:4px 8px;font-size:12px;width:200px;">
+                   style="border:1px solid #cdd;border-radius:4px;padding:4px 8px;font-size:12px;width:200px;background:#fff;color:#222;">
         </div>
 
         <!-- Barre de tri -->

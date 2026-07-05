@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"http://localhost/logycab/dossier.php?id=8899\" -o \"C:/tmp/dossier_8899.html\")",
+      "Bash(mkdir -p /c/tmp)",
+      "Bash(curl -s \"http://localhost/logycab/dossier.php?id=8899\" -o /c/tmp/dossier_8899.html)"
+    ]
+  }
+}

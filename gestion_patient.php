@@ -41,7 +41,7 @@ $idInit = (int)($_GET['id'] ?? 0);
 <link rel="stylesheet" href="themes.css">
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:Arial,sans-serif; font-size:13px; background:var(--th-bg-page); color:var(--th-color-text); }
+body { font-family:Arial,sans-serif; font-size:16px; background:var(--th-bg-page); color:var(--th-color-text); }
 
 .header {
     background:var(--th-bg-header);
@@ -74,20 +74,20 @@ body { font-family:Arial,sans-serif; font-size:13px; background:var(--th-bg-page
 .page { display:flex; justify-content:center; padding:24px 16px; }
 
 .carte { background:var(--th-bg-card); border-radius:6px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.1); width:500px; max-width:98vw;
+    box-shadow:0 2px 12px rgba(0,0,0,0.1); width:620px; max-width:98vw;
     border:1px solid var(--th-border-card); }
 
 .carte-titre {
     background:var(--th-bg-header);
     color:white; padding:10px 16px; border-radius:6px 6px 0 0;
-    font-size:14px; font-weight:bold;
+    font-size:16px; font-weight:bold;
 }
 
 /* Onglets */
 .ongs { display:flex; padding:8px 12px 0; border-bottom:2px solid #e0e8f0; }
 .ong {
-    padding:5px 14px; border:none; cursor:pointer;
-    font-size:12px; font-weight:bold;
+    padding:6px 16px; border:none; cursor:pointer;
+    font-size:13px; font-weight:bold;
     background:#e8f0f8; color:#555;
     border-radius:4px 4px 0 0;
     border-bottom:2px solid transparent;
@@ -106,14 +106,14 @@ table.f { width:100%; border-collapse:collapse; }
 table.f tr { border-bottom:1px solid #f0f0f0; }
 table.f tr:last-child { border-bottom:none; }
 table.f td { padding:6px 8px; vertical-align:middle; }
-table.f td.L { width:155px; font-size:11px; color:#555; font-weight:bold; white-space:nowrap; }
+table.f td.L { width:170px; font-size:13px; color:var(--th-color-text-muted); font-weight:bold; white-space:nowrap; }
 table.f td.V { }
 
 /* Champs */
 .inp {
-    width:100%; padding:5px 7px;
+    width:100%; padding:7px 8px;
     border:1px solid #ccd6e0; border-radius:3px;
-    font-size:12px; font-family:Arial,sans-serif;
+    font-size:13px; font-family:Arial,sans-serif;
 }
 .inp:focus { outline:none; border-color:#2e6da4; box-shadow:0 0 0 2px rgba(46,109,164,0.12); }
 .inp.err { border-color:#e74c3c; background:#fff8f8; }
@@ -129,7 +129,7 @@ table.f td.V { }
 .age-val { font-size:18px; font-weight:bold; color:#1a4a7a;
     background:#f0f4f8; border:1px solid #dde3ea;
     border-radius:3px; padding:3px 6px; display:block; }
-.age-lbl { font-size:9px; color:#888; }
+.age-lbl { font-size:9px; color:var(--th-color-text-muted); }
 .age-inp { width:60px; padding:5px 7px; border:1px solid #ccd6e0;
     border-radius:3px; font-size:14px; font-weight:bold;
     color:#1a4a7a; text-align:center; font-family:Arial,sans-serif; }
@@ -143,7 +143,7 @@ table.f td.V { }
 .radios input[type=radio] { accent-color:#2e6da4; }
 
 /* Messages erreur */
-.merr { color:#e74c3c; font-size:10px; margin-top:2px; display:none; }
+.merr { color:#e74c3c; font-size:12px; margin-top:2px; display:none; }
 .merr.on { display:block; }
 
 /* Zone recherche */
@@ -157,14 +157,14 @@ table.f td.V { }
     padding:8px 12px; color:#856404; font-size:11px; margin-bottom:10px; }
 
 /* Boutons action */
-.ba { padding:6px 18px; border:none; border-radius:4px;
-    font-size:12px; font-weight:bold; cursor:pointer; }
+.ba { padding:7px 20px; border:none; border-radius:4px;
+    font-size:13px; font-weight:bold; cursor:pointer; }
 .ba:hover { opacity:0.85; }
 .ba-save { background:#27ae60; color:white; }
 .ba-del  { background:#e74c3c; color:white; }
 .ba-ann  { background:#95a5a6; color:white; }
-.ba-nav  { color:white; padding:6px 18px; border-radius:4px;
-    font-size:12px; font-weight:bold; text-decoration:none;
+.ba-nav  { color:white; padding:7px 20px; border-radius:4px;
+    font-size:13px; font-weight:bold; text-decoration:none;
     font-family:Arial,sans-serif; }
 
 /* Résultat */
@@ -260,7 +260,7 @@ table.f td.V { }
         <input class="inp" type="text" id="aj-cin" placeholder="BE1234567" autocomplete="off" maxlength="9"
                oninput="this.value=this.value.toUpperCase()"
                onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('aj-tel').focus();}">
-        <div class="merr" id="e-aj-cin">Format invalide. Ex: W10574, BE123456 (1-2 lettres majuscules + 1 a 6 chiffres).</div>
+        <div class="merr" id="e-aj-cin">Format invalide. Ex: J456789, BE123456 (1-2 lettres majuscules + 6 chiffres).</div>
     </td>
 </tr>
 <tr>
@@ -358,7 +358,7 @@ table.f td.V { }
         <input class="inp" type="text" id="mod-cin" maxlength="9" autocomplete="off"
                oninput="this.value=this.value.toUpperCase()"
                onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('mod-tel').focus();}">
-        <div class="merr" id="e-mod-cin">Format invalide. Ex: W10574, BE123456 (1-2 lettres majuscules + 1 a 6 chiffres).</div>
+        <div class="merr" id="e-mod-cin">Format invalide. Ex: J456789, BE123456 (1-2 lettres majuscules + 6 chiffres).</div>
     </td>
 </tr>
 <tr>
@@ -507,7 +507,7 @@ function vDDN(pfx) {
 function vCIN(pfx) {
     var v=document.getElementById(pfx+'-cin').value.trim();
     if (!v) { document.getElementById(pfx+'-cin').classList.remove('err'); document.getElementById('e-'+pfx+'-cin').classList.remove('on'); return true; }
-    var ok=/^[A-Z]{1,2}[0-9]{1,6}$/.test(v);
+    var ok=/^[A-Z]{1,2}[0-9]{6}$/.test(v);
     document.getElementById(pfx+'-cin').classList.toggle('err',!ok);
     document.getElementById('e-'+pfx+'-cin').classList.toggle('on',!ok);
     return ok;

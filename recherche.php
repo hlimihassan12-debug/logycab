@@ -254,12 +254,20 @@ thead th { padding: 10px 12px; text-align: left; font-size: 13px; }
 tbody tr { border-bottom: 1px solid var(--th-sep-color); cursor: pointer; }
 tbody tr:hover { background: var(--th-bg-link-hover); }
 tbody td { padding: 10px 12px; font-size: 13px; }
-.resultats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
-.patient-card { background: var(--th-bg-card); border-radius: 8px; box-shadow: 0 2px 8px var(--th-border-card); padding: 10px 14px; cursor: pointer; }
+.resultats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.patient-card { background: var(--th-bg-card); border-radius: 6px; box-shadow: 0 2px 8px var(--th-border-card);
+    padding: 7px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 .patient-card:hover { background: var(--th-bg-link-hover); }
-.patient-card .pc-nom { font-weight: bold; color: var(--th-color-primary); font-size: 14px; text-decoration: none; display: block; margin-bottom: 5px; }
-.patient-card .pc-ligne { font-size: 12px; color: var(--th-color-text-muted); display: flex; justify-content: space-between; padding: 2px 0; border-top: 1px solid var(--th-sep-color); }
-.patient-card .pc-ligne span:first-child { font-weight: bold; color: var(--th-color-text); }
+.patient-card .pc-nom { font-weight: bold; color: var(--th-color-primary); font-size: 12px; text-decoration: none;
+    flex: 1.5; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.patient-card .pc-champ { font-size: 11px; color: var(--th-color-text-muted); white-space: nowrap;
+    flex-shrink: 0; border-left: 1px solid var(--th-sep-color); padding-left: 6px; }
+.pc-recrt { width: 68px; }
+.pc-age   { width: 44px; }
+.pc-tel   { width: 92px; }
+.pc-cin   { width: 74px; }
+@media (max-width: 1100px) { .resultats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px)  { .resultats-grid { grid-template-columns: 1fr; } }
 .nb { color: var(--th-color-text-muted); font-size: 13px; margin-bottom: 10px; }
 a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-weight: bold; }
 </style>
@@ -399,7 +407,7 @@ a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-wei
                 if (!empty($p['DDN'])) {
                     $tsDdn = strtotime($p['DDN']);
                     if ($tsDdn && $tsDdn > 86400) {
-                        $ageAff = (new DateTime($p['DDN']))->diff(new DateTime())->y . ' ans (' . date('d/m/Y', $tsDdn) . ')';
+                        $ageAff = (new DateTime($p['DDN']))->diff(new DateTime())->y . ' ans';
                     }
                 }
                 $recrtAff = '—';
@@ -410,10 +418,10 @@ a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-wei
             ?>
                 <div class="patient-card" onclick="window.location='<?= $destination ?><?= $p['N°PAT'] ?>'">
                     <a class="pc-nom" href="<?= $destination ?><?= $p['N°PAT'] ?>">N°<?= $p['N°PAT'] ?> — <?= htmlspecialchars($p['NOMPRENOM']) ?></a>
-                    <div class="pc-ligne"><span>Recrutement</span><span><?= $recrtAff ?><?php if (!empty($p['MUTUELLE'])): ?> · <?= htmlspecialchars($p['MUTUELLE']) ?><?php endif; ?></span></div>
-                    <div class="pc-ligne"><span>Âge / naissance</span><span><?= $ageAff ?></span></div>
-                    <div class="pc-ligne"><span>Téléphone</span><span><?= htmlspecialchars($p['TEL D'] ?? '') ?: '—' ?></span></div>
-                    <div class="pc-ligne"><span>CIN</span><span><?= htmlspecialchars($p['CIN'] ?? '') ?: '—' ?></span></div>
+                    <span class="pc-champ pc-recrt"><?= $recrtAff ?></span>
+                    <span class="pc-champ pc-age"><?= $ageAff ?></span>
+                    <span class="pc-champ pc-tel"><?= htmlspecialchars($p['TEL D'] ?? '') ?: '—' ?></span>
+                    <span class="pc-champ pc-cin"><?= htmlspecialchars($p['CIN'] ?? '') ?: '—' ?></span>
                 </div>
             <?php endforeach; ?>
         </div>
