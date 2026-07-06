@@ -244,7 +244,7 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
     <div class="card">
         <div class="card-titre">➕ Ajouter un médicament au catalogue</div>
         <div class="form-row">
-            <div class="form-group autocomplete-wrap" style="flex:1;">
+            <div class="form-group autocomplete-wrap" style="width:260px;">
                 <label>Nom du médicament</label>
                 <input type="text" id="p1_nom" placeholder="Saisir le nom..." oninput="p1RechercherDoublon()"
                        style="text-transform:uppercase;" autocomplete="off">
@@ -254,17 +254,17 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
                 <label>&nbsp;</label>
                 <button class="btn btn-vert" onclick="p1Ajouter()">💾 Ajouter et enregistrer</button>
             </div>
+            <div class="form-group" style="margin-left:24px;">
+                <label>&nbsp;</label>
+                <input type="text" id="p1_filtre" placeholder="🔍 Filtrer..." oninput="p1Filtrer()"
+                       style="border:1px solid #cdd;border-radius:4px;padding:6px 10px;font-size:12px;width:200px;background:#fff;color:#222;">
+            </div>
         </div>
         <div id="p1_msg" style="min-height:0;font-size:12px;margin-top:2px;"></div>
     </div>
 
     <!-- Liste -->
     <div class="card">
-        <div class="card-titre" style="display:flex;justify-content:space-between;align-items:center;">
-            <span>📋 Liste du catalogue</span>
-            <input type="text" id="p1_filtre" placeholder="🔍 Filtrer..." oninput="p1Filtrer()"
-                   style="border:1px solid #cdd;border-radius:4px;padding:4px 8px;font-size:12px;width:200px;background:#fff;color:#222;">
-        </div>
 
         <!-- Barre de tri -->
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--th-sep-color);">
@@ -440,9 +440,11 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
 <div id="panel3" class="panel <?= $ongletActif===3?'actif':'' ?>">
 
     <div class="card">
-        <div class="card-titre">📝 Rédiger une nouvelle ordonnance</div>
+        <div class="card-titre">📝 Rédiger une ordonnance</div>
+        <p style="font-size:12px;color:var(--th-color-text-muted);margin-bottom:12px;">
+            Cherchez le patient : vous serez redirigé vers son dossier pour rédiger l'ordonnance (médicaments + RDV).
+        </p>
 
-        <!-- Sélection patient -->
         <div class="form-row" style="align-items:flex-end;">
             <div class="form-group autocomplete-wrap" style="flex:1;">
                 <label>Patient — Nom / Prénom</label>
@@ -454,79 +456,17 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
             <div class="form-group">
                 <label>N° Patient</label>
                 <input type="number" id="p3_nopat" placeholder="N°" style="width:90px;"
-                       oninput="p3ChercherParNum()">
+                       oninput="p3ChercherParNum()" onkeydown="if(event.key==='Enter') p3AllerDossier()">
             </div>
             <div class="form-group">
-                <label>Date ordonnance</label>
-                <input type="date" id="p3_date" value="<?= date('Y-m-d') ?>" style="width:160px;">
+                <label>&nbsp;</label>
+                <button class="btn btn-vert" onclick="p3AllerDossier()">📝 Rédiger l'ordonnance</button>
             </div>
         </div>
         <div id="p3_patient_choisi" style="background:#e8f5e9;border:1px solid #27ae60;border-radius:5px;
              padding:6px 12px;font-size:12px;font-weight:bold;color:#1a5e33;margin-bottom:10px;display:none;">
         </div>
         <input type="hidden" id="p3_id_patient">
-
-        <!-- Médicaments -->
-        <div style="font-size:12px;font-weight:bold;color:var(--th-color-primary);margin:10px 0 6px;">💊 Médicaments :</div>
-        <table class="lig-med-tbl">
-            <thead>
-                <tr>
-                    <th style="width:38%">Médicament</th>
-                    <th style="width:30%">Posologie</th>
-                    <th style="width:22%">Durée</th>
-                    <th style="width:10%"></th>
-                </tr>
-            </thead>
-            <tbody id="p3_lignes"></tbody>
-        </table>
-        <button class="btn btn-vert" style="margin-top:8px;" onclick="p3AjouterLigne()">✚ Médicament</button>
-
-        <!-- RDV optionnel -->
-        <div class="rdv-section" style="margin-top:14px;">
-            <div class="rdv-titre">📅 Date &amp; heure RDV <span style="font-weight:normal;color:#aaa;">(optionnel)</span></div>
-            <input type="hidden" id="p3_rdv_h">
-            <input type="hidden" id="p3_heure_h">
-            <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
-                <div class="form-group">
-                    <label>Date RDV</label>
-                    <input type="date" id="p3_rdv_visible" onchange="p3RdvDateChange(this.value)"
-                           style="width:160px;">
-                </div>
-                <div class="form-group">
-                    <label>Heure RDV</label>
-                    <input type="text" id="p3_heure_visible" placeholder="—:——" readonly
-                           style="width:80px;background:#f5f5f5;">
-                </div>
-                <div class="form-group">
-                    <label>Acte</label>
-                    <input type="text" id="p3_acte" placeholder="ECG, CONTROL…" style="width:120px;">
-                </div>
-                <div class="form-group">
-                    <label>&nbsp;</label>
-                    <button class="btn btn-gris" onclick="p3EffacerRdv()">✕ Effacer RDV</button>
-                </div>
-            </div>
-            <div class="rdv-delais">
-                <span style="font-size:11px;color:#555;">Délai rapide :</span>
-                <button onclick="p3RdvDelai(1,0)">1M</button>
-                <button onclick="p3RdvDelai(3,0)">3M</button>
-                <button onclick="p3RdvDelai(6,0)">6M</button>
-                <button onclick="p3RdvDelai(0,7)">+7j</button>
-            </div>
-            <div id="p3_rdv_grille" class="creneau-grille"></div>
-            <div id="p3_rdv_msg" style="font-size:11px;color:#e74c3c;margin-top:4px;"></div>
-        </div>
-
-        <div id="p3_msg" style="min-height:18px;font-size:12px;margin-top:8px;"></div>
-
-        <div class="barre-btns">
-            <button class="btn btn-vert"   onclick="p3Enregistrer()">💾 Enregistrer</button>
-            <button class="btn btn-bleu"   id="p3_btn_imprimer" onclick="p3Imprimer()" disabled>🖨️ Imprimer</button>
-            <button class="btn btn-orange" id="p3_btn_facture"  onclick="p3Facturer()" disabled>🧾 Facture</button>
-            <button class="btn btn-violet" id="p3_btn_dossier"  onclick="p3OuvrirDossier()" disabled>📂 Retour au dossier</button>
-            <button class="btn btn-gris"   onclick="p3Reinitialiser()">✕ Nouveau</button>
-            <a href="index.php" class="btn btn-teal">🏠 Accueil</a>
-        </div>
     </div>
 
 </div>
@@ -1062,9 +1002,6 @@ function p2Fermer() {
 // ════════════════════════════════════════════════════════════
 // PANEL 3 — RÉDIGER UNE ORDONNANCE
 // ════════════════════════════════════════════════════════════
-let p3Idx = 0;
-let p3OrdEnregistree = null; // {n_ordon, id} après enregistrement
-
 function p3AutocompletePatient() {
     const q = document.getElementById('p3_nom').value.trim();
     const sugg = document.getElementById('p3_sugg_nom');
@@ -1106,178 +1043,18 @@ function p3SelectPatient(id, nom) {
 
 function p3MasquerPatientChoisi() {
     document.getElementById('p3_patient_choisi').style.display = 'none';
-    p3OrdEnregistree = null;
-    document.getElementById('p3_btn_imprimer').disabled = true;
-    document.getElementById('p3_btn_facture').disabled  = true;
-    document.getElementById('p3_btn_dossier').disabled  = true;
 }
 
-function p3AjouterLigne(med) {
-    const i = p3Idx++;
-    let optsMed = '<option value="">— Médicament —</option>';
-    MEDS.forEach(m => {
-        const sel = med && m.nom === med.PRODUIT ? ' selected' : '';
-        optsMed += `<option value="${m.id}"${sel}>${m.nom}</option>`;
-    });
-    let optsPoso = '<option value="">— Posologie —</option>';
-    POSOS.forEach(p => {
-        const sel = med && med.posologie === p ? ' selected' : '';
-        optsPoso += `<option value="${p}"${sel}>${p}</option>`;
-    });
-    let optsDuree = '<option value="">— Durée —</option>';
-    DUREES.forEach(d => {
-        const sel = med && med.DUREE === d ? ' selected' : '';
-        optsDuree += `<option value="${d}"${sel}>${d}</option>`;
-    });
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><select id="p3_med_${i}" style="width:100%">${optsMed}</select></td>
-        <td><select id="p3_poso_${i}" style="width:100%">${optsPoso}</select></td>
-        <td><select id="p3_duree_${i}" style="width:100%">${optsDuree}</select></td>
-        <td><button class="btn btn-rouge" style="padding:3px 7px;" onclick="this.closest('tr').remove()">🗑</button></td>`;
-    document.getElementById('p3_lignes').appendChild(tr);
-}
-
-function p3RdvDelai(mois, jours) {
-    const d = new Date();
-    if (mois)  d.setMonth(d.getMonth() + mois);
-    if (jours) d.setDate(d.getDate() + jours);
-    const iso = d.toISOString().split('T')[0];
-    document.getElementById('p3_rdv_h').value       = iso;
-    document.getElementById('p3_rdv_visible').value = iso;
-    p3RdvDateChange(iso);
-}
-
-function p3RdvDateChange(val) {
-    document.getElementById('p3_rdv_h').value = val;
-    if (!val) { document.getElementById('p3_rdv_grille').innerHTML = ''; return; }
-    p3ChargerCreneaux(val);
-}
-
-function p3ChargerCreneaux(date) {
-    const grille = document.getElementById('p3_rdv_grille');
-    const msg    = document.getElementById('p3_rdv_msg');
-    grille.innerHTML = '<span style="color:#999;font-size:11px;">⏳ Chargement créneaux…</span>';
-    msg.textContent = '';
-    fetch('ajax_creneaux.php?date=' + date).then(r => r.json()).then(data => {
-        grille.innerHTML = '';
-        if (!data.date_ok) { msg.textContent = '⛔ ' + data.raison; return; }
-        data.creneaux.forEach(c => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = c.heure;
-            btn.className = 'creneau-btn ' + c.statut;
-            if (c.statut === 'plein') { btn.disabled = true; }
-            else btn.onclick = () => {
-                document.querySelectorAll('#p3_rdv_grille .creneau-btn').forEach(b => b.classList.remove('selectionne'));
-                btn.classList.add('selectionne');
-                document.getElementById('p3_heure_h').value       = c.heure;
-                document.getElementById('p3_heure_visible').value = c.heure;
-            };
-            grille.appendChild(btn);
-        });
-    }).catch(() => { grille.innerHTML = ''; });
-}
-
-function p3EffacerRdv() {
-    ['p3_rdv_h','p3_rdv_visible','p3_heure_h'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('p3_heure_visible').value = '';
-    document.getElementById('p3_rdv_grille').innerHTML = '';
-}
-
-function p3Enregistrer() {
-    const id   = document.getElementById('p3_id_patient').value;
-    const date = document.getElementById('p3_date').value;
-    const msgEl = document.getElementById('p3_msg');
-    if (!id)   { msgEl.innerHTML = '<span class="msg-err">⛔ Veuillez sélectionner un patient.</span>'; return; }
-    if (!date) { msgEl.innerHTML = '<span class="msg-err">⛔ La date est obligatoire.</span>'; return; }
-
-    const lignes = [];
-    document.querySelectorAll('#p3_lignes tr').forEach(tr => {
-        const idx = tr.querySelector('select')?.id?.replace('p3_med_','');
-        if (idx === undefined) return;
-        const med  = document.getElementById(`p3_med_${idx}`)?.value;
-        const poso = document.getElementById(`p3_poso_${idx}`)?.value;
-        const duree = document.getElementById(`p3_duree_${idx}`)?.value;
-        if (med) lignes.push({med, poso, duree});
-    });
-
-    msgEl.innerHTML = '<span style="color:#999;">Enregistrement…</span>';
-    fetch('ajax_gestion_ord.php', { method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-            action:'enregistrer_ordonnance',
-            id, date_ordon: date,
-            date_rdv:  document.getElementById('p3_rdv_h').value,
-            heure_rdv: document.getElementById('p3_heure_h').value,
-            acte:      document.getElementById('p3_acte').value,
-            lignes
-        }) })
-        .then(r => r.json()).then(data => {
-            if (data.success) {
-                p3OrdEnregistree = {n_ordon: data.n_ordon, id: data.id};
-                msgEl.innerHTML = `<span class="msg-ok">✅ Ordonnance N°${data.n_ordon} enregistrée.</span>`;
-                document.getElementById('p3_btn_imprimer').disabled = false;
-                document.getElementById('p3_btn_facture').disabled  = false;
-                document.getElementById('p3_btn_dossier').disabled  = false;
-            } else {
-                msgEl.innerHTML = `<span class="msg-err">❌ ${data.error}</span>`;
-            }
-        });
-}
-
-function p3Imprimer() {
-    if (!p3OrdEnregistree) return;
-    window.open(`print_ordonnance.php?id=${p3OrdEnregistree.id}&ord=${p3OrdEnregistree.n_ordon}`, '_blank');
-}
-
-function p3Facturer() {
-    if (!p3OrdEnregistree) return;
-    if (!confirm('Créer une facture pour cette ordonnance ?')) return;
-    fetch('ajax_gestion_ord.php', { method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({action:'creer_facture', id: p3OrdEnregistree.id, n_ordon: p3OrdEnregistree.n_ordon}) })
-        .then(r => r.json()).then(data => {
-            if (data.success) {
-                document.getElementById('p3_msg').innerHTML =
-                    `<span class="msg-ok">✅ Facture N°${data.n_facture} créée.</span>`;
-                window.location.href = `dossier.php?id=${data.id}`;
-            } else {
-                alert('❌ ' + data.error);
-            }
-        });
-}
-
-function p3OuvrirDossier() {
-    if (!p3OrdEnregistree) {
-        const id = document.getElementById('p3_id_patient').value;
-        if (id) window.location.href = `dossier.php?id=${id}`;
-    } else {
-        window.location.href = `dossier.php?id=${p3OrdEnregistree.id}`;
-    }
-}
-
-function p3Reinitialiser() {
-    document.getElementById('p3_nom').value        = '';
-    document.getElementById('p3_nopat').value      = '';
-    document.getElementById('p3_id_patient').value = '';
-    document.getElementById('p3_date').value       = new Date().toISOString().split('T')[0];
-    document.getElementById('p3_lignes').innerHTML = '';
-    document.getElementById('p3_patient_choisi').style.display = 'none';
-    document.getElementById('p3_msg').textContent  = '';
-    p3EffacerRdv();
-    p3OrdEnregistree = null;
-    document.getElementById('p3_btn_imprimer').disabled = true;
-    document.getElementById('p3_btn_facture').disabled  = true;
-    document.getElementById('p3_btn_dossier').disabled  = true;
-    p3Idx = 0;
-    p3AjouterLigne();
+// Redirige vers dossier.php, qui ouvre directement le formulaire "Nouvelle ordonnance"
+function p3AllerDossier() {
+    const id = document.getElementById('p3_id_patient').value || document.getElementById('p3_nopat').value.trim();
+    if (!id) { alert('⛔ Veuillez sélectionner un patient (nom ou numéro).'); return; }
+    window.location.href = `dossier.php?id=${id}&action=nouvelle_ordonnance`;
 }
 
 // ── Init ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
     p1ChargerListe();  // chargement automatique du catalogue
-    p3AjouterLigne();  // une ligne vide dans le panel 3
 });
 </script>
 </body>

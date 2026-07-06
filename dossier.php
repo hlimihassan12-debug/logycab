@@ -1565,8 +1565,12 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
         </div>
 
         <!-- BLOC 4 : ENREGISTREMENT GLOBAL -->
-        <div style="display:flex;gap:10px;align-items:center;">
-            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Tout enregistrer</button>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button type="button" id="no_btn_enregistrer" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Enregistrer</button>
+            <button type="button" id="no_btn_imprimer" onclick="noImprimer()" style="display:none;background:#2e6da4;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🖨️ Imprimer</button>
+            <button type="button" id="no_btn_facture" onclick="noAllerFacture(<?= $id ?>)" style="display:none;background:#8e44ad;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🧾 Facture</button>
+            <button type="button" id="no_btn_retour" onclick="noRetourDossier(<?= $id ?>)" style="display:none;background:#95a5a6;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">📂 Retour au dossier</button>
+            <button type="button" id="no_btn_nouveau" onclick="noNouveau()" style="display:none;background:var(--th-col-success);color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">✕ Nouveau</button>
             <span id="no_msg" style="font-size:12px;color:var(--th-col-success);"></span>
         </div>
     </div>
@@ -2084,6 +2088,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <?php if (isset($_GET['edit']) && $_GET['edit'] === '1' && $ordCourante): ?>
     afficherModifierOrdonnanceModal();
     <?php endif; ?>
+    <?php if (($_GET['action'] ?? '') === 'nouvelle_ordonnance'): ?>
+    afficherNouvelleOrdonnance();
+    <?php endif; ?>
+    <?php if (($_GET['action'] ?? '') === 'facture'): ?>
+    toggleNouvelleFacture('acc');
+    <?php endif; ?>
 });
 
 const noMeds = <?= json_encode(array_map(fn($m)=>['id'=>$m['NuméroPRODUIT'],'nom'=>$m['PRODUIT']],$listeMeds)) ?>;
@@ -2164,9 +2174,58 @@ function noEnregistrer(patientId) {
     fetch('ajax_nouvelle_ordonnance.php',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({id:patientId,n_ordon,date_ordon,acte,date_rdv,heure_rdv,lignes})})
     .then(r=>r.json()).then(data=>{
-        if(data.success) window.location.href=`dossier.php?id=${patientId}&ord=${data.n_ordon}`;
+        if(data.success){
+            noOrdEnregistree = {id: patientId, n_ordon: data.n_ordon};
+            msgEl.textContent='✅ Ordonnance N°'+data.n_ordon+' enregistrée.';
+            msgEl.style.color='#27ae60';
+            document.getElementById('no_btn_enregistrer').disabled = true;
+            document.getElementById('no_btn_enregistrer').style.opacity = '.5';
+            document.getElementById('no_btn_imprimer').style.display = 'inline-flex';
+            document.getElementById('no_btn_facture').style.display  = 'inline-flex';
+            document.getElementById('no_btn_retour').style.display   = 'inline-flex';
+            document.getElementById('no_btn_nouveau').style.display  = 'inline-flex';
+        }
         else { document.getElementById('no_msg').textContent='❌ '+data.error; document.getElementById('no_msg').style.color='#e74c3c'; }
     }).catch(()=>{document.getElementById('no_msg').textContent='❌ Erreur réseau';document.getElementById('no_msg').style.color='#e74c3c';});
+}
+
+// Référence de l'ordonnance qui vient d'être enregistrée (pour les boutons Imprimer/Facture)
+let noOrdEnregistree = null;
+
+function noImprimer() {
+    if (!noOrdEnregistree) return;
+    window.open(`print_ordonnance.php?id=${noOrdEnregistree.id}&ord=${noOrdEnregistree.n_ordon}`, '_blank');
+}
+
+function noAllerFacture(patientId) {
+    window.location.href = `dossier.php?id=${patientId}&action=facture`;
+}
+
+function noRetourDossier(patientId) {
+    window.location.href = `dossier.php?id=${patientId}`;
+}
+
+function noNouveau() {
+    // Réinitialise le formulaire pour une nouvelle ordonnance, même patient, même popup
+    document.getElementById('no_lignes').innerHTML = '';
+    document.getElementById('no_date').value = '<?= date('Y-m-d') ?>';
+    document.getElementById('no_acte').value = '';
+    document.getElementById('no_rdv').value = '';
+    document.getElementById('no_rdv_visible').value = '';
+    document.getElementById('no_heure').value = '';
+    document.getElementById('no_heure_affichage').textContent = '—:——';
+    document.getElementById('no_grille').innerHTML = '';
+    document.getElementById('no_nord').value = '0';
+    document.getElementById('no_msg').textContent = '';
+    document.getElementById('no_btn_enregistrer').disabled = false;
+    document.getElementById('no_btn_enregistrer').style.opacity = '1';
+    document.getElementById('no_btn_imprimer').style.display = 'none';
+    document.getElementById('no_btn_facture').style.display  = 'none';
+    document.getElementById('no_btn_retour').style.display   = 'none';
+    document.getElementById('no_btn_nouveau').style.display  = 'none';
+    noOrdEnregistree = null;
+    noIdx = 0;
+    noAjouterLigne();
 }
 
 const nfActes = <?= json_encode(array_map(fn($a)=>['n_acte'=>$a['n_acte'],'ACTE'=>$a['ACTE'],'cout'=>(float)$a['cout']],$listeActes)) ?>;
