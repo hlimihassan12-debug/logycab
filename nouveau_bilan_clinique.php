@@ -28,6 +28,30 @@ if (!empty($patient['DDN'])) {
     $naissance = new DateTime($patient['DDN']);
     $age = $naissance->diff(new DateTime())->y;
 }
+
+// ── DATE RECRUTEMENT ──
+$datePremVisite = null;
+if (!empty($patient['DateRecrt'])) {
+    $ts = strtotime($patient['DateRecrt']);
+    if ($ts && $ts > 86400) { $datePremVisite = date('Y-m-d', $ts); }
+}
+$tsPV = $datePremVisite ? strtotime($datePremVisite) : false;
+$datePVAff = ($tsPV && $tsPV > 86400) ? date('d/m/Y', $tsPV) : '—';
+
+// ── NAVIGATION ENTRE PATIENTS ──
+$first_id = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] ASC")->fetchColumn();
+$last_id  = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] DESC")->fetchColumn();
+
+$prev_id  = $db->prepare("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] < ? AND [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] DESC");
+$prev_id->execute([$id]); $prev_id = $prev_id->fetchColumn() ?: $id;
+
+$next_id  = $db->prepare("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] > ? AND [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] ASC");
+$next_id->execute([$id]); $next_id = $next_id->fetchColumn() ?: $id;
+
+$total_patients = $db->query("SELECT COUNT(DISTINCT id) FROM ORD")->fetchColumn();
+$pos_patient    = $db->prepare("SELECT COUNT(DISTINCT id) FROM ORD WHERE id <= ?");
+$pos_patient->execute([$id]); $pos_patient = $pos_patient->fetchColumn();
+
 $msgs  = [];
 $urlMsg = $_GET['msg'] ?? '';
 if ($urlMsg === 'examen_ok') $msgs['examen'] = '✅ Examen enregistré';
@@ -369,9 +393,16 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
     <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
+    <div class="info"><label>🏥 Recrutement</label><span><?= $datePVAff ?></span></div>
+    <!-- Navigation entre patients -->
+    <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
+        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
+        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
+        <span style="color:var(--th-col-header-accent);font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
+        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
+        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
+    </div>
     <div style="flex:1;"></div>
-    <!-- Navigation globale -->
-    <span style="font-size:10px;font-weight:bold;color:#FFD700;white-space:nowrap;">🔀 Navigation globale</span>
     <div style="display:flex;align-items:center;gap:3px;">
         <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>

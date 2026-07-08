@@ -381,7 +381,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 .nav-btns { display: flex; gap: 3px; }
 .nav-btn { background: var(--th-btn-navy); color: white; border: none; padding: 5px 11px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
 .nav-btn:hover { background: var(--th-color-secondary); }
-.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); }
+.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); margin-bottom: 16px; }
 .champ { margin-bottom: 6px; }
 .champ label { font-size: 10px; color: var(--th-color-text-muted); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
 .champ input, .champ select, .champ textarea { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; color: #222; background:var(--th-bg-card); }
@@ -526,9 +526,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     ?>
 
     <!-- Motif -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:var(--th-btn-navy);border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
-            <span style="font-size:14px;font-weight:bold;color:white;">📋 Motif</span>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
+            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Motif</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
@@ -537,9 +537,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     </div>
 
     <!-- Antécédents -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#e67e22;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
-            <span style="font-size:14px;font-weight:bold;color:white;">📂 Antécédents</span>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
+            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Antécédents</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
@@ -548,10 +548,10 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     </div>
 
     <!-- Facteurs de risque -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#c0392b;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
-            <span style="font-size:14px;font-weight:bold;color:white;">⚠️ Facteurs de risque</span>
-            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#8e44ad;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
+            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Facteurs de risque</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
             style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
@@ -559,9 +559,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     </div>
 
     <!-- Diagnostic -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#27ae60;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
-            <span style="font-size:14px;font-weight:bold;color:white;">🩺 Diagnostic</span>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
+            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Diagnostic</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
@@ -570,9 +570,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     </div>
 
     <!-- Au total CAT -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">📋 Au total CAT</span>
+            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Au total CAT</span>
             <?php if ($examen): ?>
             <button type="button" onclick="sauvegarderCAT()" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:12px;font-weight:bold;cursor:pointer;">💾 Enregistrer</button>
             <?php endif; ?>
@@ -591,7 +591,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 
     <!-- Remarque patient -->
     <div class="card" style="flex:1;">
-        <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">📝 Remarque</div>
+        <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">Remarque</div>
         <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
             style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:60px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
@@ -603,7 +603,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 <div class="col-mid">
     <div class="card">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
-            <span style="font-size:13px;">📋 Ordonnance
+            <span style="font-size:13px;">Ordonnance
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
                     $tsOrd = strtotime($ordCourante['date_ordon']);
@@ -623,6 +623,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             </span>
         </div>
 
+        <?php $rdvFuturVal = ''; // valeur par défaut, utilisée même sans ordonnance (popup RDV prochain) ?>
         <?php if ($ordCourante): ?>
         <div id="vue-ordonnance">
         <?php
@@ -641,7 +642,6 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             $rdvp_heure = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
             $rdvp_acte  = htmlspecialchars($ordPrecedente['acte1'] ?? '—');
         }
-        $rdvFuturVal = '';
         if (!empty($ordCourante['DATE REDEZ VOUS'])) {
             $ts = strtotime($ordCourante['DATE REDEZ VOUS']);
             if ($ts && $ts > 86400) $rdvFuturVal = date('Y-m-d', $ts);
@@ -716,9 +716,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <!-- MÉDICAMENTS (identique) -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
             </div>
             <?php if (!empty($medicaments)): ?>
@@ -754,18 +754,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <thead>
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:80px;"></th>
-                    <th style="background:var(--th-col-visite);color:white;">🏥 Dernière visite</th>
-                    <th style="background:var(--th-col-rdvp);color:white;">📅 RDV prévu</th>
-                    <th style="background:var(--th-col-success);color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
+                    <th style="background:var(--th-col-visite);color:white;">Dernière visite</th>
+                    <th style="background:var(--th-col-rdvp);color:white;">RDV prévu</th>
+                    <th style="background:var(--th-col-success);color:white;">Actuel<br><small><?= date('d/m/Y') ?></small></th>
                     <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV"
                         style="background:var(--th-col-rdvn);color:white;">
-                        📆 RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
+                        RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Ligne Date / Heure -->
                 <tr>
-                    <td>📅 Date<br>⏰ Heure</td>
+                    <td>Date<br>Heure</td>
                     <td class="col-rdv-fixe">
                         <strong style="color:var(--th-col-visite);"><?= $dv_dateOrd ?></strong><br>
                         <span style="color:var(--th-col-visite);font-size:11px;"><?= $dv_heure ?></span>
@@ -776,7 +776,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </td>
                     <td class="col-visite">
                         <strong style="color:var(--th-col-success);"><?= $dateAujFr ?></strong><br>
-                        <div style="display:flex;align-items:center;gap:3px;">
+                        <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
                             <input type="time" id="heure_consultation_acc"
                                    value="<?= $heureVisite ?>"
                                    style="border:1px solid #b2dfb2;border-radius:3px;padding:1px 4px;font-size:11px;color:var(--th-col-success);font-weight:bold;width:70px;background:#f0fff0;">
@@ -796,7 +796,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne Délai -->
                 <tr>
-                    <td>⏱ Délai</td>
+                    <td>Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?></td>
                     <td class="col-visite" style="color:var(--th-col-success);font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
@@ -806,7 +806,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne ECG -->
                 <tr>
-                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
+                    <td>ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
@@ -814,7 +814,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne EDC -->
                 <tr>
-                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
+                    <td>EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
@@ -822,7 +822,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne DTSA -->
                 <tr>
-                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
+                    <td>DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
@@ -834,14 +834,14 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 
 
         <!-- FACTURATION + CERTIFICAT côte à côte -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-top:20px;border-top:1px solid #eee;padding-top:16px;">
         <div><!-- Facturation -->
 
 
         <!-- FACTURATION ACCUEIL (sans colonne Prix) -->
         <div>
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">💰 Facturation</span>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php $tsFA=strtotime($factCourante['date_facture']??''); $dfA=($tsFA&&$tsFA>86400)?date('d/m/Y',$tsFA):'—'; $estAujFA=($tsFA&&date('Y-m-d',$tsFA)===date('Y-m-d')); ?>
                 <div style="text-align:right;">
@@ -884,7 +884,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
             </div>
             <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
@@ -974,15 +974,15 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <thead>
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:70px;"></th>
-                    <th style="background:var(--th-col-visite);color:white;font-size:11px;">🏥 Dernière visite</th>
-                    <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">📅 RDV prévu</th>
-                    <th style="background:var(--th-col-success);color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
-                    <th style="background:var(--th-col-rdvn);color:white;font-size:11px;">📆 RDV prochain</th>
+                    <th style="background:var(--th-col-visite);color:white;font-size:11px;">Dernière visite</th>
+                    <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">RDV prévu</th>
+                    <th style="background:var(--th-col-success);color:white;font-size:11px;">Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
+                    <th style="background:var(--th-col-rdvn);color:white;font-size:11px;">RDV prochain</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>📅 Date<br>⏰ Heure</td>
+                    <td>Date<br>Heure</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
                         <strong style="color:var(--th-col-visite);font-size:13px;"><?= $dv_dateOrd ?></strong><br>
                         <strong style="color:var(--th-col-visite);font-size:12px;"><?= $dv_heure ?></strong>
@@ -1013,8 +1013,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                             <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
                             <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                             <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
-                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
+                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
+                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
                     <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)"
                             title="Enregistrer le RDV"
                             style="background:var(--th-col-success);color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;">
@@ -1053,7 +1053,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne Délai -->
                 <tr>
-                    <td>⏱ Délai</td>
+                    <td>Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?? '—' ?></td>
                     <td class="col-visite" style="color:var(--th-col-success);font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
@@ -1061,7 +1061,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne ECG -->
                 <tr>
-                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
+                    <td>ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
@@ -1069,7 +1069,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne EDC -->
                 <tr>
-                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
+                    <td>EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
@@ -1077,7 +1077,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne DTSA -->
                 <tr>
-                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
+                    <td>DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
@@ -1089,9 +1089,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <!-- MÉDICAMENTS -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
@@ -1129,7 +1129,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <!-- COL DROITE : FACTURATION -->
         <div>
             <div class="card-title" style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:6px;">
-                <span style="font-size:13px;">💰 Facturation</span>
+                <span style="font-size:13px;">Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php
                     $tsFactTitre  = strtotime($factCourante['date_facture'] ?? '');
@@ -1190,7 +1190,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚</button>
+                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
             </div>
             <?php else: ?>
@@ -1356,7 +1356,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             }
         ?>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">🩺 Examen</span>
+            <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">Examen</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
             </div>
@@ -1377,16 +1377,21 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel examen">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel examen">Nouveau Exam</a>
         </div>
         <?php endif; ?>
 <!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:14px;margin-bottom:4px;">
-            <span>⚡ ECG</span>
+            <span>ECG</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
-                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
+                <?php if ($ecgCourant && $ecgCourant['Date ECG']):
+                    $ecgDateStyle = 'font-size:12px;font-weight:bold;color:var(--th-color-primary);';
+                    if (date('Y-m-d', strtotime($ecgCourant['Date ECG'])) === date('Y-m-d')) {
+                        $ecgDateStyle = 'font-size:12px;font-weight:bold;color:#e74c3c;';
+                    }
+                ?>
+                <span style="<?= $ecgDateStyle ?>"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
@@ -1406,17 +1411,22 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel ECG">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel ECG">Nouvel ECG</a>
         </div>
     </div>
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
     <div class="card" style="padding:6px;">
         <div class="card-title" style="font-size:14px;margin-bottom:4px;">
-            <span>🫀 Echo-Doppler</span>
+            <span>Echo-Doppler</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
-                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
+                <?php if ($echoCourant && $echoCourant['DATEchog']):
+                    $echoDateStyle = 'font-size:12px;font-weight:bold;color:var(--th-color-primary);';
+                    if (date('Y-m-d', strtotime($echoCourant['DATEchog'])) === date('Y-m-d')) {
+                        $echoDateStyle = 'font-size:12px;font-weight:bold;color:#e74c3c;';
+                    }
+                ?>
+                <span style="<?= $echoDateStyle ?>"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
@@ -1436,14 +1446,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel Echo">✚</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel Echo">Nouvelle Echo</a>
         </div>
     </div>
 
 <!-- ══ BIOLOGIE COMPACT ══ -->
         <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">🧪 Biologie</span>
+                <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">Biologie</span>
                 <div style="display:flex;align-items:center;gap:5px;">
                     <span id="bio-nb-anormal" style="font-size:12px;font-weight:bold;color:#e74c3c;display:none;"></span>
                     <span id="bio-date-affich" style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">—</span>
@@ -1483,7 +1493,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 </span>
                 <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant">▶</button>
                 <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</button>
-                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:12px;" title="Ouvrir module Biologie">✚</a>
+                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Ouvrir module Biologie">Nouveau bilan</a>
             </div>
         </div><!-- FIN card biologie -->
 
@@ -2551,8 +2561,9 @@ async function bioCharger(n_bilan, idx) {
     // Mettre à jour compteur position
     document.getElementById('bio-nav-pos').textContent = (idx + 1) + ' / ' + bioBilans.length;
  
-    // Mettre à jour la date affichée
+    // Mettre à jour la date affichée (rouge si c'est aujourd'hui)
     document.getElementById('bio-date-affich').textContent = res.bilan?.date_fr || '—';
+    styleDateSiAujourdhui(document.getElementById('bio-date-affich'), res.bilan?.date_fr);
  
     // Compter et afficher le nombre de résultats anormaux
     const anormaux = res.lignes.filter(l => l.resultat !== '' && l.resultat.toUpperCase() !== 'N');
@@ -2595,6 +2606,15 @@ async function bioCharger(n_bilan, idx) {
     document.getElementById('bio-btn-apercu').style.display = res.lignes.length ? '' : 'none';
 }
  
+// Fonction utilitaire : colore une date en rouge si elle correspond à aujourd'hui
+// (comparaison au format JJ/MM/AAAA, réutilisable partout dans la page)
+function styleDateSiAujourdhui(el, dateFr) {
+    if (!el) return;
+    const d = new Date();
+    const auj = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+    el.style.color = (dateFr === auj) ? '#e74c3c' : 'var(--th-color-primary)';
+}
+
 // Initialiser l'affichage au chargement de la page
 document.addEventListener('DOMContentLoaded', function() {
     if (!bioBilans.length) return;
@@ -2605,6 +2625,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elNb.style.display = '';
     }
     document.getElementById('bio-date-affich').textContent = bioBilans[0]?.date_fr || '—';
+    styleDateSiAujourdhui(document.getElementById('bio-date-affich'), bioBilans[0]?.date_fr);
     if (bioBilans[0]?.nb_total > 0) {
         document.getElementById('bio-btn-apercu').style.display = '';
     }
@@ -2622,7 +2643,7 @@ function calcNbrJAcc() {
 <div class="popup-rdv-ov" id="popup-rdv-acc">
     <div class="popup-rdv-box">
         <div class="popup-rdv-header">
-            <strong style="font-size:14px;">📆 RDV prochain</strong>
+            <strong style="font-size:14px;">RDV prochain</strong>
             <button onclick="fermerPopupRdv()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;">✕</button>
         </div>
         <div class="popup-rdv-body">
@@ -2635,8 +2656,8 @@ function calcNbrJAcc() {
                 <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
                 <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                 <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
                 <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
                         style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:bold;margin-left:auto;">
                     📅 RDV
@@ -2719,7 +2740,7 @@ function calcNbrJAcc() {
             <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank"
                style="display:block;background:#2e6da4;color:white;text-decoration:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
-                💊 Ordonnance
+                Ordonnance
             </a>
             <button onclick="fermerMenuRapports()"
                style="display:block;width:100%;background:#7f8c8d;color:white;border:none;

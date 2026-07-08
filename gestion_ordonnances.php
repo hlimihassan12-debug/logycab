@@ -113,7 +113,8 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
 /* ── Tableau résultats ── */
 .tbl { width:100%; border-collapse:collapse; font-size:11px; }
 .tbl th { background:var(--th-bg-header-s); color:white; padding:3px 8px; text-align:left; }
-.tbl td { padding:2px 8px; border-bottom:1px solid var(--th-sep-color); line-height:1.4; color:#222; }
+.tbl td { padding:2px 8px; border-bottom:1px solid var(--th-sep-color); line-height:1.4; color:var(--th-color-text); }
+#p1_ord_wrap td { color:#222; }
 .tbl tr:hover td { background:var(--th-bg-link-hover); cursor:pointer; }
 .tbl tr.selectionne td { background:#e8f5e9; font-weight:600; }
 

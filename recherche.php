@@ -256,7 +256,7 @@ tbody tr:hover { background: var(--th-bg-link-hover); }
 tbody td { padding: 10px 12px; font-size: 13px; }
 .resultats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .patient-card { background: var(--th-bg-card); border-radius: 6px; box-shadow: 0 2px 8px var(--th-border-card);
-    padding: 7px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    padding: 7px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
 .patient-card:hover { background: var(--th-bg-link-hover); }
 .patient-card .pc-nom { font-weight: bold; color: var(--th-color-primary); font-size: 12px; text-decoration: none;
     flex: 1.5; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
