@@ -169,17 +169,19 @@ function renderPatients(array $patients): string {
         // N° patient en premier, taille réduite
         $html .= "<span class='pat-id'>{$id}</span>";
 
-        // Boutons mini
-        $vuLabel = $p['vu'] ? '✓' : '👁';
-        $html .= "<button class='btn-g gvu' id='gbvu-{$ord}'
-                          title='Vu' onclick='gToggleVu({$ord},{$p['vu']})'>
-                      {$vuLabel}</button>";
-        $html .= "<button class='btn-g gabs'
-                          title='Absent' onclick='gToggleAbsent({$ord},{$p['absent']})'>
-                      ✕</button>";
-        $html .= "<button class='btn-g gdep'
-                          title='Déplacer' onclick='gDeplacer({$ord},\"{$jour}\")'>
-                      ◆</button>";
+        // Statut : liste déroulante unique (VU / Absent / Déplacer) — remplace les 3 boutons
+        $estVu  = (int)$p['vu'];
+        $estAbs = (int)$p['absent'];
+        $selCl  = $estVu ? 'is-vu' : ($estAbs ? 'is-absent' : '');
+        $html .= "<select class='g-statut {$selCl}' id='gstatut-{$ord}'
+                          data-vu='{$estVu}' data-absent='{$estAbs}'
+                          title='Statut du RDV'
+                          onchange=\"gGererStatut(this, {$ord}, '{$jour}')\">
+                      <option value=''>—</option>
+                      <option value='vu'".($estVu?' selected':'')."'>VU</option>
+                      <option value='absent'".($estAbs?' selected':'')."'>Absent</option>
+                      <option value='deplacer'>Déplacer</option>
+                  </select>";
         $html .= "<a href='dossier.php?id={$idE}' class='btn-g gdos' title='Dossier'>📋</a>";
         $html .= "<button class='btn-g gsup'
                           title='Supprimer' onclick='gSupprimer({$ord},{$p['id']},\"{$nomE}\")'>
@@ -322,7 +324,7 @@ table.grille thead th.th-heure { width: 50px; background: var(--th-btn-navy); }
 
 /* Corps */
 table.grille tbody td {
-    border: 1px solid #d0dce8;
+    border: 1px solid #b8c8dc;
     padding: 2px 3px; vertical-align: top; font-size: 11px;
 }
 
@@ -352,16 +354,17 @@ td.col-ferie { background: #f3e5f5; }
 /* ══ LIGNE PATIENT — N° et Nom dans la MÊME cellule ══ */
 .pat-row {
     display: flex; align-items: center; gap: 3px;
-    border-radius: 3px; padding: 1px 3px; margin-bottom: 2px;
-    min-height: 20px;
+    border-radius: 3px; padding: 1px 3px 1px 5px; margin-bottom: 2px;
+    min-height: 20px; background: white;
+    border: 1px solid #c2ccd9; border-left: 4px solid #90a4bd;
 }
-.pat-row.vu     { background: #eafaf1; }
-.pat-row.absent { background: #fff0f0; }
-.pat-row.normal { background: #f0f4fb; }
+.pat-row.vu     { background: #eafaf0; border-color: #8fd6a8; border-left-color: #1e8449; }
+.pat-row.absent { background: #fdecec; border-color: #f0a8a8; border-left-color: #c0392b; }
+.pat-row.normal { background: #eef3fb; border-color: #a8c0dc; border-left-color: #2e6da4; }
 
 /* N° patient — compact à gauche de chaque ligne */
 .pat-id {
-    font-size: 9px; color: #999; white-space: nowrap;
+    font-size: 10px; color: #444; font-weight: 600; white-space: nowrap;
     min-width: 26px; text-align: right; flex-shrink: 0;
 }
 
@@ -373,16 +376,22 @@ td.col-ferie { background: #f3e5f5; }
     display: inline-flex; align-items: center; justify-content: center;
     padding: 0;
 }
-.btn-g.gvu  { background: #27ae60; color: white; }
-.btn-g.gabs { background: #e74c3c; color: white; }
-.btn-g.gdep { background: #8e44ad; color: white; }
 .btn-g.gdos { background: #2e6da4; color: white; text-decoration: none; }
 .btn-g.gsup { background: #c0392b; color: white; }
 .btn-g:hover { opacity: 0.8; }
 
+/* Liste déroulante Statut (VU / Absent / Déplacer) — remplace les 3 anciens boutons */
+.g-statut {
+    border: 1px solid #aaa; border-radius: 3px; font-size: 9px;
+    height: 17px; padding: 0 2px; flex-shrink: 0; width: 58px;
+    color: #333; background: white; cursor: pointer;
+}
+.g-statut.is-vu     { background: #d7f5e0; color: #1e8449; border-color: #27ae60; font-weight: bold; }
+.g-statut.is-absent { background: #fbdada; color: #c0392b; border-color: #e74c3c; font-weight: bold; }
+
 /* Nom patient */
 .pat-nom-txt {
-    font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     flex: 1; cursor: pointer; color: #1a4a7a;
 }
 .pat-nom-txt:hover { text-decoration: underline; color: #e67e22; }
@@ -404,9 +413,9 @@ td.col-ferie { background: #f3e5f5; }
 /* Champ heure dans la ligne patient */
 .g-heure {
     width: 54px; height: 17px; font-size: 10px;
-    border: 1px solid #ddd; border-radius: 3px;
+    border: 1px solid #aaa; border-radius: 3px;
     padding: 0 2px; flex-shrink: 0;
-    color: #555; background: #f0f8ff; cursor: pointer;
+    color: #444; background: #f0f8ff; cursor: pointer;
 }
 .g-heure:focus { border-color: #2e6da4; outline: none; }
 
@@ -718,41 +727,45 @@ async function ajax(action, data) {
     return r.json();
 }
 
-// ── Vu ────────────────────────────────────────────────────────
-async function gToggleVu(n, estVu) {
-    const r = await ajax('toggle_vu', {n_ordon:n, vu: estVu?0:1});
-    if (!r.ok) return;
-    const row = document.getElementById('grow-'+n);
-    const btn = document.getElementById('gbvu-'+n);
-    const nom = document.getElementById('gnom-'+n);
-    if (!estVu) {
-        row.className = row.className.replace(/\b(normal|absent)\b/g,'vu');
-        btn.textContent = '✓';
-        if (nom) { nom.className = nom.className.replace(/\babsent\b/g,'') + ' vu'; }
-        toast('Marqué Vu ✅');
-    } else {
-        row.className = row.className.replace(/\bvu\b/g,'normal');
-        btn.textContent = '👁';
-        if (nom) nom.className = nom.className.replace(/\bvu\b/g,'');
-        toast('Statut Vu retiré');
-    }
-}
+// ── Statut (liste déroulante VU / Absent / Déplacer) ──────────
+async function gGererStatut(sel, n, dateJour) {
+    const val = sel.value;
 
-// ── Absent ────────────────────────────────────────────────────
-async function gToggleAbsent(n, estAbs) {
-    const r = await ajax('toggle_absent', {n_ordon:n, absent: estAbs?0:1});
-    if (!r.ok) return;
+    // "Déplacer" n'est pas un statut : on ouvre la fenêtre existante
+    // et on remet la liste sur le statut réel (vu / absent / vide)
+    if (val === 'deplacer') {
+        gDeplacer(n, dateJour);
+        sel.value = sel.dataset.vu === '1' ? 'vu' : (sel.dataset.absent === '1' ? 'absent' : '');
+        return;
+    }
+
     const row = document.getElementById('grow-'+n);
     const nom = document.getElementById('gnom-'+n);
-    if (!estAbs) {
-        row.className = row.className.replace(/\b(normal|vu)\b/g,'absent');
-        if (nom) { nom.className = nom.className.replace(/\bvu\b/g,'') + ' absent'; }
-        toast('Marqué Absent 🔴');
-    } else {
-        row.className = row.className.replace(/\babsent\b/g,'normal');
-        if (nom) nom.className = nom.className.replace(/\babsent\b/g,'');
-        toast('Statut Absent retiré');
+    const vouluVu     = val === 'vu';
+    const vouluAbsent = val === 'absent';
+    const etaitVu     = sel.dataset.vu === '1';
+    const etaitAbsent = sel.dataset.absent === '1';
+
+    if (vouluVu !== etaitVu) {
+        const r = await ajax('toggle_vu', {n_ordon:n, vu: vouluVu?1:0});
+        if (!r.ok) { toast('Erreur mise à jour', 'error'); return; }
     }
+    if (vouluAbsent !== etaitAbsent) {
+        const r = await ajax('toggle_absent', {n_ordon:n, absent: vouluAbsent?1:0});
+        if (!r.ok) { toast('Erreur mise à jour', 'error'); return; }
+    }
+
+    sel.dataset.vu = vouluVu ? '1' : '0';
+    sel.dataset.absent = vouluAbsent ? '1' : '0';
+    sel.classList.toggle('is-vu', vouluVu);
+    sel.classList.toggle('is-absent', vouluAbsent);
+    if (row) row.className = row.className.replace(/\b(normal|vu|absent)\b/g, '').trim()
+             + ' ' + (vouluVu ? 'vu' : vouluAbsent ? 'absent' : 'normal');
+    if (nom) {
+        nom.className = nom.className.replace(/\b(vu|absent)\b/g, '').trim()
+             + (vouluVu ? ' vu' : vouluAbsent ? ' absent' : '');
+    }
+    toast(vouluVu ? 'Marqué Vu ✅' : vouluAbsent ? 'Marqué Absent 🔴' : 'Statut retiré');
 }
 
 // ── Supprimer ─────────────────────────────────────────────────

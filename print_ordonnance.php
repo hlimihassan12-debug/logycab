@@ -71,7 +71,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     * { margin:0; padding:0; box-sizing:border-box; }
 
     @page {
-        size: 176mm 250mm;
+        size: 147mm 212mm;
         margin: 0;
     }
 
@@ -80,10 +80,9 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         font-size: 13px;
         color: #111;
         background: white;
-        width: 176mm;
-        min-height: 250mm;
-        padding-top:    5cm;    /* en-tête physique */
-        padding-bottom: 2cm;    /* pied physique */
+        width: 147mm;
+        padding-top:    5cm;    /* en-tête physique (mesuré) */
+        padding-bottom: 1.7cm;  /* pied physique (mesuré) */
         padding-left:   1cm;    /* marge gauche */
         padding-right:  1cm;    /* marge droite */
     }
@@ -93,6 +92,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
+        margin-top: 6mm;
         margin-bottom: 0;
         border-bottom: 1px solid #ccc;
         padding-bottom: 4px;
@@ -119,10 +119,15 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         font-weight: bold;
         color: #111;
     }
-    .infos-droite .n-ord {
-        font-size: 11px;
+    .infos-droite .n-pat .sep {
         color: #aaa;
-        margin-top: 2px;
+        font-weight: normal;
+        margin: 0 3px;
+    }
+    .infos-droite .n-pat .n-ord {
+        font-size: 12px;
+        color: #aaa;
+        font-weight: normal;
     }
 
     /* ══ MÉDICAMENTS ══ */
@@ -131,13 +136,13 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         padding-left: 7mm;      /* décalage niveau 1 : nom médicament */
     }
     .med-item {
-        margin-bottom: 4mm;     /* entre médicaments = 4mm */
+        margin-bottom: 2mm;     /* entre médicaments (réduit) */
     }
     .med-nom {
         font-size: 13px;
         font-weight: bold;
         text-transform: uppercase;
-        margin-bottom: 2mm;     /* espace nom médicament → posologie */
+        margin-bottom: 0.5mm;   /* espace nom médicament → posologie (réduit) */
         white-space: nowrap;
     }
     .med-detail {
@@ -153,7 +158,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     /* ══ RDV BAS DE PAGE ══ */
     .rdv-footer {
         position: fixed;
-        bottom: 2cm;
+        bottom: 1.7cm;
         left:  1cm;
         right: 1cm;
         border-top: 1px solid #ccc;
@@ -187,8 +192,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     <div class="nom-patient"><?= $nomPatient ?></div>
     <div class="infos-droite">
         <div class="date-ord"><?= $dateOrd ?></div>
-        <div class="n-pat"><?= $nPat ?></div>
-        <div class="n-ord"><?= $nOrd ?></div>
+        <div class="n-pat"><?= $nPat ?><span class="sep">/</span><span class="n-ord"><?= $nOrd ?></span></div>
     </div>
 </div>
 

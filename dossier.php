@@ -885,6 +885,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
                 <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
+                <a href="print_facture.php?id=<?= $id ?>&fact=<?= $factCourante['n_facture'] ?>" target="_blank" class="nav-btn" style="background:#2e6da4;color:white;padding:2px 5px;font-size:10px;text-decoration:none;" title="Imprimer la note d'honoraires">🖨️ Facture</a>
             </div>
             <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
@@ -1192,6 +1193,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
                 <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
+                <a href="print_facture.php?id=<?= $id ?>&fact=<?= $factCourante['n_facture'] ?>" target="_blank" class="nav-btn" style="background:#2e6da4;color:white;padding:2px 5px;font-size:10px;text-decoration:none;" title="Imprimer la note d'honoraires">🖨️ Facture</a>
             </div>
             <?php else: ?>
                 <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
