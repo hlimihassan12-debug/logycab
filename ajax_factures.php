@@ -9,20 +9,24 @@ header('Content-Type: application/json; charset=utf-8');
 $vue  = $_GET['vue']  ?? 'patient';                 // patient | total | ECG | EDC | DTSA | DVMI
 $gran = $_GET['granularite'] ?? 'mois';             // jour | mois | trimestre | annee
 
-$actesValides = ['ECG', 'EDC', 'DTSA', 'DVMI'];
-$vuesValides  = array_merge(['patient', 'total'], $actesValides);
+$actesValides = ['ECG', 'EDC', 'DTSA', 'DVMI', 'DAMI', 'DAR', 'EDC_P'];
+$vuesValides  = array_merge(['patient', 'total', 'acte'], $actesValides);
 if (!in_array($vue, $vuesValides, true)) $vue = 'patient';
 
 // ── Codes exacts (table t_acte_simplifiée) par vue ──────────────
 // ECG=65, EDC(ECHO-CŒUR)=66, DTSA(vaisseaux du cou)=69, DVMI(écho doppler des VMI)=68
+// DAMI(doppler des AMI)=67, DAR(doppler art rénales)=74, EDC_P(écho-cœur pédiatrique)=76
 $codesParVue = [
-    'ECG'  => [65],
-    'EDC'  => [66],
-    'DTSA' => [69],
-    'DVMI' => [68],
+    'ECG'   => [65],
+    'EDC'   => [66],
+    'DTSA'  => [69],
+    'DVMI'  => [68],
+    'DAMI'  => [67],
+    'DAR'   => [74],
+    'EDC_P' => [76],
 ];
 
-$granValides = ['jour', 'mois', 'trimestre', 'annee'];
+$granValides = ['jour', 'mois', 'trimestre', 'annee', 'tout'];
 if (!in_array($gran, $granValides, true)) $gran = 'mois';
 
 // ── Dates Du / Au : si fournies et valides, on les utilise ──────
@@ -39,7 +43,10 @@ if ($dateOk && $dateDebut > $dateFin) {
 // ── Sinon, période par défaut selon la vue et la granularité ────
 if (!$dateOk) {
     $today = new DateTime('today');
-    if ($vue === 'patient') {
+    if ($gran === 'tout') {
+        // Tout l'historique : depuis une date très ancienne jusqu'à aujourd'hui
+        $debut = new DateTime('2000-01-01');
+    } elseif ($vue === 'patient') {
         // Fenêtre "en cours" : aujourd'hui / ce mois / ce trimestre / cette année
         switch ($gran) {
             case 'jour':
@@ -116,6 +123,37 @@ if ($vue === 'patient') {
         $totalMontant += $montant;
     }
 
+} elseif ($vue === 'acte') {
+
+    $colonnePrincipale = 'Acte';
+    $colonneCompte = 'Actes';
+
+    $sql = "
+        SELECT ISNULL(a.ACTE, '(acte inconnu)') AS nom_acte,
+               COUNT(*) AS nb,
+               ISNULL(SUM(d.Versé), 0) AS total
+        FROM detail_acte d
+        INNER JOIN facture f ON d.N_fact = f.n_facture
+        LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte
+        WHERE CONVERT(date, f.date_facture) BETWEEN ? AND ?
+        GROUP BY a.ACTE
+        ORDER BY total DESC
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$dateDebut, $dateFin]);
+
+    while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $montant = (float)$r['total'];
+        $lignes[] = [
+            'label'   => $r['nom_acte'],
+            'n_pat'   => null,
+            'nb'      => (int)$r['nb'],
+            'montant' => $montant,
+        ];
+        $totalNb += (int)$r['nb'];
+        $totalMontant += $montant;
+    }
+
 } else {
 
     $colonneCompte = 'Actes';
@@ -128,6 +166,7 @@ if ($vue === 'patient') {
             $bucketExpr = "DATEFROMPARTS(YEAR(f.date_facture), (DATEPART(quarter, f.date_facture)-1)*3+1, 1)";
             break;
         case 'annee':
+        case 'tout': // pas de "bucket" propre à "tout" : on regroupe par année
             $bucketExpr = "DATEFROMPARTS(YEAR(f.date_facture), 1, 1)";
             break;
         default: // mois
@@ -178,6 +217,7 @@ if ($vue === 'patient') {
                 $label = 'T' . $q . ' ' . $dt->format('Y');
                 break;
             case 'annee':
+            case 'tout':
                 $label = $dt->format('Y');
                 break;
             default: // mois
