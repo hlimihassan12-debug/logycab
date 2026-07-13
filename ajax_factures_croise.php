@@ -28,6 +28,21 @@ if (!$dateOk) {
 $moisFr = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
+// ── Libellés d'actes raccourcis pour l'affichage (le nom en base reste inchangé) ──
+$renommageActes = [
+    'CERTIFICAT MEDICAL'                   => 'CM',
+    'CONSULTATION'                         => 'C2',
+    'ECG'                                  => 'ECG',
+    'ECHO-CŒUR'                            => 'EDC',
+    'DOPPLER DES AMI'                      => 'DAMI',
+    'ECHO DOPPLER DES VMI'                 => 'DVMI',
+    'DOPPLER DES VAISSEAUX DU COU'         => 'DTSA',
+    'DOPPLER DES ART RENALES'              => 'DAR',
+    'HOLTER TENSIONEL'                     => 'MAPA',
+    'ECHO-CŒUR PEDIATRIQUE'                => 'EDC_P',
+    'INJECTION INTRAVEINEUSE MEDICAMENTS'  => 'ACT_iv',
+];
+
 // ── Requête : une ligne par (étiquette de ligne, année) ─────────
 if ($axe === 'mois') {
     $sql = "
@@ -100,7 +115,7 @@ if ($axe === 'mois') {
     usort($clesOrdonnees, function($a, $b) use ($totalParCle) {
         return $totalParCle[$b]['montant'] <=> $totalParCle[$a]['montant'];
     });
-    $libelle = function($cle) { return $cle; };
+    $libelle = function($cle) use ($renommageActes) { return $renommageActes[$cle] ?? $cle; };
 }
 
 $lignes = [];

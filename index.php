@@ -326,7 +326,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <span class="arrow">▶</span>
             </a>
             <div class="mod-sep"></div>
-            <a href="recherche.php?action=comptabilite" class="mod-link">
+            <a href="factures.php?mode=croise" class="mod-link">
                 <span class="ico-s">📊</span> Tableau de bord comptable
                 <span class="arrow">▶</span>
             </a>

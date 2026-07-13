@@ -128,6 +128,21 @@ if ($vue === 'patient') {
     $colonnePrincipale = 'Acte';
     $colonneCompte = 'Actes';
 
+    // Libellés d'actes raccourcis pour l'affichage (le nom en base reste inchangé)
+    $renommageActes = [
+        'CERTIFICAT MEDICAL'                   => 'CM',
+        'CONSULTATION'                         => 'C2',
+        'ECG'                                  => 'ECG',
+        'ECHO-CŒUR'                            => 'EDC',
+        'DOPPLER DES AMI'                      => 'DAMI',
+        'ECHO DOPPLER DES VMI'                 => 'DVMI',
+        'DOPPLER DES VAISSEAUX DU COU'         => 'DTSA',
+        'DOPPLER DES ART RENALES'              => 'DAR',
+        'HOLTER TENSIONEL'                     => 'MAPA',
+        'ECHO-CŒUR PEDIATRIQUE'                => 'EDC_P',
+        'INJECTION INTRAVEINEUSE MEDICAMENTS'  => 'ACT_iv',
+    ];
+
     $sql = "
         SELECT ISNULL(a.ACTE, '(acte inconnu)') AS nom_acte,
                COUNT(*) AS nb,
@@ -145,7 +160,7 @@ if ($vue === 'patient') {
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $montant = (float)$r['total'];
         $lignes[] = [
-            'label'   => $r['nom_acte'],
+            'label'   => $renommageActes[$r['nom_acte']] ?? $r['nom_acte'],
             'n_pat'   => null,
             'nb'      => (int)$r['nb'],
             'montant' => $montant,
