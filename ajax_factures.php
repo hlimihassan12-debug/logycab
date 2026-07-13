@@ -13,6 +13,15 @@ $actesValides = ['ECG', 'EDC', 'DTSA', 'DVMI'];
 $vuesValides  = array_merge(['patient', 'total'], $actesValides);
 if (!in_array($vue, $vuesValides, true)) $vue = 'patient';
 
+// ── Codes exacts (table t_acte_simplifiée) par vue ──────────────
+// ECG=65, EDC(ECHO-CŒUR)=66, DTSA(vaisseaux du cou)=69, DVMI(écho doppler des VMI)=68
+$codesParVue = [
+    'ECG'  => [65],
+    'EDC'  => [66],
+    'DTSA' => [69],
+    'DVMI' => [68],
+];
+
 $granValides = ['jour', 'mois', 'trimestre', 'annee'];
 if (!in_array($gran, $granValides, true)) $gran = 'mois';
 
@@ -140,21 +149,22 @@ if ($vue === 'patient') {
         $stmt = $db->prepare($sql);
         $stmt->execute([$dateDebut, $dateFin]);
     } else {
-        // Par type d'acte : ECG / EDC / DTSA / DVMI (les combinés comme "ECG+EDC" comptent dans les deux)
+        // Par type d'acte : ECG / EDC / DTSA / DVMI, filtré sur le(s) code(s) exact(s) d'acte
+        $codes = $codesParVue[$vue];
+        $placeholders = implode(',', array_fill(0, count($codes), '?'));
         $sql = "
             SELECT $bucketExpr AS periode,
                    COUNT(*) AS nb_actes,
                    ISNULL(SUM(d.Versé), 0) AS total
             FROM detail_acte d
             INNER JOIN facture f ON d.N_fact = f.n_facture
-            LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte
-            WHERE ISNULL(a.ACTE, '') LIKE ?
+            WHERE d.ACTE IN ($placeholders)
               AND CONVERT(date, f.date_facture) BETWEEN ? AND ?
             GROUP BY $bucketExpr
             ORDER BY periode ASC
         ";
         $stmt = $db->prepare($sql);
-        $stmt->execute(['%' . $vue . '%', $dateDebut, $dateFin]);
+        $stmt->execute(array_merge($codes, [$dateDebut, $dateFin]));
     }
 
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {

@@ -175,8 +175,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <!-- Boutons rapides -->
     <a href="parametres.php"   class="btn-h" style="background:#555;">⚙ Thème</a>
     <span                       class="btn-h grey">🏠 Accueil</span>
+    <?php if (($_SESSION['role'] ?? '') === 'medecin'): ?>
     <button onclick="goHome()"  class="btn-h green">🏠 Dossier</button>
     <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
+    <?php endif; ?>
     <a href="agenda.php"        class="btn-h navy">📅 Agenda</a>
     <a href="planning.php"      class="btn-h blue">📊 Planning</a>
     <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
