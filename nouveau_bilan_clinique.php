@@ -1765,26 +1765,43 @@ function genererRapportExamen() {
     if (mesure) parties.push(mesure);
 
     // Items du bloc "normal"
+    var partiesNormal = [];
     ['n_sympto','n_auscult','n_oedemes','n_vasc'].forEach(function(id) {
         var cb = document.getElementById(id);
-        if (cb && cb.checked) parties.push(cb.value);
+        if (cb && cb.checked) partiesNormal.push(cb.value);
     });
+    var NB_ITEMS_NORMAL_DEFAUT = 4;
 
     // Items exclusifs du bloc "anormal" (angor, dyspnée, rythme, artérite)
+    var partiesAnormal = [];
     document.querySelectorAll('.sx-excl:checked').forEach(function(cb) {
-        if (cb.value) parties.push(cb.value);
+        if (cb.value) partiesAnormal.push(cb.value);
     });
     var artAutres = document.getElementById('arterite_autres');
-    if (artAutres && artAutres.value.trim()) parties.push(artAutres.value.trim());
+    if (artAutres && artAutres.value.trim()) partiesAnormal.push(artAutres.value.trim());
 
     // Signes IVD / IVG (choix multiples)
-    document.querySelectorAll('.sx-ivd:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
-    document.querySelectorAll('.sx-ivg:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+    document.querySelectorAll('.sx-ivd:checked').forEach(function(cb) { if (cb.value) partiesAnormal.push(cb.value); });
+    document.querySelectorAll('.sx-ivg:checked').forEach(function(cb) { if (cb.value) partiesAnormal.push(cb.value); });
 
     // Phlébitique (choix multiples)
-    document.querySelectorAll('.sx-phleb:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+    document.querySelectorAll('.sx-phleb:checked').forEach(function(cb) { if (cb.value) partiesAnormal.push(cb.value); });
     var phlAutres = document.getElementById('phlebite_autres');
-    if (phlAutres && phlAutres.value.trim()) parties.push(phlAutres.value.trim());
+    if (phlAutres && phlAutres.value.trim()) partiesAnormal.push(phlAutres.value.trim());
+
+    // ── Compaction (Tâche 12) ──
+    // Aucune anomalie : soit "sans particularité" (si les 4 items normaux par défaut sont cochés),
+    // soit le détail normal (si vous avez décoché une case normale sans cocher d'anomalie).
+    // Au moins une anomalie : on ne garde QUE les anomalies (les items normaux disparaissent).
+    if (partiesAnormal.length === 0) {
+        if (partiesNormal.length === NB_ITEMS_NORMAL_DEFAUT) {
+            parties.push('examen clinique sans particularité');
+        } else {
+            parties = parties.concat(partiesNormal);
+        }
+    } else {
+        parties = parties.concat(partiesAnormal);
+    }
 
     var ap = document.getElementById('apercu_examen');
     if (ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
@@ -2208,12 +2225,15 @@ function toggleEchoSub(id) {
 }
 
 function genererCmlmEcho() {
-    var parties = [];
-
+    // Items du bloc "Échographie normale"
+    var partiesNormal = [];
     document.querySelectorAll('.echo-n:checked').forEach(function(cb) {
-        if (cb.value && cb.value !== 'on') parties.push(cb.value);
+        if (cb.value && cb.value !== 'on') partiesNormal.push(cb.value);
     });
+    var NB_ITEMS_NORMAL_DEFAUT = 7;
 
+    // Items du bloc "Échographie anormale"
+    var parties = [];
     document.querySelectorAll('.cmlm-ec:checked').forEach(function(cb) {
             var txt = (cb.value && cb.value !== 'on') ? cb.value : '';
             if (!txt) return;
@@ -2308,9 +2328,21 @@ function genererCmlmEcho() {
             }
             if (txt) parties.push(txt);
     });
-    if (parties.length === 0) parties.push('échodoppler cardiaque normale');
 
-    var result = parties.map(function(p){ return '- ' + p; }).join('\n');
+    var partiesAnormal = parties;
+    var partiesFinal;
+    // ── Compaction (Tâche 12) : même principe que l'Examen clinique et l'ECG ──
+    if (partiesAnormal.length === 0) {
+        if (partiesNormal.length === NB_ITEMS_NORMAL_DEFAUT) {
+            partiesFinal = ['échodoppler cardiaque sans particularité'];
+        } else {
+            partiesFinal = partiesNormal;
+        }
+    } else {
+        partiesFinal = partiesAnormal;
+    }
+
+    var result = partiesFinal.map(function(p){ return '- ' + p; }).join('\n');
     document.getElementById('cmlm_echo_val').value = result;
     var ap = document.getElementById('conclusion1_echo');
     if (ap) { ap.value = result; autoResize(ap); }
@@ -2620,18 +2652,40 @@ function genererRapportECG() {
 
     var parties = [];
     if (prefixe) parties.push(prefixe);
+
+    // Items du bloc "ECG normal"
+    var partiesNormal = [];
+    document.querySelectorAll('.ecg-normal-cb:checked').forEach(function(cb) {
+        if (cb.value) partiesNormal.push(cb.value);
+    });
+    var NB_ITEMS_NORMAL_DEFAUT = 5;
+
+    // Items du bloc "ECG anormal"
+    var partiesAnormal = [];
     document.querySelectorAll('#panel_ecg_cases input[type="checkbox"]:checked').forEach(function(cb) {
-        if (cb.classList.contains('ecg-parent')) return;
-        if (cb.value && cb.value !== 'on') { parties.push(cb.value); return; }
+        if (cb.classList.contains('ecg-parent') || cb.classList.contains('ecg-normal-cb')) return;
+        if (cb.value && cb.value !== 'on') { partiesAnormal.push(cb.value); return; }
         var lbl = cb.parentElement;
-        if (lbl) { var t = lbl.textContent.trim(); if (t) parties.push(t); }
+        if (lbl) { var t = lbl.textContent.trim(); if (t) partiesAnormal.push(t); }
     });
     /* Pacemaker : ajouter date si renseignée */
     var paceDate = document.getElementById('ecg_pace_date');
     if (paceDate && paceDate.value.trim()) {
-        var idx = parties.findIndex(function(p){ return p.indexOf('Électro-entraîné') !== -1 || p.indexOf('pacemaker') !== -1; });
-        if (idx !== -1) parties[idx] += ', posé le ' + paceDate.value.trim();
+        var idx = partiesAnormal.findIndex(function(p){ return p.indexOf('Électro-entraîné') !== -1 || p.indexOf('pacemaker') !== -1; });
+        if (idx !== -1) partiesAnormal[idx] += ', posé le ' + paceDate.value.trim();
     }
+
+    // ── Compaction (Tâche 12) : même principe que l'Examen clinique ──
+    if (partiesAnormal.length === 0) {
+        if (partiesNormal.length === NB_ITEMS_NORMAL_DEFAUT) {
+            parties.push('ECG sans particularité');
+        } else {
+            parties = parties.concat(partiesNormal);
+        }
+    } else {
+        parties = parties.concat(partiesAnormal);
+    }
+
     var txt = parties.map(function(l){ return '- ' + l; }).join('\n');
     var ap = document.getElementById('apercu_ecg');
     if (ap) { ap.value = txt; autoResize(ap); }
