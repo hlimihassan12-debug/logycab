@@ -106,6 +106,24 @@ $stmtSpec->execute();
 $specialites = $stmtSpec->fetchAll();
 
 $dateAuj = date('d/m/Y');
+
+// ── Mise en ligne : transforme un texte multi-lignes ("- item1\n- item2") en une seule ligne ("item1 ; item2")
+// Pour ATCD, retire aussi les préfixes "ATCD chir. :"/"ATCD méd. :"/"ATCD :" (redondants, le libellé le dit déjà).
+// La donnée en base n'est jamais modifiée — ce traitement ne sert qu'à l'affichage de la lettre.
+function enLigne($texte, $stripAtcdPrefix = false) {
+    $lignes = preg_split('/\r\n|\r|\n/', trim($texte));
+    $out = [];
+    foreach ($lignes as $l) {
+        $l = trim($l);
+        if ($l === '') continue;
+        if (strpos($l, '- ') === 0) $l = substr($l, 2);
+        if ($stripAtcdPrefix) {
+            $l = preg_replace('/^ATCD\s*(chir\.?|m[ée]d(ical)?\.?)?\s*:\s*/i', '', $l);
+        }
+        $out[] = $l;
+    }
+    return implode(' ; ', $out);
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -124,8 +142,8 @@ body {
     width: 147mm;
     padding-top:    5cm;    /* en-tête physique (mesuré) */
     padding-bottom: 1.7cm;  /* pied physique (mesuré) */
-    padding-left:   1cm;    /* marge gauche */
-    padding-right:  1cm;    /* marge droite */
+    padding-left:   0.6cm;  /* marge gauche (réduite) */
+    padding-right:  0.4cm;  /* marge droite (réduite) */
 }
 
 /* ── Barre boutons ── */
@@ -143,13 +161,13 @@ body {
 /* ── Champ contenteditable — remplace les textareas ── */
 .editable {
     width: 100%;
-    min-height: 1.8em;
+    min-height: 1.2em;
     border: 1px dashed #aaa;
     border-radius: 3px;
-    padding: 4px 6px;
+    padding: 1px 4px;
     font-size: 12px;
     font-family: Arial, sans-serif;
-    line-height: 1.5;
+    line-height: 1.15;
     background: #fafeff;
     color: #111;
     white-space: pre-wrap;
@@ -182,19 +200,24 @@ body {
 .btn-ajouter-spec:hover { background:#1a4a7a; }
 
 /* ── Ligne date ── */
-.ligne-date-lettre { text-align:right; font-size:12px; margin-bottom:2mm; }
+.ligne-date-lettre { text-align:right; font-size:12px; margin-bottom:1mm; }
 
 /* ── Objet ── */
-.objet { font-size:12px; font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:1mm; margin-bottom:2mm; }
+.objet { font-size:12px; font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:0.5mm; margin-bottom:1mm; }
 
 /* ── Identité patient ── */
-.identite-patient { background:#f0f7ff; border-left:3px solid #2e6da4; padding:3px 8px; margin-bottom:2mm; font-size:12px; line-height:1.4; }
+.identite-patient { background:#f0f7ff; border-left:3px solid #2e6da4; padding:2px 6px; margin-bottom:1mm; font-size:12px; line-height:1.2; }
 
 /* ── Sections ── */
-.section { margin-top:2mm; }
-.section-titre { font-size:12px; font-weight:bold; text-decoration:underline; color:#1a4a7a; margin-bottom:0.5mm; }
-.section-corps { border-left:3px solid #ccc; padding-left:8px; font-size:12px; line-height:1.4; }
-.sous-label { font-size:11px; color:#555; margin-bottom:1px; margin-top:3px; }
+.section { margin-top:1mm; }
+.section-titre { font-size:12px; font-weight:bold; text-decoration:underline; color:#1a4a7a; margin-bottom:0.3mm; }
+.section-corps { border-left:3px solid #ccc; padding-left:5px; font-size:12px; line-height:1.15; }
+.sous-label { font-size:11px; color:#555; margin-bottom:0; margin-top:1px; }
+
+/* ── Mise en ligne libellé + contenu (compaction Tâche 12) ── */
+.ligne-inline { display:flex; align-items:baseline; gap:4px; flex-wrap:wrap; }
+.ligne-inline .sous-label { white-space:nowrap; margin:0; }
+.ligne-inline .editable { flex:1; min-height:auto; min-width:120px; }
 
 /* ── Médicaments ── */
 .med-liste-print { list-style:none; padding:0; margin:2px 0; }
@@ -202,8 +225,8 @@ body {
 .med-ligne-print::before { content:"• "; }
 
 /* ── Formule finale ── */
-.formule-finale { margin-top:3mm; font-size:12px; line-height:1.4; }
-.signature-bloc { margin-top:5mm; font-size:12px; font-weight:bold; }
+.formule-finale { margin-top:2mm; font-size:12px; line-height:1.2; }
+.signature-bloc { margin-top:3mm; font-size:12px; font-weight:bold; }
 
 /* ══ IMPRESSION ══════════════════════════════════════════════════════════ */
 @media screen {
@@ -238,7 +261,7 @@ body {
 <div class="btn-bar">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
     <span>✉️ Lettre — <?= htmlspecialchars($nomPatient) ?></span>
-    <button class="btn-close" onclick="window.close()">✕ Fermer</button>
+    <button class="btn-close" onclick="fermerFenetre()">✕ Fermer</button>
 </div>
 
 <!-- ══ DESTINATAIRE ═══════════════════════════════════════════════════════ -->
@@ -277,12 +300,10 @@ body {
 </div>
 
 <!-- ══ 1. MOTIF ═══════════════════════════════════════════════════════════ -->
-<div class="section">
-    <div class="section-titre">Motif :</div>
-    <div class="section-corps">
-        <div class="editable" contenteditable="true"
-             data-placeholder="Saisir le motif de la correspondance…"><?= htmlspecialchars($motifConsult) ?></div>
-    </div>
+<div class="section" style="display:flex;align-items:baseline;gap:5px;">
+    <div class="section-titre" style="margin-bottom:0;white-space:nowrap;">Motif :</div>
+    <div class="editable" contenteditable="true" style="flex:1;min-height:auto;"
+         data-placeholder="Saisir le motif de la correspondance…"><?= htmlspecialchars($motifConsult) ?></div>
 </div>
 
 <!-- ══ 2. ANTÉCÉDENTS & DIAGNOSTIC ═══════════════════════════════════════ -->
@@ -290,48 +311,58 @@ body {
     <div class="section-titre">Antécédents et diagnostic :</div>
     <div class="section-corps">
         <?php if ($atcdTexte): ?>
-        <div class="sous-label">Antécédents :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($atcdTexte) ?></div>
+        <div class="ligne-inline">
+            <span class="sous-label">Antécédents :</span>
+            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($atcdTexte, true)) ?></div>
+        </div>
+        <?php endif; ?>
+        <?php if ($fdrTexte): ?>
+        <div class="ligne-inline">
+            <span class="sous-label">Facteurs de risque :</span>
+            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($fdrTexte)) ?></div>
+        </div>
         <?php endif; ?>
         <?php if ($diagTexte): ?>
-        <div class="sous-label">Diagnostic :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($diagTexte) ?></div>
+        <div class="ligne-inline">
+            <span class="sous-label">Diagnostic :</span>
+            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($diagTexte)) ?></div>
+        </div>
         <?php endif; ?>
-        <?php if (!$atcdTexte && !$diagTexte): ?>
+        <?php if (!$atcdTexte && !$diagTexte && !$fdrTexte): ?>
         <div class="editable" contenteditable="true" data-placeholder="Antécédents et diagnostic…">—</div>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- ══ 3. DONNÉES CLINIQUES ═══════════════════════════════════════════════ -->
+<!-- ══ 3. DONNÉES CLINIQUES (titre supprimé, contenu conservé) ═════════════ -->
 <?php if ($texteExamen || $texteECG || $texteEcho || $bioTexte): ?>
 <div class="section">
-    <div class="section-titre">Données cliniques :</div>
     <div class="section-corps">
 
         <?php if ($texteExamen): ?>
-        <div class="sous-label">Examen clinique :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($texteExamen) ?></div>
+        <div class="ligne-inline">
+            <span class="sous-label">Examen clinique :</span>
+            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($texteExamen)) ?></div>
+        </div>
         <?php endif; ?>
 
         <?php if ($texteECG): ?>
-        <div class="sous-label">ECG :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($texteECG) ?></div>
+        <div class="ligne-inline">
+            <span class="sous-label">ECG :</span>
+            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($texteECG)) ?></div>
+        </div>
         <?php endif; ?>
 
         <?php if ($texteEcho): ?>
-        <div class="sous-label">Écho-Doppler :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($texteEcho) ?></div>
+        <div class="ligne-inline">
+            <span class="sous-label">Écho-Doppler :</span>
+            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($texteEcho)) ?></div>
+        </div>
         <?php endif; ?>
 
         <?php if ($bioTexte): ?>
         <div class="sous-label">Biologie :</div>
         <div class="editable" contenteditable="true"><?= htmlspecialchars($bioTexte) ?></div>
-        <?php endif; ?>
-
-        <?php if ($fdrTexte): ?>
-        <div class="sous-label">Facteurs de risque :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($fdrTexte) ?></div>
         <?php endif; ?>
 
     </div>
@@ -340,29 +371,23 @@ body {
 
 <!-- ══ 4. TRAITEMENT EN COURS ════════════════════════════════════════════ -->
 <?php if (!empty($medicaments)): ?>
-<div class="section">
-    <div class="section-titre">Traitement en cours<?= $dateOrd ? ' (ordonnance du '.$dateOrd.')' : '' ?> :</div>
-    <div class="section-corps">
-        <ul class="med-liste-print">
-        <?php foreach ($medicaments as $m): ?>
-            <?php
-                $ligne = htmlspecialchars($m['nom_produit'] ?? '');
-                if (!empty($m['posologie'])) $ligne .= ' — '.htmlspecialchars($m['posologie']);
-                if (!empty($m['DUREE']))     $ligne .= ' — '.htmlspecialchars($m['DUREE']);
-            ?>
-            <li class="med-ligne-print"><?= $ligne ?></li>
-        <?php endforeach; ?>
-        </ul>
-    </div>
+<div class="section" style="display:flex;align-items:baseline;gap:5px;">
+    <div class="section-titre" style="margin-bottom:0;white-space:nowrap;">Traitement en cours<?= $dateOrd ? ' (ordonnance du '.$dateOrd.')' : '' ?> :</div>
+    <div class="editable" contenteditable="true" style="flex:1;min-height:auto;"><?php
+        $nomsMed = [];
+        foreach ($medicaments as $m) {
+            $n = trim($m['nom_produit'] ?? '');
+            if ($n !== '') $nomsMed[] = mb_strtoupper($n, 'UTF-8');
+        }
+        echo htmlspecialchars(implode(' ; ', $nomsMed));
+    ?></div>
 </div>
 <?php endif; ?>
 
 <!-- ══ 5. CONCLUSION ═════════════════════════════════════════════════════ -->
-<div class="section">
-    <div class="section-titre">Conclusion :</div>
-    <div class="section-corps">
-        <div class="editable" contenteditable="true">Je vous adresse ce patient pour avis et prise en charge.</div>
-    </div>
+<div class="section" style="display:flex;align-items:baseline;gap:5px;">
+    <div class="section-titre" style="margin-bottom:0;white-space:nowrap;">Conclusion :</div>
+    <div class="editable" contenteditable="true" style="flex:1;min-height:auto;">Je vous adresse ce patient pour avis et prise en charge.</div>
 </div>
 
 <!-- ── Formule de politesse ── -->
@@ -435,8 +460,19 @@ document.getElementById('autre_spec_input').addEventListener('keydown', function
     if (e.key === 'Enter') ajouterSpecialite();
 });
 
-/* ── Fermer après impression ── */
-window.addEventListener('afterprint', function() { window.close(); });
+/* ── Fermer la fenêtre (bouton + après impression) ── */
+function fermerFenetre() {
+    try {
+        window.open('', '_self');
+        window.close();
+    } catch (e) {}
+    setTimeout(function() {
+        if (!document.hidden) {
+            alert("Cet onglet ne peut pas se fermer automatiquement. Vous pouvez le fermer manuellement (Ctrl+W).");
+        }
+    }, 300);
+}
+window.addEventListener('afterprint', fermerFenetre);
 </script>
 
 </body>
