@@ -114,19 +114,18 @@ $dateAuj = date('d/m/Y');
 <title>Lettre — <?= htmlspecialchars($nomPatient) ?></title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-@page { size: B5; margin: 0; }
+@page { size: 147mm 212mm; margin: 0; }
 
 body {
     font-family: Arial, sans-serif;
     font-size: 12px;
     color: #111;
     background: white;
-    width: 176mm;
-    min-height: 250mm;
-    padding-top: 1.4cm;
-    padding-bottom: 1.2cm;
-    padding-left: 1.5cm;
-    padding-right: 1.5cm;
+    width: 147mm;
+    padding-top:    5cm;    /* en-tête physique (mesuré) */
+    padding-bottom: 1.7cm;  /* pied physique (mesuré) */
+    padding-left:   1cm;    /* marge gauche */
+    padding-right:  1cm;    /* marge droite */
 }
 
 /* ── Barre boutons ── */
