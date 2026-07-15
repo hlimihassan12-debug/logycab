@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['S_Fonctionnels']?:null,$_POST['Auscult_Cardiaque']?:null,
                 $_POST['Auscult_Pulmonaire']?:null,$_POST['Examen_Vasculaire']?:null,
                 $_POST['Signes_IVG']?:null,$_POST['Signes_IVD']?:null,
-                $_POST['Autres_Symptomes']?:null,$_POST['Conclusion']?:null,
+                $_POST['Autres_Symptomes']?:null,$_POST['Conclusion']??null,
                 $_POST['REMARQUE']?:null,$_POST['Conduite_ATenir']?:null,
                 $_POST['CMLM_EXAMEN']?:null]);
             if ($isAjax) { ob_clean(); header('Content-Type: application/json'); echo json_encode(['ok'=>true,'msg'=>'✅ Examen enregistré']); exit; }
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['TOPOGRAPHIE_T']?:null,
                 $_POST['IDM']?:null,
                 $_POST['TOPOGRAPHIE_Q']?:null,
-                $_POST['CC']?:null,
+                $_POST['CC']??null,
                 $_POST['AUTRES_SIGNES']?:null,
                 $_POST['CMLM_ECG']?:null]);
             if ($isAjax) { ob_clean(); header('Content-Type: application/json'); echo json_encode(['ok'=>true,'msg'=>'✅ ECG enregistré']); exit; }
@@ -532,8 +532,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </div>
             <div id="bloc_normal_body" style="display:none;">
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
             <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
             </div>
         </div>
@@ -635,14 +633,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
             </div><!-- fin sub_exam_vasc -->
 
-            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Remarque et conclusion</div>
+            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Annotation</div>
             <div class="champ" id="wrap_REMARQUE">
-                <label>Remarque</label>
+                <label>Annotation clinique</label>
                 <textarea name="REMARQUE" class="court" oninput="majApercuExamen()"></textarea>
-            </div>
-            <div class="champ" id="wrap_Conclusion">
-                <label>Conclusion</label>
-                <textarea name="Conclusion" class="court" oninput="majApercuExamen()"></textarea>
             </div>
 
             </div><!-- fin sympto_cases_body -->
@@ -709,11 +703,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span>ECG normal</span><span id="arr_ecg_normal">▶</span>
         </div>
         <div id="ecg_normal_detail" style="display:none;margin-top:4px;">
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_iv" value="conduction intra-ventriculaire normale" checked> Conduction intra-ventriculaire normale</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme ou de conduction" checked> Rythme sinusal, absence de trouble de rythme ou de conduction</label>
             <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_repol" value="repolarisation normale" checked> Repolarisation normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
         </div>
 
         <div class="exam-section" onclick="toggleEcgSection('ecg_detail','arr_ecg_anormal')">
@@ -860,14 +851,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 </div>
             </div>
 
-            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">C/C et autres signes</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <div class="champ" id="wrap_CC"><label>C/C</label>
-                    <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:36px;resize:vertical;"></textarea>
-                </div>
-                <div class="champ"><label>Autres signes ECG</label>
-                    <input type="text" name="AUTRES_SIGNES">
-                </div>
+            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Annotation</div>
+            <div class="champ"><label>Annotation ECG</label>
+                <input type="text" name="AUTRES_SIGNES">
             </div>
 
         </div><!-- fin ecg_detail -->
@@ -938,11 +924,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div id="echo_normale_detail" style="display:none;">
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_og" checked value="oreillettes non dilatées"> Oreillettes non dilatées</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_vd" checked value="cavités droites non dilatées"> Cavités droites non dilatées</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec"> Péricarde sec</label>
-            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_aorte" checked value="aorte initiale non dilatée"> Aorte initiale non dilatée</label>
+            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec et aorte initiale non dilatée"> Péricarde sec et Aorte initiale non dilatée</label>
             <span id="dtsa_anchor_normale" style="display:none;"></span>
         </div>
 
@@ -1291,10 +1273,22 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
         </div><!-- fin cmlm_echo_detail -->
 
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Annotation</div>
+        <div class="champ" id="wrap_CONCLUSION1">
+            <label>Annotation Echo</label>
+            <textarea name="CONCLUSION1" id="conclusion1_echo"
+                style="min-height:60px;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+                oninput="majApercuEcho(); autoResize(this)"></textarea>
+        </div>
+
         </div><!-- fin echo_content -->
     </div><!-- fin panel_echo_cases -->
 
-    <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
+    <div class="champ" style="margin-top:6px;">
+        <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Echo</label>
+        <textarea id="cmlm_echo_val" name="CMLM_ECHO"
+            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+    </div>
 
     <!-- Champs cachés exclusion Echo -->
 
@@ -1303,13 +1297,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <textarea name="DTSA" class="court" oninput="majConcatEcho()"></textarea>
     </div>
 
-    <!-- Aperçu Echo -->
-    <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
-        <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Echo</label>
-        <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
-            oninput="majApercuEcho(); autoResize(this)"></textarea>
-    </div>
     </form>
 </div>
 
@@ -1545,9 +1532,9 @@ var echoMode       = 'normal'; // 'normal' ou 'anormal'
 // Listes des champs par colonne (pour les labels "exclu")
 var champsExamen = ['S_Fonctionnels','Auscult_Cardiaque','Auscult_Pulmonaire',
                     'Examen_Vasculaire','Signes_IVG','Signes_IVD','Autres_Symptomes',
-                    'Conclusion','REMARQUE'];
+                    'REMARQUE'];
 var champsECG    = ['rythme_sv','trouble_rv','conduction_nodale','QRS',
-                    'infrastructure_de_conduction','REPOLARISATION','CC'];
+                    'infrastructure_de_conduction','REPOLARISATION'];
 var champsEcho   = ['DOPPLER','DTSA','CONCLUSION1'];
 
 /* ── Mettre à jour le label "N champ(s) exclu(s)" ── */
@@ -1680,8 +1667,13 @@ function majConcatEcho() {
     });
     if (!exclusions['DOPPLER']) { var d=g('DOPPLER'); if(d) p.push('Doppler : '+d); }
     /* DTSA volontairement exclu de l'aperçu (saisie libre, hors rapport généré) */
-    var c1 = document.getElementById('conclusion1_echo');
-    if (c1) { c1.value = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : ''; autoResize(c1); }
+    // ── Annotation Echo : toujours ajoutée à la fin, jamais écrasée ──
+    var annotation = document.getElementById('conclusion1_echo');
+    var annotationTxt = annotation ? annotation.value.trim() : '';
+    var partiesTxt = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : '';
+    if (annotationTxt) partiesTxt = partiesTxt ? partiesTxt + '\n- ' + annotationTxt : '- ' + annotationTxt;
+    var c1 = document.getElementById('cmlm_echo_val');
+    if (c1) { c1.value = partiesTxt; autoResize(c1); }
     majApercuEcho();
 }
 
@@ -1733,10 +1725,13 @@ function genererConclusionNormal() {
     if(tad && tad.value) mesure += '/' + tad.value + ' mmHg';
     if(fc  && fc.value)  mesure += (mesure ? ' — ' : '') + 'FC : ' + fc.value + ' bpm';
     if(mesure) parties.push(mesure);
-    ['n_sympto','n_auscult','n_oedemes','n_vasc'].forEach(function(id){
+    ['n_sympto','n_vasc'].forEach(function(id){
         var cb = document.getElementById(id);
         if(cb && cb.checked) parties.push(cb.value);
     });
+    var remarque = document.getElementById('wrap_REMARQUE');
+    var remarqueTxt = remarque ? (remarque.querySelector('textarea').value || '').trim() : '';
+    if (remarqueTxt) parties.push(remarqueTxt);
     var ap = document.getElementById('apercu_examen');
     if(ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
     var condParts = [];
@@ -1766,11 +1761,11 @@ function genererRapportExamen() {
 
     // Items du bloc "normal"
     var partiesNormal = [];
-    ['n_sympto','n_auscult','n_oedemes','n_vasc'].forEach(function(id) {
+    ['n_sympto','n_vasc'].forEach(function(id) {
         var cb = document.getElementById(id);
         if (cb && cb.checked) partiesNormal.push(cb.value);
     });
-    var NB_ITEMS_NORMAL_DEFAUT = 4;
+    var NB_ITEMS_NORMAL_DEFAUT = 2;
 
     // Items exclusifs du bloc "anormal" (angor, dyspnée, rythme, artérite)
     var partiesAnormal = [];
@@ -1790,18 +1785,18 @@ function genererRapportExamen() {
     if (phlAutres && phlAutres.value.trim()) partiesAnormal.push(phlAutres.value.trim());
 
     // ── Compaction (Tâche 12) ──
-    // Aucune anomalie : soit "sans particularité" (si les 4 items normaux par défaut sont cochés),
-    // soit le détail normal (si vous avez décoché une case normale sans cocher d'anomalie).
+    // Aucune anomalie : on liste les items normaux cochés.
     // Au moins une anomalie : on ne garde QUE les anomalies (les items normaux disparaissent).
     if (partiesAnormal.length === 0) {
-        if (partiesNormal.length === NB_ITEMS_NORMAL_DEFAUT) {
-            parties.push('examen clinique sans particularité');
-        } else {
-            parties = parties.concat(partiesNormal);
-        }
+        parties = parties.concat(partiesNormal);
     } else {
         parties = parties.concat(partiesAnormal);
     }
+
+    // ── Annotation clinique : toujours ajoutée à la fin, jamais écrasée ──
+    var remarque = document.getElementById('wrap_REMARQUE');
+    var remarqueTxt = remarque ? (remarque.querySelector('textarea').value || '').trim() : '';
+    if (remarqueTxt) parties.push(remarqueTxt);
 
     var ap = document.getElementById('apercu_examen');
     if (ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
@@ -1880,7 +1875,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     /* Auto-resize au chargement pour valeurs pré-remplies depuis la base */
-    ['apercu_examen','apercu_ecg','conclusion1_echo'].forEach(function(id) {
+    ['apercu_examen','apercu_ecg','conclusion1_echo','cmlm_echo_val'].forEach(function(id) {
         var el = document.getElementById(id); if (el) autoResize(el);
     });
 });
@@ -1919,7 +1914,7 @@ function remplirEchoNormal() {
     s('FEVG','60'); s('DTD_VG','50'); s('DTS_VG','32'); s('SIV','9'); s('PP','9');
     s('RACINE_AO','34'); s('HTAP','absente'); s('CINETIQUE','normale'); s('ECHOGENICITE','normale');
     s('DOPPLER','Flux au doppler normal');
-    var c1 = document.getElementById('conclusion1_echo');
+    var c1 = document.getElementById('cmlm_echo_val');
     if (c1) c1.value = "Absence de dilatation ou d'hypertrophie cavitaire. Flux au doppler : normal. " +
         "Cinetique globale et regionale normale. " +
         "Fonctions du ventricule gauche normale, Absence d'hypertension arterielle pulmonaire. " +
@@ -1937,7 +1932,7 @@ function viderEcho() {
     var te = document.getElementById('type_echo_val'); if(te) te.value='Echographie cardiaque';
     ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE','ECHOGENICITE','DOPPLER','DTSA']
     .forEach(function(n){ var e=document.querySelector('[name='+n+']'); if(e) e.value=''; });
-    var c1 = document.getElementById('conclusion1_echo'); if(c1) c1.value='';
+    var c1 = document.getElementById('cmlm_echo_val'); if(c1) c1.value='';
     majLabelExcluEcho();
     majApercuEcho();
 }
@@ -2230,7 +2225,7 @@ function genererCmlmEcho() {
     document.querySelectorAll('.echo-n:checked').forEach(function(cb) {
         if (cb.value && cb.value !== 'on') partiesNormal.push(cb.value);
     });
-    var NB_ITEMS_NORMAL_DEFAUT = 7;
+    var NB_ITEMS_NORMAL_DEFAUT = 3;
 
     // Items du bloc "Échographie anormale"
     var parties = [];
@@ -2331,20 +2326,20 @@ function genererCmlmEcho() {
 
     var partiesAnormal = parties;
     var partiesFinal;
-    // ── Compaction (Tâche 12) : même principe que l'Examen clinique et l'ECG ──
+    // ── Compaction (Tâche 12) : on liste les items normaux cochés ──
     if (partiesAnormal.length === 0) {
-        if (partiesNormal.length === NB_ITEMS_NORMAL_DEFAUT) {
-            partiesFinal = ['échodoppler cardiaque sans particularité'];
-        } else {
-            partiesFinal = partiesNormal;
-        }
+        partiesFinal = partiesNormal;
     } else {
         partiesFinal = partiesAnormal;
     }
 
+    // ── Annotation Echo : toujours ajoutée à la fin, jamais écrasée ──
+    var annotation = document.getElementById('conclusion1_echo');
+    var annotationTxt = annotation ? annotation.value.trim() : '';
+    if (annotationTxt) partiesFinal = partiesFinal.concat([annotationTxt]);
+
     var result = partiesFinal.map(function(p){ return '- ' + p; }).join('\n');
-    document.getElementById('cmlm_echo_val').value = result;
-    var ap = document.getElementById('conclusion1_echo');
+    var ap = document.getElementById('cmlm_echo_val');
     if (ap) { ap.value = result; autoResize(ap); }
 }
 
@@ -2658,7 +2653,7 @@ function genererRapportECG() {
     document.querySelectorAll('.ecg-normal-cb:checked').forEach(function(cb) {
         if (cb.value) partiesNormal.push(cb.value);
     });
-    var NB_ITEMS_NORMAL_DEFAUT = 5;
+    var NB_ITEMS_NORMAL_DEFAUT = 2;
 
     // Items du bloc "ECG anormal"
     var partiesAnormal = [];
@@ -2675,16 +2670,17 @@ function genererRapportECG() {
         if (idx !== -1) partiesAnormal[idx] += ', posé le ' + paceDate.value.trim();
     }
 
-    // ── Compaction (Tâche 12) : même principe que l'Examen clinique ──
+    // ── Compaction (Tâche 12) : on liste les items normaux cochés ──
     if (partiesAnormal.length === 0) {
-        if (partiesNormal.length === NB_ITEMS_NORMAL_DEFAUT) {
-            parties.push('ECG sans particularité');
-        } else {
-            parties = parties.concat(partiesNormal);
-        }
+        parties = parties.concat(partiesNormal);
     } else {
         parties = parties.concat(partiesAnormal);
     }
+
+    // ── Annotation ECG : toujours ajoutée à la fin, jamais écrasée ──
+    var autresSignes = document.querySelector('input[name="AUTRES_SIGNES"]');
+    var autresSignesTxt = autresSignes ? autresSignes.value.trim() : '';
+    if (autresSignesTxt) parties.push(autresSignesTxt);
 
     var txt = parties.map(function(l){ return '- ' + l; }).join('\n');
     var ap = document.getElementById('apercu_ecg');
