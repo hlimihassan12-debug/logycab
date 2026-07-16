@@ -124,6 +124,24 @@ function enLigne($texte, $stripAtcdPrefix = false) {
     }
     return implode(' ; ', $out);
 }
+
+// ── Affiche "Label : texte" avec un petit retrait de paragraphe classique ──
+// Ligne 1 : le label est à la marge, le texte suit juste après.
+// Lignes suivantes (si le texte est trop long) : petit retrait fixe (comme un
+// retrait de paragraphe habituel), pas un alignement sous le texte — ça évite
+// de perdre de la place sur la largeur (déjà réduite) de la page.
+function ligneAlignee($label, $texte, $indent) {
+    if (trim((string)$texte) === '') return;
+    ?>
+    <div class="section" style="padding-left:<?= $indent ?>px;text-indent:-<?= $indent ?>px;">
+        <span class="section-titre" style="text-decoration:underline;"><?= htmlspecialchars($label) ?> :</span>
+        <span class="editable" contenteditable="true" style="text-indent:0;"><?= htmlspecialchars($texte) ?></span>
+    </div>
+    <?php
+}
+// Petit retrait fixe pour toutes les rubriques (environ 1 caractère de recul) —
+// beaucoup plus économe en place qu'un alignement sous le texte.
+$indentCommunRubriques = 14;
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -142,8 +160,8 @@ body {
     width: 147mm;
     padding-top:    5cm;    /* en-tête physique (mesuré) */
     padding-bottom: 1.7cm;  /* pied physique (mesuré) */
-    padding-left:   0.6cm;  /* marge gauche (réduite) */
-    padding-right:  0.4cm;  /* marge droite (réduite) */
+    padding-left:   1.5cm;  /* marge gauche */
+    padding-right:  1.5cm;  /* marge droite */
 }
 
 /* ── Barre boutons ── */
@@ -205,19 +223,9 @@ body {
 /* ── Objet ── */
 .objet { font-size:12px; font-weight:bold; border-bottom:1px solid #ccc; padding-bottom:0.5mm; margin-bottom:1mm; }
 
-/* ── Identité patient ── */
-.identite-patient { background:#f0f7ff; border-left:3px solid #2e6da4; padding:2px 6px; margin-bottom:1mm; font-size:12px; line-height:1.2; }
-
 /* ── Sections ── */
 .section { margin-top:1mm; }
 .section-titre { font-size:12px; font-weight:bold; text-decoration:underline; color:#1a4a7a; margin-bottom:0.3mm; }
-.section-corps { border-left:3px solid #ccc; padding-left:5px; font-size:12px; line-height:1.15; }
-.sous-label { font-size:11px; color:#555; margin-bottom:0; margin-top:1px; }
-
-/* ── Mise en ligne libellé + contenu (compaction Tâche 12) ── */
-.ligne-inline { display:flex; align-items:baseline; gap:4px; flex-wrap:wrap; }
-.ligne-inline .sous-label { white-space:nowrap; margin:0; }
-.ligne-inline .editable { flex:1; min-height:auto; min-width:120px; }
 
 /* ── Médicaments ── */
 .med-liste-print { list-style:none; padding:0; margin:2px 0; }
@@ -244,14 +252,6 @@ body {
     }
     /* Masquer le placeholder à l'impression */
     .editable:empty::before { content: '' !important; }
-
-    /* Cases radio : n'afficher que la cochée */
-    .spec-case input[type="radio"]:not(:checked) + label { display:none; }
-    .spec-case input[type="radio"]:not(:checked)         { display:none; }
-    .spec-case input[type="radio"]:checked               { display:none; }
-    .spec-case input[type="radio"]:checked + label       { font-weight:bold; }
-
-    .identite-patient { background:white !important; }
 }
 </style>
 </head>
@@ -264,131 +264,71 @@ body {
     <button class="btn-close" onclick="fermerFenetre()">✕ Fermer</button>
 </div>
 
-<!-- ══ DESTINATAIRE ═══════════════════════════════════════════════════════ -->
-<div style="margin-bottom:2mm;">
-    <div class="dest-label">À l'attention du :</div>
+<!-- ══ DESTINATAIRE + DATE (même ligne) ═══════════════════════════════════ -->
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:1mm;">
+    <div class="dest-label" style="margin-bottom:0;">À l'attention du : <span id="dest_choisi_print" style="font-weight:normal;color:#111;"></span></div>
+    <div class="ligne-date-lettre" style="margin-bottom:0;white-space:nowrap;">Tétouan, le <?= $dateAuj ?></div>
+</div>
 
-    <div class="spec-grille" id="spec_grille">
-    <?php foreach ($specialites as $sp): ?>
-        <div class="spec-case" id="case_<?= $sp['id_spec'] ?>">
-            <input type="radio" name="destinataire" id="spec_<?= $sp['id_spec'] ?>"
-                   value="<?= htmlspecialchars($sp['libelle']) ?>"
-                   onchange="majSelection(this)">
-            <label for="spec_<?= $sp['id_spec'] ?>"><?= htmlspecialchars($sp['libelle']) ?></label>
-        </div>
-    <?php endforeach; ?>
+<div class="spec-grille no-print" id="spec_grille">
+<?php foreach ($specialites as $sp): ?>
+    <div class="spec-case" id="case_<?= $sp['id_spec'] ?>">
+        <input type="radio" name="destinataire" id="spec_<?= $sp['id_spec'] ?>"
+               value="<?= htmlspecialchars($sp['libelle']) ?>"
+               onchange="majSelection(this)">
+        <label for="spec_<?= $sp['id_spec'] ?>"><?= htmlspecialchars($sp['libelle']) ?></label>
     </div>
-
-    <div class="autre-spec no-print">
-        <span style="font-size:11px;color:#555;">Autre :</span>
-        <input type="text" id="autre_spec_input" placeholder="Ex : Neurochirurgien…" autocomplete="off">
-        <button class="btn-ajouter-spec" onclick="ajouterSpecialite()">+ Ajouter</button>
-        <span id="spec_msg" style="font-size:11px;color:#27ae60;"></span>
-    </div>
+<?php endforeach; ?>
 </div>
 
-<!-- ── Date ── -->
-<div class="ligne-date-lettre">Tétouan, le <?= $dateAuj ?></div>
-
-<!-- ── Objet ── -->
-<div class="objet">Objet : Lettre de correspondance concernant le patient <?= htmlspecialchars($nomPatient) ?></div>
-
-<!-- ── Identité patient ── -->
-<div class="identite-patient">
-    <strong>Patient :</strong> <?= htmlspecialchars($nomPatient) ?><?php if ($age): ?> — <?= $age ?> ans<?php endif; ?><?php if ($ddn): ?>, né(e) le <?= $ddn ?><?php endif; ?>
-    — N°PAT : <?= $id ?>
+<div class="autre-spec no-print">
+    <span style="font-size:11px;color:#555;">Autre :</span>
+    <input type="text" id="autre_spec_input" placeholder="Ex : Neurochirurgien…" autocomplete="off">
+    <button class="btn-ajouter-spec" onclick="ajouterSpecialite()">+ Ajouter</button>
+    <span id="spec_msg" style="font-size:11px;color:#27ae60;"></span>
 </div>
 
-<!-- ══ 1. MOTIF ═══════════════════════════════════════════════════════════ -->
-<div class="section" style="display:flex;align-items:baseline;gap:5px;">
-    <div class="section-titre" style="margin-bottom:0;white-space:nowrap;">Motif :</div>
-    <div class="editable" contenteditable="true" style="flex:1;min-height:auto;"
-         data-placeholder="Saisir le motif de la correspondance…"><?= htmlspecialchars($motifConsult) ?></div>
+<!-- ── Objet (fusionné avec l'identité patient, une seule ligne) ── -->
+<div class="objet">Objet : Lettre de correspondance concernant <?= htmlspecialchars($nomPatient) ?> — (N°<?= $id ?>)</div>
+
+<!-- ══ 1. MOTIF (toujours affiché, avec placeholder si vide) ══════════════ -->
+<?php $motifAffiche = enLigne($motifConsult); ?>
+<div class="section" style="padding-left:<?= $indentCommunRubriques ?>px;text-indent:-<?= $indentCommunRubriques ?>px;">
+    <span class="section-titre" style="text-decoration:underline;">Motif :</span>
+    <span class="editable" contenteditable="true" style="text-indent:0;"
+          data-placeholder="Saisir le motif de la correspondance…"><?= htmlspecialchars($motifAffiche) ?></span>
 </div>
 
-<!-- ══ 2. ANTÉCÉDENTS & DIAGNOSTIC ═══════════════════════════════════════ -->
-<div class="section">
-    <div class="section-titre">Antécédents et diagnostic :</div>
-    <div class="section-corps">
-        <?php if ($atcdTexte): ?>
-        <div class="ligne-inline">
-            <span class="sous-label">Antécédents :</span>
-            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($atcdTexte, true)) ?></div>
-        </div>
-        <?php endif; ?>
-        <?php if ($fdrTexte): ?>
-        <div class="ligne-inline">
-            <span class="sous-label">Facteurs de risque :</span>
-            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($fdrTexte)) ?></div>
-        </div>
-        <?php endif; ?>
-        <?php if ($diagTexte): ?>
-        <div class="ligne-inline">
-            <span class="sous-label">Diagnostic :</span>
-            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($diagTexte)) ?></div>
-        </div>
-        <?php endif; ?>
-        <?php if (!$atcdTexte && !$diagTexte && !$fdrTexte): ?>
-        <div class="editable" contenteditable="true" data-placeholder="Antécédents et diagnostic…">—</div>
-        <?php endif; ?>
-    </div>
-</div>
+<!-- ══ 2. ANTÉCÉDENTS / FDR / DIAGNOSTIC (sans titre de section, même alinéa) ═ -->
+<?php
+ligneAlignee('Antécédents', enLigne($atcdTexte, true), $indentCommunRubriques);
+ligneAlignee('Facteurs de risque', enLigne($fdrTexte), $indentCommunRubriques);
+ligneAlignee('Diagnostic', enLigne($diagTexte), $indentCommunRubriques);
+?>
 
-<!-- ══ 3. DONNÉES CLINIQUES (titre supprimé, contenu conservé) ═════════════ -->
-<?php if ($texteExamen || $texteECG || $texteEcho || $bioTexte): ?>
-<div class="section">
-    <div class="section-corps">
-
-        <?php if ($texteExamen): ?>
-        <div class="ligne-inline">
-            <span class="sous-label">Examen clinique :</span>
-            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($texteExamen)) ?></div>
-        </div>
-        <?php endif; ?>
-
-        <?php if ($texteECG): ?>
-        <div class="ligne-inline">
-            <span class="sous-label">ECG :</span>
-            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($texteECG)) ?></div>
-        </div>
-        <?php endif; ?>
-
-        <?php if ($texteEcho): ?>
-        <div class="ligne-inline">
-            <span class="sous-label">Écho-Doppler :</span>
-            <div class="editable" contenteditable="true"><?= htmlspecialchars(enLigne($texteEcho)) ?></div>
-        </div>
-        <?php endif; ?>
-
-        <?php if ($bioTexte): ?>
-        <div class="sous-label">Biologie :</div>
-        <div class="editable" contenteditable="true"><?= htmlspecialchars($bioTexte) ?></div>
-        <?php endif; ?>
-
-    </div>
-</div>
-<?php endif; ?>
+<!-- ══ 3. DONNÉES CLINIQUES (même alinéa que Motif/Traitement/Conclusion) ═══ -->
+<?php
+ligneAlignee('Examen clinique', enLigne($texteExamen), $indentCommunRubriques);
+ligneAlignee('ECG', enLigne($texteECG), $indentCommunRubriques);
+ligneAlignee('Écho-Doppler', enLigne($texteEcho), $indentCommunRubriques);
+ligneAlignee('Biologie', $bioTexte, $indentCommunRubriques);
+?>
 
 <!-- ══ 4. TRAITEMENT EN COURS ════════════════════════════════════════════ -->
-<?php if (!empty($medicaments)): ?>
-<div class="section" style="display:flex;align-items:baseline;gap:5px;">
-    <div class="section-titre" style="margin-bottom:0;white-space:nowrap;">Traitement en cours<?= $dateOrd ? ' (ordonnance du '.$dateOrd.')' : '' ?> :</div>
-    <div class="editable" contenteditable="true" style="flex:1;min-height:auto;"><?php
-        $nomsMed = [];
-        foreach ($medicaments as $m) {
-            $n = trim($m['nom_produit'] ?? '');
-            if ($n !== '') $nomsMed[] = mb_strtoupper($n, 'UTF-8');
-        }
-        echo htmlspecialchars(implode(' ; ', $nomsMed));
-    ?></div>
-</div>
-<?php endif; ?>
+<?php
+if (!empty($medicaments)) {
+    $nomsMed = [];
+    foreach ($medicaments as $m) {
+        $n = trim($m['nom_produit'] ?? '');
+        if ($n !== '') $nomsMed[] = mb_strtoupper($n, 'UTF-8');
+    }
+    $labelTraitement = 'Traitement en cours' . ($dateOrd ? ' (ordonnance du '.$dateOrd.')' : '');
+    ligneAlignee($labelTraitement, implode(' ; ', $nomsMed), $indentCommunRubriques);
+}
+?>
 
 <!-- ══ 5. CONCLUSION ═════════════════════════════════════════════════════ -->
-<div class="section" style="display:flex;align-items:baseline;gap:5px;">
-    <div class="section-titre" style="margin-bottom:0;white-space:nowrap;">Conclusion :</div>
-    <div class="editable" contenteditable="true" style="flex:1;min-height:auto;">Je vous adresse ce patient pour avis et prise en charge.</div>
-</div>
+<?php ligneAlignee('Conclusion', 'Je vous adresse ce patient pour avis et prise en charge.', $indentCommunRubriques); ?>
 
 <!-- ── Formule de politesse ── -->
 <div class="formule-finale">
@@ -403,7 +343,11 @@ body {
 /* ── Sélection destinataire ── */
 function majSelection(radio) {
     document.querySelectorAll('.spec-case').forEach(c => c.classList.remove('selected'));
-    if (radio.checked) radio.closest('.spec-case').classList.add('selected');
+    if (radio.checked) {
+        radio.closest('.spec-case').classList.add('selected');
+        const dest = document.getElementById('dest_choisi_print');
+        if (dest) dest.textContent = radio.value;
+    }
 }
 
 /* ── Ajouter spécialité ── */
@@ -437,6 +381,8 @@ function ajouterSpecialite() {
                 document.querySelectorAll('.spec-case').forEach(c => {
                     if (c.id !== 'case_' + d.id_spec) c.classList.remove('selected');
                 });
+                const destNew = document.getElementById('dest_choisi_print');
+                if (destNew) destNew.textContent = lib;
             } else {
                 const radio = document.getElementById('spec_' + d.id_spec);
                 if (radio) { radio.checked = true; majSelection(radio); }

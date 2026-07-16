@@ -404,14 +404,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <div style="flex:1;"></div>
     <div style="display:flex;align-items:center;gap:3px;">
-        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
+        <button type="button" onclick="naviguerTout('first')"  title="Plus récent (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
+        <button type="button" onclick="naviguerTout('prev')"  title="Précédent (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#FFD700;padding:0 8px;white-space:nowrap;">— nouveau —</span>
-        <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
+        <button type="button" onclick="naviguerTout('next')"  title="Suivant (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
+        <button type="button" onclick="naviguerTout('last')" title="Plus ancien (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
             style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -427,10 +427,41 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
         ↺ Restaurer
     </button>
-    <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
-       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
-       📄 Rapport
-    </a>
+    <button type="button" id="btn-toggle-rapports-nbc" onclick="ouvrirMenuRapportsNBC()"
+       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+       📑 Rapports
+    </button>
+</div>
+
+<!-- ══ MENU RAPPORTS (4 documents) ══════════════════════════════════════ -->
+<div id="modal-rapports-nbc" style="display:none;position:fixed;top:42px;right:18px;z-index:99999;">
+    <div style="background:var(--th-bg-card);border-radius:10px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
+        <div style="background:#c0392b;color:white;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:bold;font-size:13px;">📑 Rapports</span>
+        </div>
+        <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+            <a href="print_cmlm.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#8e44ad;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                📋 Attestation de maladie de longue durée
+            </a>
+            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:var(--th-col-success);color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                🏅 Certificat médical d'aptitude physique
+            </a>
+            <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#c0392b;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                📄 Compte rendu de l'examen cardio-vasculaire
+            </a>
+            <a href="print_lettre.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#16a085;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                ✉️ Lettre de correspondance
+            </a>
+            <button onclick="fermerMenuRapportsNBC()"
+               style="display:block;width:100%;background:#7f8c8d;color:white;border:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;cursor:pointer;margin-top:4px;">
+                ✕ Fermer
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -473,11 +504,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
    <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
       <div style="margin-bottom:2px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('examen','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('examen','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <button type="button" onclick="naviguerBilan('examen','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('examen','first')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('examen','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('examen','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
@@ -680,11 +711,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('ecg','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <button type="button" onclick="naviguerBilan('ecg','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('ecg','first')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('ecg','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
@@ -894,11 +925,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('echo','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <button type="button" onclick="naviguerBilan('echo','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('echo','first')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('echo','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('echo','last')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
 
@@ -2057,6 +2088,20 @@ function enregistrerTout() {
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
     });
 }
+/* ════ MENU RAPPORTS ════ */
+function ouvrirMenuRapportsNBC() {
+    document.getElementById('modal-rapports-nbc').style.display = 'flex';
+}
+function fermerMenuRapportsNBC() {
+    document.getElementById('modal-rapports-nbc').style.display = 'none';
+}
+document.addEventListener('click', function(e) {
+    var m = document.getElementById('modal-rapports-nbc');
+    var btn = document.getElementById('btn-toggle-rapports-nbc');
+    if (m && m.style.display !== 'none' && !m.contains(e.target) && e.target !== btn) {
+        m.style.display = 'none';
+    }
+});
 /* ════ NAVIGATION BILANS ════ */
 // Nombre total d'enregistrements par type (injecté depuis PHP)
 var nbrEnreg = { examen: <?= $nbExamen ?>, ecg: <?= $nbEcg ?>, echo: <?= $nbEcho ?> };

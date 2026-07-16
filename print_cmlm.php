@@ -32,6 +32,23 @@ function concat_champs_cmlm(array $vals): string {
     return implode("\n", $parts);
 }
 
+// ── Mise en ligne : transforme un texte multi-lignes ("- item1\n- item2") en une seule ligne ("item1 ; item2")
+// Même fonction que print_lettre.php — pas de puces, un paragraphe qui coule.
+function enLigne($texte, $stripAtcdPrefix = false) {
+    $lignes = preg_split('/\r\n|\r|\n/', trim($texte));
+    $out = [];
+    foreach ($lignes as $l) {
+        $l = trim($l);
+        if ($l === '') continue;
+        if (strpos($l, '- ') === 0) $l = substr($l, 2);
+        if ($stripAtcdPrefix) {
+            $l = preg_replace('/^ATCD\s*(chir\.?|m[ée]d(ical)?\.?)?\s*:\s*/i', '', $l);
+        }
+        $out[] = $l;
+    }
+    return implode(' ; ', $out);
+}
+
 // Clinique CMLM : aperçu généré depuis les cases à cocher du bilan
 $texteExamen = trim($examen['CMLM_EXAMEN'] ?? '');
 
@@ -128,17 +145,16 @@ $dateAuj = date('d/m/Y');
 <title>CMLM — <?= htmlspecialchars($nomPatient) ?></title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-@page { size: B5; margin: 0; }
+@page { size: 147mm 212mm; margin: 0; }
 
 body {
     font-family: Arial, sans-serif;
     font-size: 12px;
     color: #111;
     background: white;
-    width: 176mm;
-    min-height: 250mm;
-    padding-top: 1.4cm;
-    padding-bottom: 1.2cm;
+    width: 147mm;
+    padding-top: 5.3cm;    /* en-tête physique + 3mm de marge de sécurité demandée */
+    padding-bottom: 2cm;   /* pied physique + marge de sécurité (empiètement signalé) */
     padding-left: 1.5cm;
     padding-right: 1.5cm;
 }
@@ -156,33 +172,33 @@ body {
 .btn-close { background:#e74c3c; color:white; border:none; border-radius:4px; padding:5px 12px; font-size:12px; cursor:pointer; margin-left:auto; }
 
 /* ── Titre ── */
-.titre-cmlm { border:2px solid #1a4a7a; padding:2px 12px; margin-bottom:2mm; text-align:center; }
-.titre-cmlm span { font-size:14px; font-weight:bold; color:#1a4a7a; letter-spacing:0.5px; }
+.titre-cmlm { border:2px solid #1a4a7a; padding:1px 10px; margin-bottom:1.5mm; text-align:center; }
+.titre-cmlm span { font-size:12px; font-weight:bold; color:#1a4a7a; letter-spacing:0.5px; }
 
 /* ── Date ── */
-.ligne-date { display:flex; justify-content:flex-end; margin-bottom:2mm; font-size:12px; }
+.ligne-date { display:flex; justify-content:flex-end; margin-bottom:1mm; font-size:12px; }
 
 /* ── Intro ── */
-.intro { font-size:12px; line-height:1.4; margin-bottom:2mm; }
+.intro { font-size:12px; line-height:1.15; margin-bottom:1mm; }
 
 /* ── Section ── */
-.section { margin-top:1.5mm; }
+.section { margin-top:1mm; }
 .section-titre {
     font-size:12px; font-weight:bold; text-decoration:underline;
-    color:#1a4a7a; margin-bottom:0.5mm; line-height:1.2;
+    color:#1a4a7a; margin-bottom:0.3mm; line-height:1.15;
 }
 .section-corps {
     border-left:3px solid #ccc; padding-left:8px;
-    font-size:12px; line-height:1.3;
+    font-size:12px; line-height:1.15;
 }
 
 /* ── Textarea éditable (écran seulement) ── */
 .editable {
     width:100%; border:1px dashed #aaa; border-radius:3px;
-    padding:2px 6px; font-size:12px; font-family:Arial,sans-serif;
-    line-height:1.4; background:#fafeff;
+    padding:1px 4px; font-size:12px; font-family:Arial,sans-serif;
+    line-height:1.15; background:#fafeff;
     color:#111; white-space:pre-wrap; word-break:break-word;
-    min-height:1.4em; cursor:text;
+    min-height:1.2em; cursor:text;
 }
 .editable:focus { outline:none; border-color:#2e6da4; background:#f0f7ff; }
 
@@ -241,7 +257,7 @@ body {
 }
 
 /* ── Bas de page ── */
-.attestation { margin-top:3mm; font-size:12px; font-style:italic; border-top:1px solid #ccc; padding-top:1.5mm; }
+.attestation { margin-top:1.5mm; font-size:12px; font-style:italic; border-top:1px solid #ccc; padding-top:1mm; }
 
 /* ── IMPRESSION ── */
 @media screen {
@@ -300,7 +316,7 @@ body {
 <div class="section">
     <div class="section-titre">Souffre d'une affection médicale cardiologique chronique :</div>
     <div class="section-corps">
-        <div class="editable" contenteditable="true" id="txt_affection"><?= htmlspecialchars($diagTexte ?: '—') ?></div>
+        <div class="editable" contenteditable="true" id="txt_affection"><?= htmlspecialchars($diagTexte ? enLigne($diagTexte) : '—') ?></div>
     </div>
 </div>
 
@@ -311,17 +327,17 @@ body {
 
         <div style="margin-bottom:2px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen clinique :</div>
-            <div class="editable" contenteditable="true" id="txt_clinique"><?= htmlspecialchars($texteExamen ?: '—') ?></div>
+            <div class="editable" contenteditable="true" id="txt_clinique"><?= htmlspecialchars($texteExamen ? enLigne($texteExamen) : '—') ?></div>
         </div>
 
         <div style="margin-bottom:2px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen ECG :</div>
-            <div class="editable" contenteditable="true" id="txt_ecg"><?= htmlspecialchars($texteECG ?: '—') ?></div>
+            <div class="editable" contenteditable="true" id="txt_ecg"><?= htmlspecialchars($texteECG ? enLigne($texteECG) : '—') ?></div>
         </div>
 
         <div style="margin-bottom:2px;">
             <div style="font-size:11px;color:#555;margin-bottom:0px;">Examen Echo-doppler :</div>
-            <div class="editable" contenteditable="true" id="txt_echo"><?= htmlspecialchars($texteEcho ?: '—') ?></div>
+            <div class="editable" contenteditable="true" id="txt_echo"><?= htmlspecialchars($texteEcho ? enLigne($texteEcho) : '—') ?></div>
         </div>
 
         <div style="margin-bottom:1px;">
