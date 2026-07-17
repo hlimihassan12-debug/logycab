@@ -7,7 +7,7 @@ $type = $_GET['type'] ?? '';
 $dir  = $_GET['dir']  ?? '';
 $ref  = (int)($_GET['ref'] ?? 0);
 
-if (!$id || !in_array($type, ['examen','ecg','echo']) || !in_array($dir, ['prev','next','first','last'])) {
+if (!$id || !in_array($type, ['examen','ecg','echo']) || !in_array($dir, ['prev','next','first','last','goto'])) {
     echo json_encode(['erreur' => 'Paramètres invalides']);
     exit;
 }
@@ -32,6 +32,12 @@ if ($dir === 'first') {
     $sql = "SELECT TOP 1 *, CONVERT(varchar,$colDate,23) AS date_fmt
             FROM $table WHERE $colId = ? ORDER BY $colPK DESC";
     $stmt = $db->prepare($sql); $stmt->execute([$id]);
+
+} elseif ($dir === 'goto') {
+    // Navigation directe : on va chercher le bilan précis désigné par sa clé (ref), via la liste déroulante de dates
+    $sql = "SELECT TOP 1 *, CONVERT(varchar,$colDate,23) AS date_fmt
+            FROM $table WHERE $colId = ? AND $colPK = ?";
+    $stmt = $db->prepare($sql); $stmt->execute([$id, $ref]);
 
 } elseif ($dir === 'last') {
     $sql = "SELECT TOP 1 *, CONVERT(varchar,$colDate,23) AS date_fmt
@@ -91,10 +97,9 @@ $row['date_affichage'] = $dateAff;
 $pkField = ($type === 'examen') ? 'N1' : 'N°';
 $row['pk'] = $row[$pkField] ?? 0;
 
-// Rang réel (1 = le premier/plus ancien, total = le dernier/plus récent) calculé depuis la base
-$sqlRang = "SELECT COUNT(*) FROM $table WHERE $colId = ? AND $colPK < ?";
-$stmtRang = $db->prepare($sqlRang);
+// ── Rang exact (position chronologique, 1 = le plus ancien) ── fiabilise l'affichage (x/total)
+$stmtRang = $db->prepare("SELECT COUNT(*) FROM $table WHERE $colId = ? AND $colPK <= ?");
 $stmtRang->execute([$id, $row['pk']]);
-$row['rang'] = (int)$stmtRang->fetchColumn() + 1;
+$row['rang'] = (int)$stmtRang->fetchColumn();
 
 echo json_encode($row);

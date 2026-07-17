@@ -190,6 +190,22 @@ $s = $db->prepare("SELECT TOP 1 CONVERT(varchar,DateExam,23) FROM t_examen WHERE
 $s = $db->prepare("SELECT TOP 1 CONVERT(varchar,[Date ECG],23) FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC"); $s->execute([$id]); $lastEcg = $s->fetchColumn() ?: '';
 $s = $db->prepare("SELECT TOP 1 CONVERT(varchar,DATEchog,23) FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC"); $s->execute([$id]); $lastEcho = $s->fetchColumn() ?: '';
 
+// ── Listes complètes des dates (pour les listes déroulantes de navigation) ──
+function listeBilansDates($db, $table, $colId, $colDate, $colPK, $id) {
+    $sql = "SELECT $colPK AS pk, CONVERT(varchar,$colDate,23) AS date_tri FROM $table WHERE $colId = ? ORDER BY $colPK DESC";
+    $stmt = $db->prepare($sql); $stmt->execute([$id]);
+    $out = [];
+    foreach ($stmt->fetchAll() as $r) {
+        $parts = explode('-', (string)$r['date_tri']);
+        $dateAff = (count($parts) === 3) ? $parts[2].'/'.$parts[1].'/'.$parts[0] : '—';
+        $out[] = ['pk' => $r['pk'], 'date_aff' => $dateAff];
+    }
+    return $out;
+}
+$listeExamenDates = listeBilansDates($db, 't_examen', 'NPAT', 'DateExam', 'N1', $id);
+$listeEcgDates    = listeBilansDates($db, 'ecg', '[N-PAT]', '[Date ECG]', '[N°]', $id);
+$listeEchoDates   = listeBilansDates($db, 'echo', '[N-PAT]', 'DATEchog', '[N°]', $id);
+
 // ── 3 derniers bilans biologiques avec leurs résultats anormaux ──────────
 $stmtBioNBC = $db->prepare("
     SELECT TOP 3 n_bilan,
@@ -511,6 +527,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <button type="button" onclick="naviguerBilan('examen','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
     </div>
+    <div style="margin-bottom:8px;">
+        <select id="sel_date_examen" onchange="allerBilanDate('examen', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:var(--th-color-primary);background:white;">
+            <option value="">— choisir une date (<?= count($listeExamenDates) ?>) —</option>
+            <?php foreach ($listeExamenDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeExamenDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+    </div>
 
     <style>
         /* Supprimer les flèches spinner sur les champs number de la colonne Examen */
@@ -717,6 +741,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <button type="button" onclick="naviguerBilan('ecg','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('ecg','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
+    <div style="margin-bottom:8px;">
+        <select id="sel_date_ecg" onchange="allerBilanDate('ecg', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:var(--th-color-primary);background:white;">
+            <option value="">— choisir une date (<?= count($listeEcgDates) ?>) —</option>
+            <?php foreach ($listeEcgDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEcgDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
     <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
@@ -931,6 +963,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <button type="button" onclick="naviguerBilan('echo','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('echo','last')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
+    <div style="margin-bottom:8px;">
+        <select id="sel_date_echo" onchange="allerBilanDate('echo', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:var(--th-color-primary);background:white;">
+            <option value="">— choisir une date (<?= count($listeEchoDates) ?>) —</option>
+            <?php foreach ($listeEchoDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEchoDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="Echoscopie cardiaque">
@@ -1412,25 +1452,25 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📋 Motif</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📂 Antécédents</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">⚠️ Facteurs de risque</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Diagnostic</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="margin-bottom:4px;display:flex;align-items:center;gap:5px;">
@@ -2108,6 +2148,46 @@ var nbrEnreg = { examen: <?= $nbExamen ?>, ecg: <?= $nbEcg ?>, echo: <?= $nbEcho
 var bilanRang = { examen: 0, ecg: 0, echo: 0 };  // rang courant (1-based, 0=nouveau)
 // bilanRef : clé primaire (N1 ou N°) de l'enregistrement affiché (0 = mode nouveau)
 var bilanRef = { examen: 0, ecg: 0, echo: 0 };
+function appliquerDonneesBilan(type, dir, d) {
+    bilanRef[type] = d.pk || 0;
+    // Mise à jour rang : si ajax_bilan_nav retourne un rang, l'utiliser ; sinon calcul local
+    if (d.rang) {
+        bilanRang[type] = d.rang;
+    } else {
+        var total = nbrEnreg[type];
+        if      (dir === 'first') bilanRang[type] = total;
+        else if (dir === 'last')  bilanRang[type] = 1;
+        else if (dir === 'prev')  bilanRang[type] = Math.min(total, (bilanRang[type] || 1) + 1);
+        else if (dir === 'next')  bilanRang[type] = Math.max(1,     (bilanRang[type] || 1) - 1);
+    }
+    var rang = bilanRang[type], tot = nbrEnreg[type];
+    var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
+    document.getElementById('navdate_'+type).textContent = label;
+    var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
+    var sel=document.getElementById('sel_date_'+type); if(sel) sel.value = d.pk || '';
+    if(type==='examen'){
+        ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
+         'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
+         'Autres_Symptomes','Conclusion','REMARQUE','CMLM_EXAMEN']
+        .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        var eCat = document.querySelector('[name=Conduite_ATenir]');
+        if (eCat) eCat.value = d['Conduite_ATenir'] || 'Traitement prescrit et RDV fixé';
+    }
+    if(type==='ecg'){
+        ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
+         'infrastructure_de_conduction','REPOLARISATION','SEGMENT_ST','TOPOGRAPHIE_ST',
+         'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES','CMLM_ECG']
+        .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+    }
+    if(type==='echo'){
+        ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
+         'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1','CMLM_ECHO']
+        .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        var apEcho = document.getElementById('cmlm_echo_val');
+        if (apEcho) autoResize(apEcho);
+    }
+}
+
 function naviguerBilan(type, dir) {
     var id=<?= $id ?>, ref=bilanRef[type];
     var dirEffectif = dir;
@@ -2118,41 +2198,19 @@ function naviguerBilan(type, dir) {
     fetch(url).then(function(r){return r.json();}).then(function(d){
         if (d.vide){alert('Pas d\'autre bilan disponible.');return;}
         if (d.erreur){alert(d.erreur);return;}
-        bilanRef[type] = d.pk || 0;
-        // Mise à jour rang : si ajax_bilan_nav retourne un rang, l'utiliser ; sinon calcul local
-        if (d.rang) {
-            bilanRang[type] = d.rang;
-        } else {
-            var total = nbrEnreg[type];
-            if      (dir === 'first') bilanRang[type] = total;
-            else if (dir === 'last')  bilanRang[type] = 1;
-            else if (dir === 'prev')  bilanRang[type] = Math.min(total, (bilanRang[type] || 1) + 1);
-            else if (dir === 'next')  bilanRang[type] = Math.max(1,     (bilanRang[type] || 1) - 1);
-        }
-        var rang = bilanRang[type], tot = nbrEnreg[type];
-        var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
-        document.getElementById('navdate_'+type).textContent = label;
-        var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
-        if(type==='examen'){
-            ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
-             'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
-             'Autres_Symptomes','Conclusion','REMARQUE','CMLM_EXAMEN']
-            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-            var eCat = document.querySelector('[name=Conduite_ATenir]');
-            if (eCat) eCat.value = d['Conduite_ATenir'] || 'Traitement prescrit et RDV fixé';
-        }
-        if(type==='ecg'){
-            ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
-             'infrastructure_de_conduction','REPOLARISATION','SEGMENT_ST','TOPOGRAPHIE_ST',
-             'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES','CMLM_ECG']
-            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-            
-        }
-        if(type==='echo'){
-            ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
-             'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1']
-            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-        }
+        appliquerDonneesBilan(type, dir, d);
+    }).catch(function(e){alert('Erreur : '+e.message);});
+}
+
+/* ══ Navigation directe par date (liste déroulante) ══ */
+function allerBilanDate(type, pk) {
+    if (!pk) return;
+    var id=<?= $id ?>;
+    var url='ajax_bilan_nav.php?id='+id+'&type='+type+'&dir=goto&ref='+pk;
+    fetch(url).then(function(r){return r.json();}).then(function(d){
+        if (d.vide){alert('Bilan introuvable.');return;}
+        if (d.erreur){alert(d.erreur);return;}
+        appliquerDonneesBilan(type, 'goto', d);
     }).catch(function(e){alert('Erreur : '+e.message);});
 }
 /* ══ Navigation globale (Examen + ECG + Echo simultanément) ══ */
