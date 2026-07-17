@@ -20,6 +20,12 @@ try {
 } catch (Exception $e) {}
 $dateAuj = date('d/m/Y');
 
+// Demandes de RDV en attente (site public)
+$nbDemandesEnAttente = 0;
+try {
+    $nbDemandesEnAttente = (int)$db->query("SELECT COUNT(*) FROM T_DemandesRDV WHERE statut = 'en_attente'")->fetchColumn();
+} catch (Exception $e) {}
+
 // Dernier patient consulté (même cookie que goHome / voirApercu / voirBiologie dans home.js)
 $dernierPatient = isset($_COOKIE['dernier_patient']) ? (int)$_COOKIE['dernier_patient'] : 0;
 $dateAujCourte  = date('Ymd'); // format AAAAMMJJ pour print_rapport.php
@@ -178,6 +184,13 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <button onclick="goHome()"  class="btn-h green">🏠 Dossier</button>
     <button onclick="voirApercu()" class="btn-h" style="background:#27ae60;font-weight:bold;">📋 Aperçu</button>
     <a href="agenda.php"        class="btn-h navy">📅 Agenda</a>
+    <a href="demandes_rdv.php"  class="btn-h" style="background:#8e44ad;position:relative;">
+        📥 Demandes RDV<?php if ($nbDemandesEnAttente > 0): ?>
+        <span style="position:absolute;top:-6px;right:-6px;background:#e74c3c;color:white;
+            border-radius:9px;padding:0 5px;font-size:9px;line-height:16px;height:16px;min-width:16px;text-align:center;">
+            <?= $nbDemandesEnAttente ?>
+        </span><?php endif; ?>
+    </a>
     <a href="planning.php"      class="btn-h blue">📊 Planning</a>
     <a href="grille_semaine.php" class="btn-h blue">📋 Grille</a>
     <button onclick="voirBiologie()" class="btn-h" style="background:#e67e22;">🧪 Biologie</button>

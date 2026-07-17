@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['S_Fonctionnels']?:null,$_POST['Auscult_Cardiaque']?:null,
                 $_POST['Auscult_Pulmonaire']?:null,$_POST['Examen_Vasculaire']?:null,
                 $_POST['Signes_IVG']?:null,$_POST['Signes_IVD']?:null,
-                $_POST['Autres_Symptomes']?:null,$_POST['Conclusion']?:null,
+                $_POST['Autres_Symptomes']?:null,$_POST['Conclusion']??null,
                 $_POST['REMARQUE']?:null,$_POST['Conduite_ATenir']?:null,
                 $_POST['CMLM_EXAMEN']?:null]);
             if ($isAjax) { ob_clean(); header('Content-Type: application/json'); echo json_encode(['ok'=>true,'msg'=>'✅ Examen enregistré']); exit; }
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['TOPOGRAPHIE_T']?:null,
                 $_POST['IDM']?:null,
                 $_POST['TOPOGRAPHIE_Q']?:null,
-                $_POST['CC']?:null,
+                $_POST['CC']??null,
                 $_POST['AUTRES_SIGNES']?:null,
                 $_POST['CMLM_ECG']?:null]);
             if ($isAjax) { ob_clean(); header('Content-Type: application/json'); echo json_encode(['ok'=>true,'msg'=>'✅ ECG enregistré']); exit; }
@@ -189,6 +189,22 @@ $s = $db->prepare("SELECT COUNT(*) FROM echo WHERE [N-PAT] = ?"); $s->execute([$
 $s = $db->prepare("SELECT TOP 1 CONVERT(varchar,DateExam,23) FROM t_examen WHERE NPAT = ? ORDER BY DateExam DESC"); $s->execute([$id]); $lastExamen = $s->fetchColumn() ?: '';
 $s = $db->prepare("SELECT TOP 1 CONVERT(varchar,[Date ECG],23) FROM ecg WHERE CAST([N-PAT] AS INT) = ? ORDER BY [Date ECG] DESC"); $s->execute([$id]); $lastEcg = $s->fetchColumn() ?: '';
 $s = $db->prepare("SELECT TOP 1 CONVERT(varchar,DATEchog,23) FROM echo WHERE [N-PAT] = ? ORDER BY DATEchog DESC"); $s->execute([$id]); $lastEcho = $s->fetchColumn() ?: '';
+
+// ── Listes complètes des dates (pour les listes déroulantes de navigation) ──
+function listeBilansDates($db, $table, $colId, $colDate, $colPK, $id) {
+    $sql = "SELECT $colPK AS pk, CONVERT(varchar,$colDate,23) AS date_tri FROM $table WHERE $colId = ? ORDER BY $colPK DESC";
+    $stmt = $db->prepare($sql); $stmt->execute([$id]);
+    $out = [];
+    foreach ($stmt->fetchAll() as $r) {
+        $parts = explode('-', (string)$r['date_tri']);
+        $dateAff = (count($parts) === 3) ? $parts[2].'/'.$parts[1].'/'.$parts[0] : '—';
+        $out[] = ['pk' => $r['pk'], 'date_aff' => $dateAff];
+    }
+    return $out;
+}
+$listeExamenDates = listeBilansDates($db, 't_examen', 'NPAT', 'DateExam', 'N1', $id);
+$listeEcgDates    = listeBilansDates($db, 'ecg', '[N-PAT]', '[Date ECG]', '[N°]', $id);
+$listeEchoDates   = listeBilansDates($db, 'echo', '[N-PAT]', 'DATEchog', '[N°]', $id);
 
 // ── 3 derniers bilans biologiques avec leurs résultats anormaux ──────────
 $stmtBioNBC = $db->prepare("
@@ -404,14 +420,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <div style="flex:1;"></div>
     <div style="display:flex;align-items:center;gap:3px;">
-        <button type="button" onclick="naviguerTout('last')"  title="Plus récent (tous)"
+        <button type="button" onclick="naviguerTout('first')"  title="Plus ancien (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerTout('next')"  title="Précédent (tous)"
+        <button type="button" onclick="naviguerTout('prev')"  title="Précédent (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#FFD700;padding:0 8px;white-space:nowrap;">— nouveau —</span>
-        <button type="button" onclick="naviguerTout('prev')"  title="Suivant (tous)"
+        <button type="button" onclick="naviguerTout('next')"  title="Suivant (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerTout('first')" title="Plus ancien (tous)"
+        <button type="button" onclick="naviguerTout('last')" title="Plus récent (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauTout()"         title="Nouveau bilan (tous)"
             style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:22px;padding:0 8px;font-size:11px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -427,10 +443,41 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
         ↺ Restaurer
     </button>
-    <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
-       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;text-decoration:none;font-weight:bold;">
-       📄 Rapport
-    </a>
+    <button type="button" id="btn-toggle-rapports-nbc" onclick="ouvrirMenuRapportsNBC()"
+       style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
+       📑 Rapports
+    </button>
+</div>
+
+<!-- ══ MENU RAPPORTS (4 documents) ══════════════════════════════════════ -->
+<div id="modal-rapports-nbc" style="display:none;position:fixed;top:42px;right:18px;z-index:99999;">
+    <div style="background:var(--th-bg-card);border-radius:10px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
+        <div style="background:#c0392b;color:white;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:bold;font-size:13px;">📑 Rapports</span>
+        </div>
+        <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+            <a href="print_cmlm.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#8e44ad;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                📋 Attestation de maladie de longue durée
+            </a>
+            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:var(--th-col-success);color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                🏅 Certificat médical d'aptitude physique
+            </a>
+            <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#c0392b;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                📄 Compte rendu de l'examen cardio-vasculaire
+            </a>
+            <a href="print_lettre.php?id=<?= $id ?>" target="_blank"
+               style="display:block;background:#16a085;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+                ✉️ Lettre de correspondance
+            </a>
+            <button onclick="fermerMenuRapportsNBC()"
+               style="display:block;width:100%;background:#7f8c8d;color:white;border:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;cursor:pointer;margin-top:4px;">
+                ✕ Fermer
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -473,12 +520,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
    <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
       <div style="margin-bottom:2px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('examen','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('examen','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <button type="button" onclick="naviguerBilan('examen','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('examen','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('examen','first')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('examen','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('examen','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
+    <div style="margin-bottom:8px;">
+        <select id="sel_date_examen" onchange="allerBilanDate('examen', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— choisir une date (<?= count($listeExamenDates) ?>) —</option>
+            <?php foreach ($listeExamenDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeExamenDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <style>
@@ -532,8 +587,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             </div>
             <div id="bloc_normal_body" style="display:none;">
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_sympto" checked value="absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire"> Absence de symptomatologie fonctionnelle orientant sur la sphère cardio-pulmonaire</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_auscult" checked value="auscultation cardiaque normale"> Auscultation cardiaque normale</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" id="n_oedemes" checked value="absence d'œdèmes des membres inférieurs"> Absence d'œdèmes des membres inférieurs</label>
             <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" id="n_vasc" checked value="examen vasculaire normal"> Examen vasculaire normal</label>
             </div>
         </div>
@@ -635,14 +688,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
             </div><!-- fin sub_exam_vasc -->
 
-            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Remarque et conclusion</div>
+            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Annotation</div>
             <div class="champ" id="wrap_REMARQUE">
-                <label>Remarque</label>
+                <label>Annotation clinique</label>
                 <textarea name="REMARQUE" class="court" oninput="majApercuExamen()"></textarea>
-            </div>
-            <div class="champ" id="wrap_Conclusion">
-                <label>Conclusion</label>
-                <textarea name="Conclusion" class="court" oninput="majApercuExamen()"></textarea>
             </div>
 
             </div><!-- fin sympto_cases_body -->
@@ -686,12 +735,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('ecg','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <button type="button" onclick="naviguerBilan('ecg','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('ecg','first')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('ecg','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('ecg','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
+    <div style="margin-bottom:8px;">
+        <select id="sel_date_ecg" onchange="allerBilanDate('ecg', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— choisir une date (<?= count($listeEcgDates) ?>) —</option>
+            <?php foreach ($listeEcgDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEcgDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
     <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
@@ -709,11 +766,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span>ECG normal</span><span id="arr_ecg_normal">▶</span>
         </div>
         <div id="ecg_normal_detail" style="display:none;margin-top:4px;">
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme" checked> Rythme sinusal, absence de trouble de rythme</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_av" value="conduction auriculo-ventriculaire normale" checked> Conduction auriculo-ventriculaire normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_cond_iv" value="conduction intra-ventriculaire normale" checked> Conduction intra-ventriculaire normale</label>
+            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_rythme" value="rythme sinusal, absence de trouble de rythme ou de conduction" checked> Rythme sinusal, absence de trouble de rythme ou de conduction</label>
             <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_repol" value="repolarisation normale" checked> Repolarisation normale</label>
-            <label style="font-size:11px;display:block;"><input type="checkbox" class="ecg-normal-cb" id="ecgn_ondeq" value="absence d'ondes Q de nécrose" checked> Absence d'ondes Q de nécrose</label>
         </div>
 
         <div class="exam-section" onclick="toggleEcgSection('ecg_detail','arr_ecg_anormal')">
@@ -860,14 +914,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 </div>
             </div>
 
-            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">C/C et autres signes</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <div class="champ" id="wrap_CC"><label>C/C</label>
-                    <textarea name="CC" oninput="majApercuECG()" placeholder="ex: ECG normal" style="min-height:36px;resize:vertical;"></textarea>
-                </div>
-                <div class="champ"><label>Autres signes ECG</label>
-                    <input type="text" name="AUTRES_SIGNES">
-                </div>
+            <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Annotation</div>
+            <div class="champ"><label>Annotation ECG</label>
+                <input type="text" name="AUTRES_SIGNES">
             </div>
 
         </div><!-- fin ecg_detail -->
@@ -908,12 +957,20 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <button type="button" onclick="naviguerBilan('echo','last')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
-        <button type="button" onclick="naviguerBilan('echo','next')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
+        <button type="button" onclick="naviguerBilan('echo','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
+        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
-        <button type="button" onclick="naviguerBilan('echo','prev')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
-        <button type="button" onclick="naviguerBilan('echo','first')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
+        <button type="button" onclick="naviguerBilan('echo','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
+        <button type="button" onclick="naviguerBilan('echo','last')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
+    </div>
+    <div style="margin-bottom:8px;">
+        <select id="sel_date_echo" onchange="allerBilanDate('echo', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— choisir une date (<?= count($listeEchoDates) ?>) —</option>
+            <?php foreach ($listeEchoDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEchoDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="Echoscopie cardiaque">
@@ -938,11 +995,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div id="echo_normale_detail" style="display:none;">
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nocavite" checked value="absence d'hypertrophie ou de dilatation cavitaire"> Absence d'hypertrophie ou de dilatation cavitaire</label>
             <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_flux" checked value="flux trans valvaires normaux"> Flux trans valvaires normaux</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_nohtap" checked value="absence d'HTAP"> Absence d'HTAP</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_og" checked value="oreillettes non dilatées"> Oreillettes non dilatées</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_vd" checked value="cavités droites non dilatées"> Cavités droites non dilatées</label>
-            <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec"> Péricarde sec</label>
-            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_aorte" checked value="aorte initiale non dilatée"> Aorte initiale non dilatée</label>
+            <label style="font-size:11px;display:block;margin-bottom:4px;"><input type="checkbox" class="echo-n" id="en_peri" checked value="péricarde sec et aorte initiale non dilatée"> Péricarde sec et Aorte initiale non dilatée</label>
             <span id="dtsa_anchor_normale" style="display:none;"></span>
         </div>
 
@@ -1291,10 +1344,22 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
         </div><!-- fin cmlm_echo_detail -->
 
+        <div style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:8px 0 3px;">Annotation</div>
+        <div class="champ" id="wrap_CONCLUSION1">
+            <label>Annotation Echo</label>
+            <textarea name="CONCLUSION1" id="conclusion1_echo"
+                style="min-height:60px;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
+                oninput="majApercuEcho(); autoResize(this)"></textarea>
+        </div>
+
         </div><!-- fin echo_content -->
     </div><!-- fin panel_echo_cases -->
 
-    <input type="hidden" name="CMLM_ECHO" id="cmlm_echo_val">
+    <div class="champ" style="margin-top:6px;">
+        <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Echo</label>
+        <textarea id="cmlm_echo_val" name="CMLM_ECHO"
+            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;pointer-events:none;"></textarea>
+    </div>
 
     <!-- Champs cachés exclusion Echo -->
 
@@ -1303,13 +1368,6 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <textarea name="DTSA" class="court" oninput="majConcatEcho()"></textarea>
     </div>
 
-    <!-- Aperçu Echo -->
-    <div class="champ" id="wrap_CONCLUSION1" style="margin-top:6px;">
-        <label style="font-size:11px;color:var(--th-color-secondary);font-weight:bold;">👁 Aperçu rapport Echo</label>
-        <textarea name="CONCLUSION1" id="conclusion1_echo"
-            style="min-height:90px;background:var(--th-bg-link-hover);border:1px solid var(--th-color-secondary);font-size:12px;color:var(--th-color-primary);resize:none;overflow:hidden;width:100%;padding:4px 6px;border-radius:3px;font-family:Arial,sans-serif;"
-            oninput="majApercuEcho(); autoResize(this)"></textarea>
-    </div>
     </form>
 </div>
 
@@ -1394,25 +1452,25 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📋 Motif</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['MOTIF CONSULTATION'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">📂 Antécédents</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['ATCD'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">⚠️ Facteurs de risque</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['CHAMP_FDR'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Diagnostic</span>
         </div>
-        <div style="font-size:12px;color:#333;line-height:1.5;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
+        <div style="font-size:12px;color:#333;line-height:1.3;white-space:pre-wrap;min-height:55px;"><?= htmlspecialchars(trim($patient['diagnostic'] ?? '')) ?: '<span style="color:#bbb;font-style:italic;">—</span>' ?></div>
     </div>
     <div style="background:#f5f9ff;border:1px solid #c5d8ed;border-radius:6px;padding:6px 8px;">
         <div style="margin-bottom:4px;display:flex;align-items:center;gap:5px;">
@@ -1545,9 +1603,9 @@ var echoMode       = 'normal'; // 'normal' ou 'anormal'
 // Listes des champs par colonne (pour les labels "exclu")
 var champsExamen = ['S_Fonctionnels','Auscult_Cardiaque','Auscult_Pulmonaire',
                     'Examen_Vasculaire','Signes_IVG','Signes_IVD','Autres_Symptomes',
-                    'Conclusion','REMARQUE'];
+                    'REMARQUE'];
 var champsECG    = ['rythme_sv','trouble_rv','conduction_nodale','QRS',
-                    'infrastructure_de_conduction','REPOLARISATION','CC'];
+                    'infrastructure_de_conduction','REPOLARISATION'];
 var champsEcho   = ['DOPPLER','DTSA','CONCLUSION1'];
 
 /* ── Mettre à jour le label "N champ(s) exclu(s)" ── */
@@ -1680,8 +1738,13 @@ function majConcatEcho() {
     });
     if (!exclusions['DOPPLER']) { var d=g('DOPPLER'); if(d) p.push('Doppler : '+d); }
     /* DTSA volontairement exclu de l'aperçu (saisie libre, hors rapport généré) */
-    var c1 = document.getElementById('conclusion1_echo');
-    if (c1) { c1.value = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : ''; autoResize(c1); }
+    // ── Annotation Echo : toujours ajoutée à la fin, jamais écrasée ──
+    var annotation = document.getElementById('conclusion1_echo');
+    var annotationTxt = annotation ? annotation.value.trim() : '';
+    var partiesTxt = p.length > 0 ? p.map(function(x){ return '- ' + x; }).join('\n') : '';
+    if (annotationTxt) partiesTxt = partiesTxt ? partiesTxt + '\n- ' + annotationTxt : '- ' + annotationTxt;
+    var c1 = document.getElementById('cmlm_echo_val');
+    if (c1) { c1.value = partiesTxt; autoResize(c1); }
     majApercuEcho();
 }
 
@@ -1733,10 +1796,13 @@ function genererConclusionNormal() {
     if(tad && tad.value) mesure += '/' + tad.value + ' mmHg';
     if(fc  && fc.value)  mesure += (mesure ? ' — ' : '') + 'FC : ' + fc.value + ' bpm';
     if(mesure) parties.push(mesure);
-    ['n_sympto','n_auscult','n_oedemes','n_vasc'].forEach(function(id){
+    ['n_sympto','n_vasc'].forEach(function(id){
         var cb = document.getElementById(id);
         if(cb && cb.checked) parties.push(cb.value);
     });
+    var remarque = document.getElementById('wrap_REMARQUE');
+    var remarqueTxt = remarque ? (remarque.querySelector('textarea').value || '').trim() : '';
+    if (remarqueTxt) parties.push(remarqueTxt);
     var ap = document.getElementById('apercu_examen');
     if(ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
     var condParts = [];
@@ -1765,26 +1831,43 @@ function genererRapportExamen() {
     if (mesure) parties.push(mesure);
 
     // Items du bloc "normal"
-    ['n_sympto','n_auscult','n_oedemes','n_vasc'].forEach(function(id) {
+    var partiesNormal = [];
+    ['n_sympto','n_vasc'].forEach(function(id) {
         var cb = document.getElementById(id);
-        if (cb && cb.checked) parties.push(cb.value);
+        if (cb && cb.checked) partiesNormal.push(cb.value);
     });
+    var NB_ITEMS_NORMAL_DEFAUT = 2;
 
     // Items exclusifs du bloc "anormal" (angor, dyspnée, rythme, artérite)
+    var partiesAnormal = [];
     document.querySelectorAll('.sx-excl:checked').forEach(function(cb) {
-        if (cb.value) parties.push(cb.value);
+        if (cb.value) partiesAnormal.push(cb.value);
     });
     var artAutres = document.getElementById('arterite_autres');
-    if (artAutres && artAutres.value.trim()) parties.push(artAutres.value.trim());
+    if (artAutres && artAutres.value.trim()) partiesAnormal.push(artAutres.value.trim());
 
     // Signes IVD / IVG (choix multiples)
-    document.querySelectorAll('.sx-ivd:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
-    document.querySelectorAll('.sx-ivg:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+    document.querySelectorAll('.sx-ivd:checked').forEach(function(cb) { if (cb.value) partiesAnormal.push(cb.value); });
+    document.querySelectorAll('.sx-ivg:checked').forEach(function(cb) { if (cb.value) partiesAnormal.push(cb.value); });
 
     // Phlébitique (choix multiples)
-    document.querySelectorAll('.sx-phleb:checked').forEach(function(cb) { if (cb.value) parties.push(cb.value); });
+    document.querySelectorAll('.sx-phleb:checked').forEach(function(cb) { if (cb.value) partiesAnormal.push(cb.value); });
     var phlAutres = document.getElementById('phlebite_autres');
-    if (phlAutres && phlAutres.value.trim()) parties.push(phlAutres.value.trim());
+    if (phlAutres && phlAutres.value.trim()) partiesAnormal.push(phlAutres.value.trim());
+
+    // ── Compaction (Tâche 12) ──
+    // Aucune anomalie : on liste les items normaux cochés.
+    // Au moins une anomalie : on ne garde QUE les anomalies (les items normaux disparaissent).
+    if (partiesAnormal.length === 0) {
+        parties = parties.concat(partiesNormal);
+    } else {
+        parties = parties.concat(partiesAnormal);
+    }
+
+    // ── Annotation clinique : toujours ajoutée à la fin, jamais écrasée ──
+    var remarque = document.getElementById('wrap_REMARQUE');
+    var remarqueTxt = remarque ? (remarque.querySelector('textarea').value || '').trim() : '';
+    if (remarqueTxt) parties.push(remarqueTxt);
 
     var ap = document.getElementById('apercu_examen');
     if (ap) { ap.value = parties.length > 0 ? parties.map(function(p){ return '- ' + p; }).join('\n') : '—'; autoResize(ap); }
@@ -1863,7 +1946,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     /* Auto-resize au chargement pour valeurs pré-remplies depuis la base */
-    ['apercu_examen','apercu_ecg','conclusion1_echo'].forEach(function(id) {
+    ['apercu_examen','apercu_ecg','conclusion1_echo','cmlm_echo_val'].forEach(function(id) {
         var el = document.getElementById(id); if (el) autoResize(el);
     });
 });
@@ -1902,7 +1985,7 @@ function remplirEchoNormal() {
     s('FEVG','60'); s('DTD_VG','50'); s('DTS_VG','32'); s('SIV','9'); s('PP','9');
     s('RACINE_AO','34'); s('HTAP','absente'); s('CINETIQUE','normale'); s('ECHOGENICITE','normale');
     s('DOPPLER','Flux au doppler normal');
-    var c1 = document.getElementById('conclusion1_echo');
+    var c1 = document.getElementById('cmlm_echo_val');
     if (c1) c1.value = "Absence de dilatation ou d'hypertrophie cavitaire. Flux au doppler : normal. " +
         "Cinetique globale et regionale normale. " +
         "Fonctions du ventricule gauche normale, Absence d'hypertension arterielle pulmonaire. " +
@@ -1920,7 +2003,7 @@ function viderEcho() {
     var te = document.getElementById('type_echo_val'); if(te) te.value='Echographie cardiaque';
     ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE','ECHOGENICITE','DOPPLER','DTSA']
     .forEach(function(n){ var e=document.querySelector('[name='+n+']'); if(e) e.value=''; });
-    var c1 = document.getElementById('conclusion1_echo'); if(c1) c1.value='';
+    var c1 = document.getElementById('cmlm_echo_val'); if(c1) c1.value='';
     majLabelExcluEcho();
     majApercuEcho();
 }
@@ -2045,57 +2128,89 @@ function enregistrerTout() {
         if(msgEl){ msgEl.textContent='❌ Erreur : '+err; msgEl.style.color='#e74c3c'; msgEl.style.display='inline'; }
     });
 }
+/* ════ MENU RAPPORTS ════ */
+function ouvrirMenuRapportsNBC() {
+    document.getElementById('modal-rapports-nbc').style.display = 'flex';
+}
+function fermerMenuRapportsNBC() {
+    document.getElementById('modal-rapports-nbc').style.display = 'none';
+}
+document.addEventListener('click', function(e) {
+    var m = document.getElementById('modal-rapports-nbc');
+    var btn = document.getElementById('btn-toggle-rapports-nbc');
+    if (m && m.style.display !== 'none' && !m.contains(e.target) && e.target !== btn) {
+        m.style.display = 'none';
+    }
+});
 /* ════ NAVIGATION BILANS ════ */
 // Nombre total d'enregistrements par type (injecté depuis PHP)
 var nbrEnreg = { examen: <?= $nbExamen ?>, ecg: <?= $nbEcg ?>, echo: <?= $nbEcho ?> };
 var bilanRang = { examen: 0, ecg: 0, echo: 0 };  // rang courant (1-based, 0=nouveau)
 // bilanRef : clé primaire (N1 ou N°) de l'enregistrement affiché (0 = mode nouveau)
 var bilanRef = { examen: 0, ecg: 0, echo: 0 };
+function appliquerDonneesBilan(type, dir, d) {
+    bilanRef[type] = d.pk || 0;
+    // Mise à jour rang : si ajax_bilan_nav retourne un rang, l'utiliser ; sinon calcul local
+    if (d.rang) {
+        bilanRang[type] = d.rang;
+    } else {
+        var total = nbrEnreg[type];
+        if      (dir === 'first') bilanRang[type] = total;
+        else if (dir === 'last')  bilanRang[type] = 1;
+        else if (dir === 'prev')  bilanRang[type] = Math.min(total, (bilanRang[type] || 1) + 1);
+        else if (dir === 'next')  bilanRang[type] = Math.max(1,     (bilanRang[type] || 1) - 1);
+    }
+    var rang = bilanRang[type], tot = nbrEnreg[type];
+    var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
+    document.getElementById('navdate_'+type).textContent = label;
+    var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
+    var sel=document.getElementById('sel_date_'+type); if(sel) sel.value = d.pk || '';
+    if(type==='examen'){
+        ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
+         'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
+         'Autres_Symptomes','Conclusion','REMARQUE','CMLM_EXAMEN']
+        .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        var eCat = document.querySelector('[name=Conduite_ATenir]');
+        if (eCat) eCat.value = d['Conduite_ATenir'] || 'Traitement prescrit et RDV fixé';
+    }
+    if(type==='ecg'){
+        ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
+         'infrastructure_de_conduction','REPOLARISATION','SEGMENT_ST','TOPOGRAPHIE_ST',
+         'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES','CMLM_ECG']
+        .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+    }
+    if(type==='echo'){
+        ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
+         'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1','CMLM_ECHO']
+        .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
+        var apEcho = document.getElementById('cmlm_echo_val');
+        if (apEcho) autoResize(apEcho);
+    }
+}
+
 function naviguerBilan(type, dir) {
     var id=<?= $id ?>, ref=bilanRef[type];
     var dirEffectif = dir;
-    if (!ref && dir === 'prev') dirEffectif = 'last';
-    if (!ref && dir === 'next') dirEffectif = 'first';
+    if (!ref && dir === 'prev') dirEffectif = 'first';
+    if (!ref && dir === 'next') dirEffectif = 'last';
     var url='ajax_bilan_nav.php?id='+id+'&type='+type+'&dir='+dirEffectif;
     if (ref && dirEffectif!=='first' && dirEffectif!=='last') url+='&ref='+ref;
     fetch(url).then(function(r){return r.json();}).then(function(d){
         if (d.vide){alert('Pas d\'autre bilan disponible.');return;}
         if (d.erreur){alert(d.erreur);return;}
-        bilanRef[type] = d.pk || 0;
-        // Mise à jour rang : si ajax_bilan_nav retourne un rang, l'utiliser ; sinon calcul local
-        if (d.rang) {
-            bilanRang[type] = d.rang;
-        } else {
-            var total = nbrEnreg[type];
-            if      (dir === 'first') bilanRang[type] = total;
-            else if (dir === 'last')  bilanRang[type] = 1;
-            else if (dir === 'prev')  bilanRang[type] = Math.min(total, (bilanRang[type] || 1) + 1);
-            else if (dir === 'next')  bilanRang[type] = Math.max(1,     (bilanRang[type] || 1) - 1);
-        }
-        var rang = bilanRang[type], tot = nbrEnreg[type];
-        var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
-        document.getElementById('navdate_'+type).textContent = label;
-        var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
-        if(type==='examen'){
-            ['TAS','TAD','FC','POIDS','TAILLE','S_Fonctionnels','Auscult_Cardiaque',
-             'Auscult_Pulmonaire','Examen_Vasculaire','Signes_IVG','Signes_IVD',
-             'Autres_Symptomes','Conclusion','REMARQUE','CMLM_EXAMEN']
-            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-            var eCat = document.querySelector('[name=Conduite_ATenir]');
-            if (eCat) eCat.value = d['Conduite_ATenir'] || 'Traitement prescrit et RDV fixé';
-        }
-        if(type==='ecg'){
-            ['FREQUENCE','rythme_sv','trouble_rv','rythme_v','conduction_nodale','QRS',
-             'infrastructure_de_conduction','REPOLARISATION','SEGMENT_ST','TOPOGRAPHIE_ST',
-             'ONDE_T','TOPOGRAPHIE_T','IDM','TOPOGRAPHIE_Q','CC','AUTRES_SIGNES','CMLM_ECG']
-            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-            
-        }
-        if(type==='echo'){
-            ['FEVG','DTD_VG','DTS_VG','SIV','PP','RACINE_AO','HTAP','CINETIQUE',
-             'ECHOGENICITE','DOPPLER','DTSA','CONCLUSION1']
-            .forEach(function(n){var e=document.querySelector('[name='+n+']');if(e)e.value=d[n]||'';});
-        }
+        appliquerDonneesBilan(type, dir, d);
+    }).catch(function(e){alert('Erreur : '+e.message);});
+}
+
+/* ══ Navigation directe par date (liste déroulante) ══ */
+function allerBilanDate(type, pk) {
+    if (!pk) return;
+    var id=<?= $id ?>;
+    var url='ajax_bilan_nav.php?id='+id+'&type='+type+'&dir=goto&ref='+pk;
+    fetch(url).then(function(r){return r.json();}).then(function(d){
+        if (d.vide){alert('Bilan introuvable.');return;}
+        if (d.erreur){alert(d.erreur);return;}
+        appliquerDonneesBilan(type, 'goto', d);
     }).catch(function(e){alert('Erreur : '+e.message);});
 }
 /* ══ Navigation globale (Examen + ECG + Echo simultanément) ══ */
@@ -2208,12 +2323,15 @@ function toggleEchoSub(id) {
 }
 
 function genererCmlmEcho() {
-    var parties = [];
-
+    // Items du bloc "Échographie normale"
+    var partiesNormal = [];
     document.querySelectorAll('.echo-n:checked').forEach(function(cb) {
-        if (cb.value && cb.value !== 'on') parties.push(cb.value);
+        if (cb.value && cb.value !== 'on') partiesNormal.push(cb.value);
     });
+    var NB_ITEMS_NORMAL_DEFAUT = 3;
 
+    // Items du bloc "Échographie anormale"
+    var parties = [];
     document.querySelectorAll('.cmlm-ec:checked').forEach(function(cb) {
             var txt = (cb.value && cb.value !== 'on') ? cb.value : '';
             if (!txt) return;
@@ -2308,11 +2426,23 @@ function genererCmlmEcho() {
             }
             if (txt) parties.push(txt);
     });
-    if (parties.length === 0) parties.push('échodoppler cardiaque normale');
 
-    var result = parties.map(function(p){ return '- ' + p; }).join('\n');
-    document.getElementById('cmlm_echo_val').value = result;
-    var ap = document.getElementById('conclusion1_echo');
+    var partiesAnormal = parties;
+    var partiesFinal;
+    // ── Compaction (Tâche 12) : on liste les items normaux cochés ──
+    if (partiesAnormal.length === 0) {
+        partiesFinal = partiesNormal;
+    } else {
+        partiesFinal = partiesAnormal;
+    }
+
+    // ── Annotation Echo : toujours ajoutée à la fin, jamais écrasée ──
+    var annotation = document.getElementById('conclusion1_echo');
+    var annotationTxt = annotation ? annotation.value.trim() : '';
+    if (annotationTxt) partiesFinal = partiesFinal.concat([annotationTxt]);
+
+    var result = partiesFinal.map(function(p){ return '- ' + p; }).join('\n');
+    var ap = document.getElementById('cmlm_echo_val');
     if (ap) { ap.value = result; autoResize(ap); }
 }
 
@@ -2620,18 +2750,41 @@ function genererRapportECG() {
 
     var parties = [];
     if (prefixe) parties.push(prefixe);
+
+    // Items du bloc "ECG normal"
+    var partiesNormal = [];
+    document.querySelectorAll('.ecg-normal-cb:checked').forEach(function(cb) {
+        if (cb.value) partiesNormal.push(cb.value);
+    });
+    var NB_ITEMS_NORMAL_DEFAUT = 2;
+
+    // Items du bloc "ECG anormal"
+    var partiesAnormal = [];
     document.querySelectorAll('#panel_ecg_cases input[type="checkbox"]:checked').forEach(function(cb) {
-        if (cb.classList.contains('ecg-parent')) return;
-        if (cb.value && cb.value !== 'on') { parties.push(cb.value); return; }
+        if (cb.classList.contains('ecg-parent') || cb.classList.contains('ecg-normal-cb')) return;
+        if (cb.value && cb.value !== 'on') { partiesAnormal.push(cb.value); return; }
         var lbl = cb.parentElement;
-        if (lbl) { var t = lbl.textContent.trim(); if (t) parties.push(t); }
+        if (lbl) { var t = lbl.textContent.trim(); if (t) partiesAnormal.push(t); }
     });
     /* Pacemaker : ajouter date si renseignée */
     var paceDate = document.getElementById('ecg_pace_date');
     if (paceDate && paceDate.value.trim()) {
-        var idx = parties.findIndex(function(p){ return p.indexOf('Électro-entraîné') !== -1 || p.indexOf('pacemaker') !== -1; });
-        if (idx !== -1) parties[idx] += ', posé le ' + paceDate.value.trim();
+        var idx = partiesAnormal.findIndex(function(p){ return p.indexOf('Électro-entraîné') !== -1 || p.indexOf('pacemaker') !== -1; });
+        if (idx !== -1) partiesAnormal[idx] += ', posé le ' + paceDate.value.trim();
     }
+
+    // ── Compaction (Tâche 12) : on liste les items normaux cochés ──
+    if (partiesAnormal.length === 0) {
+        parties = parties.concat(partiesNormal);
+    } else {
+        parties = parties.concat(partiesAnormal);
+    }
+
+    // ── Annotation ECG : toujours ajoutée à la fin, jamais écrasée ──
+    var autresSignes = document.querySelector('input[name="AUTRES_SIGNES"]');
+    var autresSignesTxt = autresSignes ? autresSignes.value.trim() : '';
+    if (autresSignesTxt) parties.push(autresSignesTxt);
+
     var txt = parties.map(function(l){ return '- ' + l; }).join('\n');
     var ap = document.getElementById('apercu_ecg');
     if (ap) { ap.value = txt; autoResize(ap); }

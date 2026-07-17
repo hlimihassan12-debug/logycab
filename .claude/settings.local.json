@@ -3,7 +3,26 @@
     "allow": [
       "Bash(curl -s \"http://localhost/logycab/dossier.php?id=8899\" -o \"C:/tmp/dossier_8899.html\")",
       "Bash(mkdir -p /c/tmp)",
-      "Bash(curl -s \"http://localhost/logycab/dossier.php?id=8899\" -o /c/tmp/dossier_8899.html)"
+      "Bash(curl -s \"http://localhost/logycab/dossier.php?id=8899\" -o /c/tmp/dossier_8899.html)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -i \"C:\\\\Users\\\\PAVILION\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--xampp-htdocs-logycab\\\\75cbd5f6-9cf9-4908-a234-35cd42bda350\\\\scratchpad\\\\cleanup.sql\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -i \"C:\\\\xampp\\\\htdocs\\\\logycab\\\\site_setup_db.sql\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -i \"C:\\\\Users\\\\PAVILION\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--xampp-htdocs-logycab\\\\75cbd5f6-9cf9-4908-a234-35cd42bda350\\\\scratchpad\\\\checkcol.sql\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -i \"C:\\\\Users\\\\PAVILION\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--xampp-htdocs-logycab\\\\75cbd5f6-9cf9-4908-a234-35cd42bda350\\\\scratchpad\\\\check_demande.sql\")",
+      "Bash(curl -s -i -X POST http://localhost/logycab/site/enregistrer_rdv.php -d nom=Bot%20Spam -d telephone=0000000000 -d site_web=http://spam.example.com)",
+      "Bash(curl -s -i -X POST http://localhost/logycab/site/enregistrer_rdv.php -d \"nom=\" -d \"telephone=\" -d \"site_web=\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -Q \"USE Logycab; UPDATE T_DemandesRDV SET statut='confirme' WHERE id=1; SELECT id, statut FROM T_DemandesRDV WHERE id=1;\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -Q \"USE Logycab; DELETE FROM T_DemandesRDV; DBCC CHECKIDENT \\('T_DemandesRDV', RESEED, 0\\);\")",
+      "Bash(curl -s http://localhost/logycab/index.php)",
+      "Bash(curl -s -o /dev/null -w \"index.php: %{http_code}\\\\n\" http://localhost/logycab/index.php)",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/logycab/index.php)",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/logycab/parametres.php)",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/logycab/demandes_rdv.php)",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/logycab/site/index.php)",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/logycab/site/cabinet.php)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft SQL Server\\\\Client SDK\\\\ODBC\\\\170\\\\Tools\\\\Binn\\\\sqlcmd.exe\" -S \"localhost\\\\SQLEXPRESS01\" -d logycab -E -f 65001 -Q \"USE Logycab; UPDATE T_Config SET Valeur = N'Dr Hassan Hlimi' WHERE Cle = N'Cabinet_Nom'; SELECT Cle, Valeur FROM T_Config WHERE Cle = N'Cabinet_Nom';\")",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/logycab/site/assets/site.css)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost/logycab/site/assets/site.css)",
+      "Bash(curl -s http://localhost/logycab/site/index.php)"
     ]
   }
 }

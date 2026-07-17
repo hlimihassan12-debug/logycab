@@ -10,8 +10,46 @@ if (!empty($_POST['theme'])) {
     exit;
 }
 
+// Sauvegarde des infos du cabinet / horaires (site public)
+if (isset($_POST['form']) && $_POST['form'] === 'cabinet') {
+    $db = getDB();
+
+    function upsertConfig(PDO $db, string $cle, string $valeur): void {
+        $valeur = mb_substr($valeur, 0, 100); // T_Config.Valeur est NVARCHAR(100)
+        $stmt = $db->prepare("UPDATE T_Config SET Valeur = ? WHERE Cle = ?");
+        $stmt->execute([$valeur, $cle]);
+        if ($stmt->rowCount() === 0) {
+            $db->prepare("INSERT INTO T_Config (Cle, Valeur) VALUES (?, ?)")->execute([$cle, $valeur]);
+        }
+    }
+
+    $champsCabinet = ['Cabinet_Nom', 'Cabinet_Adresse', 'Cabinet_Telephone', 'Cabinet_Email', 'Cabinet_Description'];
+    foreach ($champsCabinet as $cle) {
+        upsertConfig($db, $cle, trim($_POST[$cle] ?? ''));
+    }
+
+    $jours = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+    foreach ($jours as $jour) {
+        upsertConfig($db, 'Horaire_' . $jour, trim($_POST['Horaire_' . $jour] ?? ''));
+    }
+
+    header('Location: parametres.php?ok=2');
+    exit;
+}
+
 $theme_actuel = $_COOKIE['logycab_theme'] ?? 'theme-0';
-$ok = isset($_GET['ok']);
+$ok = isset($_GET['ok']) ? (int)$_GET['ok'] : 0;
+
+// Charge les infos cabinet / horaires actuelles
+$db = getDB();
+$cabinetCfg = [];
+try {
+    $stmtCab = $db->query("SELECT Cle, Valeur FROM T_Config WHERE Cle LIKE 'Cabinet_%' OR Cle LIKE 'Horaire_%'");
+    while ($row = $stmtCab->fetch(PDO::FETCH_ASSOC)) {
+        $cabinetCfg[$row['Cle']] = $row['Valeur'];
+    }
+} catch (Exception $e) {}
+$joursSemaine = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -147,6 +185,17 @@ body {
 .prev-c-b1 { background: #c0973a; }
 .prev-c-b2 { background: #2c3e50; }
 .prev-c-b3 { background: #5d9b6b; }
+
+/* Formulaire infos cabinet / horaires */
+.champ-param { margin-bottom: 14px; }
+.champ-param label { display: block; font-size: 11px; font-weight: bold; color: var(--th-color-text-muted); margin-bottom: 4px; }
+.champ-param input, .champ-param textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--th-border-statsbar);
+    border-radius: 4px; font-size: 12px; font-family: inherit; resize: vertical;
+}
+.champ-param-double { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.horaires-grille { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 14px; margin-bottom: 16px; }
+@media (max-width: 600px) { .champ-param-double, .horaires-grille { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body class="<?= htmlspecialchars($theme_actuel) ?>">
@@ -158,8 +207,10 @@ body {
 
 <div class="page-body">
 
-    <?php if ($ok): ?>
+    <?php if ($ok === 1): ?>
     <div class="msg-ok">✓ Thème appliqué avec succès. Il sera actif sur toutes les pages.</div>
+    <?php elseif ($ok === 2): ?>
+    <div class="msg-ok">✓ Informations du cabinet enregistrées. Elles sont maintenant affichées sur le site public.</div>
     <?php endif; ?>
 
     <div class="section-titre">🎨 Apparence — Choisir un thème</div>
@@ -262,8 +313,54 @@ body {
     </div>
     </form>
 
-    <p style="font-size:11px;color:#aaa;text-align:center;">
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-bottom:36px;">
         Le thème est sauvegardé dans un cookie — valable 1 an sur ce navigateur.
+    </p>
+
+    <div class="section-titre">🏥 Site public — Infos du cabinet</div>
+
+    <form method="POST" action="parametres.php">
+    <input type="hidden" name="form" value="cabinet">
+
+    <div class="champ-param">
+        <label>Nom du cabinet</label>
+        <input type="text" maxlength="100" name="Cabinet_Nom" value="<?= htmlspecialchars($cabinetCfg['Cabinet_Nom'] ?? '') ?>">
+    </div>
+    <div class="champ-param">
+        <label>Adresse</label>
+        <textarea name="Cabinet_Adresse" rows="2" maxlength="100"><?= htmlspecialchars($cabinetCfg['Cabinet_Adresse'] ?? '') ?></textarea>
+    </div>
+    <div class="champ-param-double">
+        <div class="champ-param">
+            <label>Téléphone</label>
+            <input type="text" maxlength="100" name="Cabinet_Telephone" value="<?= htmlspecialchars($cabinetCfg['Cabinet_Telephone'] ?? '') ?>">
+        </div>
+        <div class="champ-param">
+            <label>Email</label>
+            <input type="text" maxlength="100" name="Cabinet_Email" value="<?= htmlspecialchars($cabinetCfg['Cabinet_Email'] ?? '') ?>">
+        </div>
+    </div>
+    <div class="champ-param">
+        <label>Description (affichée en page d'accueil du site — 100 caractères max)</label>
+        <textarea name="Cabinet_Description" rows="3" maxlength="100"><?= htmlspecialchars($cabinetCfg['Cabinet_Description'] ?? '') ?></textarea>
+    </div>
+
+    <div class="section-titre" style="margin-top:24px;font-size:12px;">🕒 Horaires d'ouverture</div>
+    <div class="horaires-grille">
+        <?php foreach ($joursSemaine as $jour): ?>
+        <div class="champ-param">
+            <label><?= $jour ?></label>
+            <input type="text" maxlength="100" name="Horaire_<?= $jour ?>" placeholder="ex. 09:00–16:00 ou Fermé"
+                   value="<?= htmlspecialchars($cabinetCfg['Horaire_' . $jour] ?? '') ?>">
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <button type="submit" class="btn-appliquer" style="max-width:260px;margin-top:10px;">Enregistrer</button>
+    </form>
+
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:14px;">
+        Ces informations apparaissent sur le site public (dossier <code>site/</code>).
     </p>
 
 </div>
