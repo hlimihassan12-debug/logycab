@@ -528,58 +528,58 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     <!-- Motif -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
-            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Motif</span>
+            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Motif</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
     </div>
 
     <!-- Antécédents -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
-            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Antécédents</span>
+            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Antécédents</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
     </div>
 
     <!-- Facteurs de risque -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
-            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Facteurs de risque</span>
+            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Facteurs de risque</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
     </div>
 
     <!-- Diagnostic -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
-            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Diagnostic</span>
+            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Diagnostic</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
     </div>
 
     <!-- Au total CAT -->
     <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">Au total CAT</span>
+            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Au total CAT</span>
             <?php if ($examen): ?>
             <button type="button" onclick="sauvegarderCAT()" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:12px;font-weight:bold;cursor:pointer;">💾 Enregistrer</button>
             <?php endif; ?>
         </div>
         <?php if ($examen): ?>
         <textarea id="champ_cat"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;box-sizing:border-box;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($examen['Conduite_ATenir'] ?: 'Traitement prescrit et RDV fixé') ?></textarea>
         <span id="cat_status" style="font-size:11px;color:#888;"></span>
         <?php else: ?>
@@ -1358,13 +1358,13 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             }
         ?>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">Examen</span>
+            <span style="color:var(--th-color-primary);font-size:13px;font-weight:bold;">Examen</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
             </div>
         </div>
         <?php if ($examen && !empty($examen['CMLM_EXAMEN'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;">
             <?= nl2br(htmlspecialchars($examen['CMLM_EXAMEN'])) ?>
         </div>
         <?php elseif ($examen): ?>
@@ -1384,7 +1384,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
         <?php endif; ?>
 <!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
-        <div class="card-title" style="font-size:14px;margin-bottom:4px;">
+        <div class="card-title" style="font-size:13px;margin-bottom:4px;">
             <span>ECG</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <?php if ($ecgCourant && $ecgCourant['Date ECG']):
@@ -1398,7 +1398,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
         </div>
         <?php if ($ecgCourant && !empty($ecgCourant['CMLM_ECG'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;">
             <?= nl2br(htmlspecialchars($ecgCourant['CMLM_ECG'])) ?>
         </div>
         <?php elseif ($ecgCourant): ?>
@@ -1419,7 +1419,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
     <div class="card" style="padding:6px;">
-        <div class="card-title" style="font-size:14px;margin-bottom:4px;">
+        <div class="card-title" style="font-size:13px;margin-bottom:4px;">
             <span>Echo-Doppler</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <?php if ($echoCourant && $echoCourant['DATEchog']):
@@ -1433,7 +1433,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
         </div>
         <?php if ($echoCourant && !empty($echoCourant['CMLM_ECHO'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;">
             <?= nl2br(htmlspecialchars($echoCourant['CMLM_ECHO'])) ?>
         </div>
         <?php elseif ($echoCourant): ?>
@@ -1455,7 +1455,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 <!-- ══ BIOLOGIE COMPACT ══ -->
         <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">Biologie</span>
+                <span style="color:var(--th-color-primary);font-size:13px;font-weight:bold;">Biologie</span>
                 <div style="display:flex;align-items:center;gap:5px;">
                     <span id="bio-nb-anormal" style="font-size:12px;font-weight:bold;color:#e74c3c;display:none;"></span>
                     <span id="bio-date-affich" style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">—</span>
@@ -1468,7 +1468,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
  
             <!-- Aperçu biologie anormale — visible directement -->
             <div id="apercu-bio-dossier" style="margin-top:4px;">
-                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;" id="apercu-bio-texte">
+                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;" id="apercu-bio-texte">
                     <?php
                     $apercuBioLignes = [];
                     foreach ($lignesBioActuel as $bl) {

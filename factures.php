@@ -17,6 +17,9 @@ try {
 $themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
 $theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
 if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
+// ── Mode de démarrage (lien depuis index.php : ?mode=croise) ────
+$modeInitial = ($_GET['mode'] ?? '') === 'croise' ? 'croise' : 'simple';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -87,6 +90,35 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--th-bg-page)
 .tab-vue:hover, .tab-gran:hover { background: var(--th-bg-link-hover); }
 .tab-vue.active { background: #16a085; color: white; border-color: #16a085; }
 .tab-gran.active { background: #2e6da4; color: white; border-color: #2e6da4; }
+
+.tab-mode, .tab-axe, .tab-valeur {
+    background: var(--th-bg-page); color: var(--th-color-text);
+    border: 1px solid var(--th-border-card); border-radius: 5px;
+    padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer;
+}
+.tab-mode:hover, .tab-axe:hover, .tab-valeur:hover { background: var(--th-bg-link-hover); }
+.tab-mode.active { background: #8e44ad; color: white; border-color: #8e44ad; }
+.tab-axe.active { background: #16a085; color: white; border-color: #16a085; }
+.tab-valeur.active { background: #2e6da4; color: white; border-color: #2e6da4; }
+
+/* ══ TABLEAU CROISÉ ══ */
+.croise-wrap { padding: 16px; }
+.croise-cote-a-cote { display: flex; gap: 20px; align-items: flex-start; }
+.croise-bloc { flex: 0 1 auto; min-width: 0; overflow-x: auto; }
+.croise-titre { font-size: 13px; font-weight: bold; color: var(--th-color-primary); margin-bottom: 6px; }
+table.croise { border-collapse: collapse; font-size: 12px; background: var(--th-bg-card); }
+table.croise th, table.croise td { padding: 6px 10px; text-align: right; border: 1px solid var(--th-sep-color); white-space: nowrap; }
+table.croise thead th { background: #1a4a7a; color: white; text-align: center; position: sticky; top: 0; }
+table.croise tbody th { background: var(--th-bg-link-hover); text-align: left; position: sticky; left: 0; }
+table.croise tbody tr:hover td { background: var(--th-bg-link-hover); }
+table.croise tfoot th, table.croise tfoot td { background: #16a085; color: white; font-weight: bold; }
+table.croise td.vide { color: var(--th-color-text-muted); }
+table.croise td.col-total, table.croise th.col-total {
+    background: #eef4fb; color: #1a4a7a; font-weight: bold;
+}
+table.croise tfoot td.col-total, table.croise tfoot th.col-total {
+    background: #d4e4f5; color: #1a4a7a;
+}
 
 .date-range { display: flex; align-items: center; gap: 6px; font-size: 11px; }
 .date-range input[type=date] {
@@ -163,16 +195,27 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--th-bg-page)
 <!-- ══ TITRE ══ -->
 <div class="page-title">🧾 Consultation des factures — Chiffre d'affaire (encaissé)</div>
 
-<!-- ══ CONTRÔLES ══ -->
-<div class="controls">
+<!-- ══ CHOIX DU MODE ══ -->
+<div class="controls-row" style="background:var(--th-bg-card);padding:8px 16px;">
+    <span class="controls-label">Mode :</span>
+    <button class="tab-mode<?= $modeInitial==='simple'?' active':'' ?>" data-mode="simple">📋 Vue simple</button>
+    <button class="tab-mode<?= $modeInitial==='croise'?' active':'' ?>" data-mode="croise">🔀 Tableau croisé</button>
+</div>
+
+<!-- ══ CONTRÔLES — MODE SIMPLE ══ -->
+<div class="controls" id="panneauSimple" style="<?= $modeInitial==='croise'?'display:none;':'' ?>">
     <div class="controls-row">
         <span class="controls-label">Vue :</span>
         <button class="tab-vue active" data-vue="patient">👤 Par patient</button>
+        <button class="tab-vue" data-vue="acte">📋 Par acte</button>
         <button class="tab-vue" data-vue="total">💰 Total</button>
         <button class="tab-vue" data-vue="ECG">📈 ECG</button>
         <button class="tab-vue" data-vue="EDC">🫀 EDC</button>
         <button class="tab-vue" data-vue="DTSA">🩸 DTSA</button>
         <button class="tab-vue" data-vue="DVMI">🦵 DVMI</button>
+        <button class="tab-vue" data-vue="DAMI">🦶 DAMI</button>
+        <button class="tab-vue" data-vue="DAR">🫘 DAR</button>
+        <button class="tab-vue" data-vue="EDC_P">👶 EDC_P</button>
         <span style="width:1px;height:20px;background:var(--th-border-card);margin:0 6px;"></span>
         <input type="text" id="rechPatientFiltre" placeholder="🔍 Filtrer par nom ou N°..."
                style="padding:5px 10px;border:1px solid var(--th-border-card);border-radius:4px;
@@ -185,6 +228,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--th-bg-page)
         <button class="tab-gran active" data-gran="mois">Mois</button>
         <button class="tab-gran" data-gran="trimestre">Trimestre</button>
         <button class="tab-gran" data-gran="annee">Année</button>
+        <button class="tab-gran" data-gran="tout">Tout</button>
         <span style="width:1px;height:20px;background:var(--th-border-card);margin:0 6px;"></span>
         <div class="date-range">
             Du <input type="date" id="dateDebut">
@@ -195,20 +239,49 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--th-bg-page)
     </div>
 </div>
 
-<!-- ══ RÉSUMÉ ══ -->
-<div class="resume-bar">
+<!-- ══ CONTRÔLES — MODE TABLEAU CROISÉ ══ -->
+<div class="controls" id="panneauCroise" style="<?= $modeInitial==='simple'?'display:none;':'' ?>">
+    <div class="controls-row">
+        <span class="controls-label">Lignes :</span>
+        <button class="tab-axe active" data-axe="mois">📅 Par mois</button>
+        <button class="tab-axe" data-axe="acte">🩺 Par acte</button>
+        <span style="width:1px;height:20px;background:var(--th-border-card);margin:0 6px;"></span>
+        <span class="controls-label">Colonnes : Années — Montant et Nombre affichés côte à côte</span>
+    </div>
+</div>
+
+
+<!-- ══ RÉSUMÉ (mode simple) ══ -->
+<div class="resume-bar" id="resumeBar" style="<?= $modeInitial==='croise'?'display:none;':'' ?>">
     <span id="resumeTexte">Chargement...</span>
     <span class="montant" id="resumeMontant">-- DH</span>
 </div>
 
-<!-- ══ LISTE DE RÉSULTATS (multi-colonnes) ══ -->
-<div class="table-wrap">
+
+<!-- ══ LISTE DE RÉSULTATS (mode simple, multi-colonnes) ══ -->
+<div class="table-wrap" id="wrapListe" style="<?= $modeInitial==='croise'?'display:none;':'' ?>">
     <div class="liste-resultats col-4" id="listeResultats"></div>
+</div>
+
+<!-- ══ TABLEAU CROISÉ (mode croisé) — Montant et Nombre côte à côte ══ -->
+<div class="croise-wrap" id="wrapCroise" style="<?= $modeInitial==='simple'?'display:none;':'' ?>">
+    <div class="croise-cote-a-cote">
+        <div class="croise-bloc">
+            <div class="croise-titre">💰 Montant</div>
+            <table class="croise" id="tableCroiseMontant"></table>
+        </div>
+        <div class="croise-bloc">
+            <div class="croise-titre">🔢 Nombre</div>
+            <table class="croise" id="tableCroiseNombre"></table>
+        </div>
+    </div>
 </div>
 
 <script>
 // ── État courant ────────────────────────────────────────────────
 let etat = { vue: 'patient', gran: 'mois', dateDebut: '', dateFin: '' };
+let modeActuel = <?= json_encode($modeInitial) ?>;
+let croiseEtat = { axe: 'mois' };
 
 function formatDH(n) {
     n = Math.round(n);
@@ -271,7 +344,8 @@ function afficher(data) {
 
     // Résumé (le total reste affiché dans la barre du haut)
     const labelVue = {
-        patient: 'tous patients', total: 'toutes recettes', ECG: 'ECG', EDC: 'EDC', DTSA: 'DTSA', DVMI: 'DVMI'
+        patient: 'tous patients', acte: 'par acte', total: 'toutes recettes', ECG: 'ECG', EDC: 'EDC', DTSA: 'DTSA', DVMI: 'DVMI',
+        DAMI: 'DAMI', DAR: 'DAR', EDC_P: 'EDC pédiatrique'
     }[data.vue] || data.vue;
     document.getElementById('resumeTexte').textContent =
         'Du ' + data.date_debut.split('-').reverse().join('/') +
@@ -341,6 +415,84 @@ document.getElementById('btnRechClear').addEventListener('click', function() {
     rech.focus();
 });
 
+// ── Bascule de mode (Vue simple / Tableau croisé) ─────────────────
+document.querySelectorAll('.tab-mode').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-mode').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        modeActuel = btn.dataset.mode;
+        const simple = modeActuel === 'simple';
+        document.getElementById('panneauSimple').style.display = simple ? '' : 'none';
+        document.getElementById('panneauCroise').style.display = simple ? 'none' : '';
+        document.getElementById('resumeBar').style.display     = simple ? '' : 'none';
+        document.getElementById('wrapListe').style.display      = simple ? '' : 'none';
+        document.getElementById('wrapCroise').style.display     = simple ? 'none' : '';
+        if (simple) chargerDonnees(); else chargerCroise();
+    });
+});
+
+// ── Boutons "Lignes" (axe) et "Afficher" (valeur) du tableau croisé ─
+document.querySelectorAll('.tab-axe').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-axe').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        croiseEtat.axe = btn.dataset.axe;
+        chargerCroise();
+    });
+});
+// ── Chargement + affichage du tableau croisé ──────────────────────
+function chargerCroise() {
+    const params = new URLSearchParams({ axe: croiseEtat.axe });
+    document.getElementById('tableCroiseMontant').innerHTML = '<tr><td>Chargement...</td></tr>';
+    document.getElementById('tableCroiseNombre').innerHTML  = '<tr><td>Chargement...</td></tr>';
+    fetch('ajax_factures_croise.php?' + params.toString())
+        .then(r => r.json())
+        .then(afficherCroise)
+        .catch(() => {
+            document.getElementById('tableCroiseMontant').innerHTML = '<tr><td>❌ Erreur de chargement</td></tr>';
+            document.getElementById('tableCroiseNombre').innerHTML  = '<tr><td>❌ Erreur de chargement</td></tr>';
+        });
+}
+
+function formatNombre(n) {
+    n = Math.round(n);
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+function construireTableCroise(data, champ, fmt, avecColonneLabel, titreCoin) {
+    let html = '<thead><tr>';
+    if (avecColonneLabel) html += '<th>' + titreCoin + '</th>';
+    data.annees.forEach(a => { html += '<th>' + a + '</th>'; });
+    html += '<th class="col-total">Total</th></tr></thead><tbody>';
+
+    data.lignes.forEach(function(ligne) {
+        html += '<tr>';
+        if (avecColonneLabel) html += '<th>' + ligne.label + '</th>';
+        data.annees.forEach(function(a) {
+            const v = ligne.valeurs[a] ? ligne.valeurs[a][champ] : 0;
+            html += v ? '<td>' + fmt(v) + '</td>' : '<td class="vide">—</td>';
+        });
+        html += '<td class="col-total">' + fmt(ligne.total[champ]) + '</td></tr>';
+    });
+
+    html += '</tbody><tfoot><tr>';
+    if (avecColonneLabel) html += '<th>Total général</th>';
+    data.annees.forEach(function(a) {
+        const v = data.total_par_annee[a] ? data.total_par_annee[a][champ] : 0;
+        html += '<td>' + fmt(v) + '</td>';
+    });
+    html += '<td class="col-total">' + fmt(data.total_general[champ]) + '</td></tr></tfoot>';
+    return html;
+}
+
+function afficherCroise(data) {
+    const titreCoin = (data.axe === 'mois' ? 'Mois' : 'Acte') + ' (DH)';
+    document.getElementById('tableCroiseMontant').innerHTML =
+        construireTableCroise(data, 'montant', formatNombre, true, titreCoin);
+    document.getElementById('tableCroiseNombre').innerHTML =
+        construireTableCroise(data, 'nb', v => (v || 0).toString(), false, '');
+}
+
 // ── Horloge ──────────────────────────────────────────────────────
 (function tick() {
     const now  = new Date();
@@ -356,7 +508,7 @@ document.getElementById('btnRechClear').addEventListener('click', function() {
 })();
 
 // ── Chargement initial ────────────────────────────────────────────
-chargerDonnees();
+if (modeActuel === 'croise') chargerCroise(); else chargerDonnees();
 </script>
 </body>
 </html>
