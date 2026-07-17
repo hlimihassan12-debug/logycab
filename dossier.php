@@ -1381,6 +1381,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel examen">Nouveau Exam</a>
         </div>
+        <?php if ($examens): ?>
+        <select onchange="if(this.value) location.href='?id=<?= $id ?>&exam='+this.value;" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
+            <option value="">— choisir une date (<?= count($examens) ?>) —</option>
+            <?php foreach ($examens as $i => $e): ?>
+            <option value="<?= (int)$e['N1'] ?>"<?= ($e['N1'] == $nExam) ? ' selected' : '' ?>><?= $e['DateExam'] ? date('d/m/Y', strtotime($e['DateExam'])) : '—' ?> (<?= $i+1 ?>/<?= count($examens) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+        <?php endif; ?>
         <?php endif; ?>
 <!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
@@ -1415,6 +1423,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel ECG">Nouvel ECG</a>
         </div>
+        <?php if ($ecgs): ?>
+        <select onchange="if(this.value) location.href='?id=<?= $id ?>&ecg='+this.value;" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
+            <option value="">— choisir une date (<?= count($ecgs) ?>) —</option>
+            <?php foreach ($ecgs as $i => $e): ?>
+            <option value="<?= (int)$e['N°'] ?>"<?= ($e['N°'] == $nECG) ? ' selected' : '' ?>><?= $e['Date ECG'] ? date('d/m/Y', strtotime($e['Date ECG'])) : '—' ?> (<?= $i+1 ?>/<?= count($ecgs) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+        <?php endif; ?>
     </div>
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
@@ -1450,6 +1466,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
             <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel Echo">Nouvelle Echo</a>
         </div>
+        <?php if ($echos): ?>
+        <select onchange="if(this.value) location.href='?id=<?= $id ?>&echo='+this.value;" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
+            <option value="">— choisir une date (<?= count($echos) ?>) —</option>
+            <?php foreach ($echos as $i => $e): ?>
+            <option value="<?= (int)$e['N°'] ?>"<?= ($e['N°'] == $nEcho) ? ' selected' : '' ?>><?= $e['DATEchog'] ? date('d/m/Y', strtotime($e['DATEchog'])) : '—' ?> (<?= $i+1 ?>/<?= count($echos) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+        <?php endif; ?>
     </div>
 
 <!-- ══ BIOLOGIE COMPACT ══ -->
@@ -1497,6 +1521,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</button>
                 <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Ouvrir module Biologie">Nouveau bilan</a>
             </div>
+            <?php if ($bilansListe): ?>
+            <select id="sel_date_bio" onchange="bioGoto(this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
+                <option value="">— choisir une date (<?= count($bilansListe) ?>) —</option>
+                <?php foreach ($bilansListe as $i => $b): ?>
+                <option value="<?= (int)$i ?>"<?= ($i == 0) ? ' selected' : '' ?>><?= htmlspecialchars($b['date_fr']) ?> (<?= $i+1 ?>/<?= count($bilansListe) ?>)</option>
+                <?php endforeach; ?>
+            </select>
+            <?php endif; ?>
         </div><!-- FIN card biologie -->
 
     </div>
@@ -2548,6 +2580,15 @@ function bioNav(dir) {
     else if (dir === 'last')  bioIdx = bioBilans.length - 1;
     else if (dir === 'prev')  bioIdx = Math.max(0, bioIdx - 1);
     else if (dir === 'next')  bioIdx = Math.min(bioBilans.length - 1, bioIdx + 1);
+    bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
+}
+
+/* ══ Navigation directe par date (liste déroulante) ══ */
+function bioGoto(idx) {
+    if (idx === '' || !bioBilans.length) return;
+    idx = parseInt(idx, 10);
+    if (isNaN(idx) || idx < 0 || idx >= bioBilans.length) return;
+    bioIdx = idx;
     bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
 }
  

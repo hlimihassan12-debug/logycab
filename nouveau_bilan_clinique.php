@@ -520,20 +520,18 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
    <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
       <div style="margin-bottom:2px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <select id="sel_date_examen" onchange="allerBilanDate('examen', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— choisir une date (<?= count($listeExamenDates) ?>) —</option>
+            <?php foreach ($listeExamenDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeExamenDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
         <button type="button" onclick="naviguerBilan('examen','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('examen','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('examen','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('examen','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
-    </div>
-    <div style="margin-bottom:8px;">
-        <select id="sel_date_examen" onchange="allerBilanDate('examen', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
-            <option value="">— choisir une date (<?= count($listeExamenDates) ?>) —</option>
-            <?php foreach ($listeExamenDates as $i => $d): ?>
-            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeExamenDates) ?>)</option>
-            <?php endforeach; ?>
-        </select>
     </div>
 
     <style>
@@ -735,20 +733,18 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <select id="sel_date_ecg" onchange="allerBilanDate('ecg', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— choisir une date (<?= count($listeEcgDates) ?>) —</option>
+            <?php foreach ($listeEcgDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEcgDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
         <button type="button" onclick="naviguerBilan('ecg','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('ecg','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('ecg','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
-    </div>
-    <div style="margin-bottom:8px;">
-        <select id="sel_date_ecg" onchange="allerBilanDate('ecg', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
-            <option value="">— choisir une date (<?= count($listeEcgDates) ?>) —</option>
-            <?php foreach ($listeEcgDates as $i => $d): ?>
-            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEcgDates) ?>)</option>
-            <?php endforeach; ?>
-        </select>
     </div>
     <!-- ── Cases à cocher ECG (Normal / Anormal) ── -->
     <div id="panel_ecg_cases" style="margin-bottom:8px;border:1px solid var(--th-border-statsbar);border-radius:5px;padding:6px 8px;background:var(--th-bg-link-hover);">
@@ -957,20 +953,18 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <select id="sel_date_echo" onchange="allerBilanDate('echo', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— choisir une date (<?= count($listeEchoDates) ?>) —</option>
+            <?php foreach ($listeEchoDates as $i => $d): ?>
+            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEchoDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
         <button type="button" onclick="naviguerBilan('echo','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('echo','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
         <button type="button" onclick="naviguerBilan('echo','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('echo','last')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
-    </div>
-    <div style="margin-bottom:8px;">
-        <select id="sel_date_echo" onchange="allerBilanDate('echo', this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
-            <option value="">— choisir une date (<?= count($listeEchoDates) ?>) —</option>
-            <?php foreach ($listeEchoDates as $i => $d): ?>
-            <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEchoDates) ?>)</option>
-            <?php endforeach; ?>
-        </select>
     </div>
 
     <input type="hidden" name="TYPE_ECHO" id="type_echo_val" value="Echoscopie cardiaque">
