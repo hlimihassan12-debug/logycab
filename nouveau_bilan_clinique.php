@@ -206,6 +206,16 @@ $listeExamenDates = listeBilansDates($db, 't_examen', 'NPAT', 'DateExam', 'N1', 
 $listeEcgDates    = listeBilansDates($db, 'ecg', '[N-PAT]', '[Date ECG]', '[N°]', $id);
 $listeEchoDates   = listeBilansDates($db, 'echo', '[N-PAT]', 'DATEchog', '[N°]', $id);
 
+// ── Liste complète des bilans biologiques (pour le menu déroulant de navigation) ──
+$stmtBioListe = $db->prepare("
+    SELECT n_bilan AS pk, CONVERT(varchar(10), date_bilan, 103) AS date_aff
+    FROM LE_BILAN
+    WHERE id = ?
+    ORDER BY date_bilan DESC
+");
+$stmtBioListe->execute([$id]);
+$listeBioDates = $stmtBioListe->fetchAll();
+
 // ── 3 derniers bilans biologiques avec leurs résultats anormaux ──────────
 $stmtBioNBC = $db->prepare("
     SELECT TOP 3 n_bilan,
@@ -386,14 +396,14 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <input class="search-hdr" type="text" placeholder="🔍 Rechercher patient..."
            onkeydown="if(event.key==='Enter'&&this.value.trim()) location.href='recherche.php?q='+encodeURIComponent(this.value.trim())">
     <div style="flex:1;"></div>
-    <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;">🏠 Accueil</a>
-    <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="background:#27ae60;margin-left:0;">🏠 Dossier</a>
+    <a href="index.php" class="btn-retour" style="background:#c0392b;margin-left:0;" title="Retour à l'accueil">🏠 Accueil</a>
+    <a href="dossier.php?id=<?= $id ?>" class="btn-retour" style="background:#27ae60;margin-left:0;" title="Retour au dossier du patient">🏠 Dossier</a>
     <span class="btn-retour" style="background:#888;opacity:0.7;cursor:default;margin-left:0;">📋 Aperçu</span>
-    <a href="agenda.php" class="btn-retour" style="background:#1a4a7a;margin-left:0;">📅 Agenda</a>
-    <a href="planning.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📊 Planning</a>
-    <a href="grille_semaine.php" class="btn-retour" style="background:#2e6da4;margin-left:0;">📋 Grille</a>
-    <a href="biologie.php?id=<?= $id ?>" class="btn-retour" style="background:#e67e22;margin-left:0;">🧪 Biologie</a>
-    <a href="jours_feries.php" class="btn-retour" style="background:#8e44ad;margin-left:0;">📅 Fériés</a>
+    <a href="agenda.php" class="btn-retour" style="background:#1a4a7a;margin-left:0;" title="Ouvrir l'agenda">📅 Agenda</a>
+    <a href="planning.php" class="btn-retour" title="Ouvrir le planning" style="background:#2e6da4;margin-left:0;">📊 Planning</a>
+    <a href="grille_semaine.php" class="btn-retour" title="Ouvrir la grille semaine" style="background:#2e6da4;margin-left:0;">📋 Grille</a>
+    <a href="biologie.php?id=<?= $id ?>" class="btn-retour" style="background:#e67e22;margin-left:0;" title="Ouvrir le module Biologie">🧪 Biologie</a>
+    <a href="jours_feries.php" class="btn-retour" style="background:#8e44ad;margin-left:0;" title="Gérer les jours fériés">📅 Fériés</a>
     <div class="header-clock" style="margin-left:0;">
         <div class="ct" id="clockTime">--:--:--</div>
         <div class="cd" id="clockDate">---</div>
@@ -424,7 +434,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerTout('prev')"  title="Précédent (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#FFD700;padding:0 8px;white-space:nowrap;">— nouveau —</span>
+        <span id="nav_global_label" style="font-size:11px;font-weight:bold;color:#FFD700;padding:0 8px;white-space:nowrap;">(<?= count($listeExamenDates) ?>)</span>
         <button type="button" onclick="naviguerTout('next')"  title="Suivant (tous)"
             style="background:rgba(255,255,255,0.15);color:#FFD700;border:none;border-radius:3px;height:22px;min-width:24px;padding:0 4px;font-size:12px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerTout('last')" title="Plus récent (tous)"
@@ -434,7 +444,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     </div>
     <span style="font-size:10px;color:#FFD700;opacity:0.7;white-space:nowrap;">agit / Examen/ ECG/ Echo</span>
     <!-- Actions -->
-    <button type="button" onclick="enregistrerTout()"
+    <button type="button" onclick="enregistrerTout()" title="Enregistrer Examen + ECG + Echo"
         style="background:#f39c12;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
         💾 TOUT
     </button>
@@ -443,7 +453,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         style="background:#7f8c8d;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
         ↺ Restaurer
     </button>
-    <button type="button" id="btn-toggle-rapports-nbc" onclick="ouvrirMenuRapportsNBC()"
+    <button type="button" id="btn-toggle-rapports-nbc" onclick="ouvrirMenuRapportsNBC()" title="Ouvrir le menu des rapports à imprimer"
        style="background:#27ae60;color:white;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:bold;">
        📑 Rapports
     </button>
@@ -456,23 +466,23 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span style="font-weight:bold;font-size:13px;">📑 Rapports</span>
         </div>
         <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
-            <a href="print_cmlm.php?id=<?= $id ?>" target="_blank"
+            <a href="print_cmlm.php?id=<?= $id ?>" target="_blank" title="Imprimer l'attestation de maladie de longue durée"
                style="display:block;background:#8e44ad;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 📋 Attestation de maladie de longue durée
             </a>
-            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank"
+            <a href="print_aptitude.php?id=<?= $id ?>" target="_blank" title="Imprimer le certificat d'aptitude physique"
                style="display:block;background:var(--th-col-success);color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 🏅 Certificat médical d'aptitude physique
             </a>
-            <a href="print_rapport.php?id=<?= $id ?>" target="_blank"
+            <a href="print_rapport.php?id=<?= $id ?>" target="_blank" title="Imprimer le compte rendu cardio-vasculaire"
                style="display:block;background:#c0392b;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 📄 Compte rendu de l'examen cardio-vasculaire
             </a>
-            <a href="print_lettre.php?id=<?= $id ?>" target="_blank"
+            <a href="print_lettre.php?id=<?= $id ?>" target="_blank" title="Imprimer la lettre de correspondance"
                style="display:block;background:#16a085;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 ✉️ Lettre de correspondance
             </a>
-            <button onclick="fermerMenuRapportsNBC()"
+            <button onclick="fermerMenuRapportsNBC()" title="Fermer le menu des rapports"
                style="display:block;width:100%;background:#7f8c8d;color:white;border:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;cursor:pointer;margin-top:4px;">
                 ✕ Fermer
             </button>
@@ -520,15 +530,15 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
    <div style="min-height:0;"><span id="msg_examen" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
       <div style="margin-bottom:2px;"><small id="lbl_exclu_examen" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <select id="sel_date_examen" onchange="allerBilanDate('examen', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
-            <option value="">— choisir une date (<?= count($listeExamenDates) ?>) —</option>
+        <select id="sel_date_examen" title="Aller directement à une date d'examen" onchange="allerBilanDate('examen', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— date (<?= count($listeExamenDates) ?>) —</option>
             <?php foreach ($listeExamenDates as $i => $d): ?>
             <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeExamenDates) ?>)</option>
             <?php endforeach; ?>
         </select>
         <button type="button" onclick="naviguerBilan('examen','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('examen','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
+        <span id="navdate_examen" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">(<?= count($listeExamenDates) ?>)</span>
         <button type="button" onclick="naviguerBilan('examen','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('examen','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('examen')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -550,9 +560,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
             <span onclick="toggleEcgSection('examen_content','arr_examen_title')" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:bold;color:var(--th-color-primary);">🩺 Examen <span id="arr_examen_title">▶</span></span>
             <span style="flex:1;"></span>
             <button type="button" id="btn_generer_examen"
-                onclick="genererRapportExamen(); document.getElementById('examen_content').style.display='none'; document.getElementById('arr_examen_title').textContent='▶'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');"
+                onclick="genererRapportExamen(); document.getElementById('examen_content').style.display='none'; document.getElementById('arr_examen_title').textContent='▶'; document.getElementById('btn_generer_examen').style.display='none'; document.getElementById('lien_modifier_sympto').style.display='block'; enregistrerAjax('examen');" title="Générer l'aperçu et enregistrer l'examen"
                 style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
-            <button type="button" id="lien_modifier_sympto" onclick="modifierExamen()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
+            <button type="button" id="lien_modifier_sympto" onclick="modifierExamen()" title="Modifier l'examen" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <div id="examen_content" style="display:none;">
@@ -628,7 +638,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="hypochondre droit douloureux à la palpation"> Hypochondre droit douloureux à la palpation</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="œdèmes des MI prenant le godet"> Œdèmes des MI prenant le godet</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivd" value="turgescence des veines jugulaires"> Turgescence des veines jugulaires</label>
-                <button type="button" onclick="appliquerMultiple('sub_ivd')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                <button type="button" onclick="appliquerMultiple('sub_ivd')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             <!-- Signes IVG — MULTIPLE + bouton OK -->
@@ -640,7 +650,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="dyspnée stade NYHA III"> Dyspnée stade NYHA III</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="orthopnée"> Orthopnée</label>
                 <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="sx-ivg" value="œdème aigu du poumon (OAP)"> Œdème aigu du poumon (OAP)</label>
-                <button type="button" onclick="appliquerMultiple('sub_ivg')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                <button type="button" onclick="appliquerMultiple('sub_ivg')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             <!-- Rythmique — EXCLUSIF -->
@@ -681,7 +691,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <span style="font-size:11px;">Autres :</span>
                     <input type="text" id="phlebite_autres" placeholder="préciser..." style="flex:1;border:1px solid #ccc;border-radius:3px;padding:2px 5px;font-size:11px;">
                 </div>
-                <button type="button" onclick="appliquerMultiple('sub_phlebite')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                <button type="button" onclick="appliquerMultiple('sub_phlebite')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
             </div>
 
             </div><!-- fin sub_exam_vasc -->
@@ -733,15 +743,15 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_ecg" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_ecg" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <select id="sel_date_ecg" onchange="allerBilanDate('ecg', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
-            <option value="">— choisir une date (<?= count($listeEcgDates) ?>) —</option>
+        <select id="sel_date_ecg" title="Aller directement à une date d'ECG" onchange="allerBilanDate('ecg', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— date (<?= count($listeEcgDates) ?>) —</option>
             <?php foreach ($listeEcgDates as $i => $d): ?>
             <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEcgDates) ?>)</option>
             <?php endforeach; ?>
         </select>
         <button type="button" onclick="naviguerBilan('ecg','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('ecg','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
+        <span id="navdate_ecg" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">(<?= count($listeEcgDates) ?>)</span>
         <button type="button" onclick="naviguerBilan('ecg','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('ecg','last')"  title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('ecg')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -751,9 +761,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
             <span onclick="toggleEcgSection('ecg_content','arr_ecg_title')" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:bold;color:var(--th-color-primary);">📈 ECG <span id="arr_ecg_title">▶</span></span>
             <button type="button" id="btn_generer_ecg"
-                onclick="genererRapportECG(); document.getElementById('ecg_content').style.display='none'; document.getElementById('arr_ecg_title').textContent='▶'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');"
+                onclick="genererRapportECG(); document.getElementById('ecg_content').style.display='none'; document.getElementById('arr_ecg_title').textContent='▶'; document.getElementById('btn_generer_ecg').style.display='none'; document.getElementById('lien_modifier_ecg').style.display='block'; enregistrerAjax('ecg');" title="Générer l'aperçu et enregistrer l'ECG"
                 style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
-            <button type="button" id="lien_modifier_ecg" onclick="modifierECG()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
+            <button type="button" id="lien_modifier_ecg" onclick="modifierECG()" title="Modifier l'ECG" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <div id="ecg_content" style="display:none;">
@@ -866,7 +876,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose inférieur"> Inférieur</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose latéral"> Latéral</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="onde Q de nécrose postérieur"> Postérieur</label>
-                        <button type="button" onclick="appliquerMultiple('sub_ecg_isch_topo')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                        <button type="button" onclick="appliquerMultiple('sub_ecg_isch_topo')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
 
@@ -888,7 +898,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST inférieur"> Inférieur</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST latéral"> Latéral</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie ST postérieur"> Postérieur</label>
-                        <button type="button" onclick="appliquerMultiple('sub_ecg_repol_detail')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                        <button type="button" onclick="appliquerMultiple('sub_ecg_repol_detail')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
 
@@ -906,7 +916,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T inférieur"> Inférieur</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T latéral"> Latéral</label>
                         <label style="font-size:11px;display:block;margin-bottom:2px;"><input type="checkbox" class="topo-cb" value="anomalie onde T postérieur"> Postérieur</label>
-                        <button type="button" onclick="appliquerMultiple('sub_ecg_ondeT_topo')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                        <button type="button" onclick="appliquerMultiple('sub_ecg_ondeT_topo')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
 
@@ -953,15 +963,15 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div style="min-height:0;"><span id="msg_echo" style="font-size:11px;color:#27ae60;font-weight:bold;display:none;"></span></div>
     <div style="margin-bottom:2px;"><small id="lbl_exclu_echo" style="color:#e74c3c;font-weight:bold;font-size:9px;display:none;"></small></div>
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
-        <select id="sel_date_echo" onchange="allerBilanDate('echo', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
-            <option value="">— choisir une date (<?= count($listeEchoDates) ?>) —</option>
+        <select id="sel_date_echo" title="Aller directement à une date d'Echo" onchange="allerBilanDate('echo', this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— date (<?= count($listeEchoDates) ?>) —</option>
             <?php foreach ($listeEchoDates as $i => $d): ?>
             <option value="<?= (int)$d['pk'] ?>"><?= htmlspecialchars($d['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeEchoDates) ?>)</option>
             <?php endforeach; ?>
         </select>
         <button type="button" onclick="naviguerBilan('echo','first')" title="Premier bilan" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="naviguerBilan('echo','prev')"  title="Précédent"    style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
-        <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">— nouveau —</span>
+        <span id="navdate_echo" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">(<?= count($listeEchoDates) ?>)</span>
         <button type="button" onclick="naviguerBilan('echo','next')"  title="Suivant"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="naviguerBilan('echo','last')" title="Dernier"      style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
         <button type="button" onclick="nouveauBilan('echo')"          title="Nouveau"      style="background:#27ae60;color:white;border:1px solid #27ae60;border-radius:3px;height:20px;padding:0 6px;font-size:10px;font-weight:bold;cursor:pointer;">▶*</button>
@@ -975,9 +985,9 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
             <span onclick="toggleEcgSection('echo_content','arr_echo_title')" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:bold;color:var(--th-color-primary);">🔊 Échographie <span id="arr_echo_title">▶</span></span>
             <button type="button" id="btn_generer_echo"
-                onclick="genererCmlmEcho(); document.getElementById('echo_content').style.display='none'; document.getElementById('arr_echo_title').textContent='▶'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');"
+                onclick="genererCmlmEcho(); document.getElementById('echo_content').style.display='none'; document.getElementById('arr_echo_title').textContent='▶'; document.getElementById('btn_generer_echo').style.display='none'; document.getElementById('lien_modifier_echo').style.display='block'; enregistrerAjax('echo');" title="Générer l'aperçu et enregistrer l'Echo"
                 style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;">▶ Générer &amp; 💾</button>
-            <button type="button" id="lien_modifier_echo" onclick="modifierEcho()" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
+            <button type="button" id="lien_modifier_echo" onclick="modifierEcho()" title="Modifier l'Echo" style="display:none;background:#e67e22;color:white;border:none;border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;">↺ Modifier</button>
         </div>
 
         <div id="echo_content" style="display:none;">
@@ -1308,7 +1318,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec" value="hypokinésie <?= strtolower($t) ?>"> <?= $t ?></label>
                     <?php endforeach; ?>
-                    <button type="button" onclick="appliquerMultiple('es_hypo')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <button type="button" onclick="appliquerMultiple('es_hypo')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
                 <!-- Akinésie -->
                 <label class="echo-lbl"><input type="checkbox" class="cmlm-ep" data-target="es_aki" onchange="toggleCmlmSub(this)"> Akinésie</label>
@@ -1316,7 +1326,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec" value="akinésie <?= strtolower($t) ?>"> <?= $t ?></label>
                     <?php endforeach; ?>
-                    <button type="button" onclick="appliquerMultiple('es_aki')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <button type="button" onclick="appliquerMultiple('es_aki')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
                 <!-- Dyskinésie -->
                 <label class="echo-lbl"><input type="checkbox" class="cmlm-ep" data-target="es_dysk" onchange="toggleCmlmSub(this)"> Dyskinésie</label>
@@ -1324,7 +1334,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                     <?php foreach (["Antérieur","Apical","Inférieur","Latéral","Postérieur"] as $t): ?>
                     <label class="echo-lbl"><input type="checkbox" class="cmlm-ec" value="dyskinésie <?= strtolower($t) ?>"> <?= $t ?></label>
                     <?php endforeach; ?>
-                    <button type="button" onclick="appliquerMultiple('es_dysk')" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
+                    <button type="button" onclick="appliquerMultiple('es_dysk')" title="Valider la sélection" style="margin-top:3px;background:var(--th-btn-navy);color:white;border:none;border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;">✓ OK</button>
                 </div>
             </div>
             <!-- Takotsubo -->
@@ -1407,10 +1417,16 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 
     <!-- Barre de navigation bilans -->
     <div style="display:flex;align-items:center;gap:2px;background:var(--th-bg-link-hover);border-radius:4px;padding:3px 5px;margin-bottom:8px;">
+        <select id="sel_date_bio" title="Aller directement à une date de bilan" onchange="allerBioDate(this.value)" style="width:120px;flex-shrink:0;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;">
+            <option value="">— date (<?= count($listeBioDates) ?>) —</option>
+            <?php foreach ($listeBioDates as $i => $b): ?>
+            <option value="<?= (int)$b['pk'] ?>"><?= htmlspecialchars($b['date_aff']) ?> (<?= $i+1 ?>/<?= count($listeBioDates) ?>)</option>
+            <?php endforeach; ?>
+        </select>
         <button type="button" onclick="bioNavNBC('first')" title="Plus récent"  style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">|◀</button>
         <button type="button" onclick="bioNavNBC('prev')"  title="Précédent"   style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">◀</button>
         <span id="bio-nbc-navdate" style="flex:1;text-align:center;font-weight:bold;color:var(--th-color-primary);font-size:11px;">
-            <?= $bilansNBC ? htmlspecialchars($bilansNBC[0]['date_fr']) : '—' ?>
+            <?= $listeBioDates ? '(1/'.count($listeBioDates).')' : '—' ?>
         </span>
         <button type="button" onclick="bioNavNBC('next')"  title="Suivant"     style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶</button>
         <button type="button" onclick="bioNavNBC('last')"  title="Plus ancien" style="background:var(--th-btn-navy);color:white;border:none;border-radius:3px;height:20px;min-width:20px;padding:0 3px;font-size:11px;font-weight:bold;cursor:pointer;">▶|</button>
@@ -1470,7 +1486,7 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
         <div style="margin-bottom:4px;display:flex;align-items:center;gap:5px;">
             <button type="button" onclick="toggleConduitePanel()" title="Choisir dans la liste"
                 style="flex:1;background:var(--th-btn-blue);color:white;border:none;border-radius:3px;padding:4px 8px;font-size:12px;font-weight:bold;cursor:pointer;text-align:left;">&#x1F4CB; Au total CAT</button>
-            <button type="button"
+            <button type="button" title="Enregistrer la conduite à tenir"
                 onclick="majConduiteTextarea(); document.getElementById('panel_conduite').style.display='none'; enregistrerAjax('examen');"
                 style="background:#27ae60;color:white;border:none;border-radius:3px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">&#x25B6; G&eacute;n&eacute;rer &amp; &#x1F4BE;</button>
         </div>
@@ -2058,7 +2074,7 @@ function enregistrerAjax(onglet) {
                 '<div style="font-size:15px;font-weight:bold;color:#c0392b;margin-bottom:10px;">Enregistrement impossible</div>' +
                 '<div style="font-size:13px;color:#333;margin-bottom:18px;">Les champs suivants sont obligatoires :<br><br>' +
                 '<strong style="color:#c0392b;font-size:15px;">' + manquants.join(' — ') + '</strong></div>' +
-                '<button onclick="this.closest(\'div[style*=fixed]\') ? document.body.removeChild(this.closest(\'div[style*=fixed]\')) : null; document.getElementById(\'inp_'+manquants[0]+'\').focus();" ' +
+                '<button title="Fermer et corriger le champ manquant" onclick="this.closest(\'div[style*=fixed]\') ? document.body.removeChild(this.closest(\'div[style*=fixed]\')) : null; document.getElementById(\'inp_'+manquants[0]+'\').focus();" ' +
                 'style="background:#c0392b;color:white;border:none;border-radius:5px;padding:8px 28px;font-size:13px;font-weight:bold;cursor:pointer;">OK</button>' +
                 '</div>';
             document.body.appendChild(overlay);
@@ -2155,7 +2171,7 @@ function appliquerDonneesBilan(type, dir, d) {
         else if (dir === 'next')  bilanRang[type] = Math.max(1,     (bilanRang[type] || 1) - 1);
     }
     var rang = bilanRang[type], tot = nbrEnreg[type];
-    var label = (d.date_affichage||'—') + (rang && tot ? ' (' + rang + '/' + tot + ')' : '');
+    var label = (rang && tot) ? ('(' + rang + '/' + tot + ')') : '—';
     document.getElementById('navdate_'+type).textContent = label;
     var df=document.getElementById('date_'+type); if(df&&d.date_fmt) df.value=d.date_fmt;
     var sel=document.getElementById('sel_date_'+type); if(sel) sel.value = d.pk || '';
@@ -2230,8 +2246,7 @@ function nouveauTout() {
 function nouveauBilan(type) {
     bilanRef[type]=0;
     bilanRang[type] = 0;
-    var dateAff = '<?= date("d/m/Y") ?>';
-    document.getElementById('navdate_'+type).textContent = dateAff + ' (' + (nbrEnreg[type]+1) + ')';
+    document.getElementById('navdate_'+type).textContent = '(' + (nbrEnreg[type]+1) + ')';
     var df=document.getElementById('date_'+type); if(df) df.value='<?= $today ?>';
     if(type==='examen') {
         viderExamen();
@@ -2248,22 +2263,20 @@ function nouveauBilan(type) {
         });
     }
 }
-/* ════ NAVIGATION BIOLOGIE (lecture seule) ════ */
+/* ════ NAVIGATION BIOLOGIE (lecture seule) — tous les bilans ════ */
 const bioNbcBilans = <?= json_encode(array_map(fn($b) => [
-    'n_bilan' => $b['n_bilan'],
-    'date_fr' => $b['date_fr'],
-], $bilansNBC)) ?>;
+    'n_bilan' => (int)$b['pk'],
+    'date_fr' => $b['date_aff'],
+], $listeBioDates)) ?>;
 let bioNbcIdx = 0;
 
-function bioNavNBC(dir) {
+function bioAppliquerIdx() {
     if (!bioNbcBilans.length) return;
-    if      (dir === 'first') bioNbcIdx = 0;
-    else if (dir === 'last')  bioNbcIdx = bioNbcBilans.length - 1;
-    else if (dir === 'prev')  bioNbcIdx = Math.max(0, bioNbcIdx - 1);
-    else if (dir === 'next')  bioNbcIdx = Math.min(bioNbcBilans.length - 1, bioNbcIdx + 1);
     const b = bioNbcBilans[bioNbcIdx];
     var tot = bioNbcBilans.length;
-    document.getElementById('bio-nbc-navdate').textContent = b.date_fr + ' (' + (bioNbcIdx+1) + '/' + tot + ')';
+    document.getElementById('bio-nbc-navdate').textContent = '(' + (bioNbcIdx+1) + '/' + tot + ')';
+    var sel = document.getElementById('sel_date_bio');
+    if (sel) sel.value = b.n_bilan;
     // Charger via AJAX
     fetch('ajax_bio_dossier.php', {
         method: 'POST',
@@ -2290,6 +2303,24 @@ function bioNavNBC(dir) {
             </div>`;
         }).join('');
     });
+}
+
+function bioNavNBC(dir) {
+    if (!bioNbcBilans.length) return;
+    if      (dir === 'first') bioNbcIdx = 0;
+    else if (dir === 'last')  bioNbcIdx = bioNbcBilans.length - 1;
+    else if (dir === 'prev')  bioNbcIdx = Math.max(0, bioNbcIdx - 1);
+    else if (dir === 'next')  bioNbcIdx = Math.min(bioNbcBilans.length - 1, bioNbcIdx + 1);
+    bioAppliquerIdx();
+}
+
+/* ── Navigation directe par date (liste déroulante) ── */
+function allerBioDate(pk) {
+    if (!pk) return;
+    var idx = bioNbcBilans.findIndex(function(b){ return b.n_bilan == pk; });
+    if (idx === -1) return;
+    bioNbcIdx = idx;
+    bioAppliquerIdx();
 }
 
 /* ── CMLM Echo ── */

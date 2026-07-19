@@ -470,16 +470,16 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     <!-- Espace flexible : pousse Rapports/boutons/horloge/déconnexion à droite -->
     <div style="flex:1;"></div>
     <!-- Rapports, juste à gauche de Accueil -->
-    <button type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
+    <button title="Ouvrir le menu des rapports" type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
     <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
-    <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
+    <a title="Retour à l'accueil" href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
     <span                               class="btn-h grey"  >🏠 Dossier</span>
-    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:var(--th-col-success);font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
-    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
-    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
-    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
-    <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
-    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <a title="Ouvrir le bilan clinique" href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:var(--th-col-success);font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
+    <a title="Ouvrir l'agenda" href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
+    <a title="Ouvrir le planning" href="planning.php"              class="btn-h blue"  >📊 Planning</a>
+    <a title="Ouvrir la grille semaine" href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a title="Ouvrir le module Biologie" href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
+    <a title="Gérer les jours fériés" href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
     <!-- DROITE : horloge puis déconnexion tout au bord -->
     <div class="header-clock">
         <div id="clockTime" class="ct">--:--:--</div>
@@ -574,7 +574,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
             <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Au total CAT</span>
             <?php if ($examen): ?>
-            <button type="button" onclick="sauvegarderCAT()" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:12px;font-weight:bold;cursor:pointer;">💾 Enregistrer</button>
+            <button title="Enregistrer la conduite à tenir (CAT)" type="button" onclick="sauvegarderCAT()" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:12px;font-weight:bold;cursor:pointer;">💾 Enregistrer</button>
             <?php endif; ?>
         </div>
         <?php if ($examen): ?>
@@ -717,8 +717,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
+                <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
+                <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
             </div>
             <?php if (!empty($medicaments)): ?>
@@ -879,18 +879,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tfoot>
             </table>
             <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;">
-                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <a title="Première facture" href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
+                <a title="Facture précédente" href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
+                <a title="Facture suivante" href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a title="Dernière facture" href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
+                <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
                 <a href="print_facture.php?id=<?= $id ?>&fact=<?= $factCourante['n_facture'] ?>" target="_blank" class="nav-btn" style="background:#2e6da4;color:white;padding:2px 5px;font-size:10px;text-decoration:none;" title="Imprimer la note d'honoraires">🖨️ Facture</a>
             </div>
             <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
             <div style="display:flex;justify-content:center;margin-top:8px;">
-                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
+                <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
             </div>
             <?php endif; ?>
 
@@ -898,7 +898,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <div id="formNouvelleFacture_acc" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:var(--th-color-primary);font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
+                    <button title="Fermer le formulaire de facture" type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
@@ -926,8 +926,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne('acc')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <button title="Ajouter une ligne d'acte" type="button" onclick="nfAjouterLigne('acc')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button title="Enregistrer la facture" type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
                     <span id="nf_msg_acc" style="font-size:11px;color:var(--th-col-success);align-self:center;"></span>
                 </div>
             </div>
@@ -936,7 +936,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         </div><!-- FIN Facturation -->
         <div><!-- Certificat -->
         <div>
-            <button type="button"
+            <button title="Afficher/masquer le certificat médical" type="button"
                 onclick="var z=document.getElementById('cert-zone-acc');z.style.display=z.style.display==='none'?'block':'none'"
                 style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
                 Certificat médical
@@ -1007,15 +1007,15 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                         <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
                         <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;align-items:center;">
-                            <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
-                            <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
-                            <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
-                            <button type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
-                            <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
-                            <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
+                            <button title="Fixer le RDV dans 1 mois" type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
+                            <button title="Fixer le RDV dans 3 mois" type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
+                            <button title="Fixer le RDV dans 6 mois" type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
+                            <button title="Fixer le RDV dans 7 jours" type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
+                            <button title="Fixer le RDV dans 10 jours" type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
+                            <button title="Fixer le RDV dans 15 jours" type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                             <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
-                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
+                            <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
+                            <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
                     <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)"
                             title="Enregistrer le RDV"
                             style="background:var(--th-col-success);color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;">
@@ -1091,8 +1091,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
+                <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
+                <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
@@ -1186,19 +1186,19 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tfoot>
             </table>
             <div style="display:flex;justify-content:center;gap:2px;margin-top:6px;">
-                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <a title="Première facture" href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
+                <a title="Facture précédente" href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
-                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
+                <a title="Facture suivante" href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a title="Dernière facture" href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
+                <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
                 <a href="print_facture.php?id=<?= $id ?>&fact=<?= $factCourante['n_facture'] ?>" target="_blank" class="nav-btn" style="background:#2e6da4;color:white;padding:2px 5px;font-size:10px;text-decoration:none;" title="Imprimer la note d'honoraires">🖨️ Facture</a>
             </div>
             <?php else: ?>
                 <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
                 <div style="display:flex;justify-content:center;margin-top:8px;">
-                    <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
+                    <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
                 </div>
             <?php endif; ?>
             </div>
@@ -1207,7 +1207,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <div id="formNouvelleFacture_cons" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:var(--th-color-primary);font-size:12px;">Nouvelle facture</strong>
-                    <button type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
+                    <button title="Fermer le formulaire de facture" type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
@@ -1236,8 +1236,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button type="button" onclick="nfAjouterLigne('cons')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <button title="Ajouter une ligne d'acte" type="button" onclick="nfAjouterLigne('cons')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button title="Enregistrer la facture" type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
                     <span id="nf_msg_cons" style="font-size:11px;color:var(--th-col-success);align-self:center;"></span>
                 </div>
             </div>
@@ -1246,7 +1246,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <div style="margin-top:12px;border-top:2px solid #e0e0e0;padding-top:10px;">
 
                 <!-- BOUTON CERTIFICAT -->
-                <button type="button"
+                <button title="Afficher/masquer le certificat médical" type="button"
                     onclick="var z=document.getElementById('cert-zone');z.style.display=z.style.display==='none'?'block':'none'"
                     style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
                     Certificat médical
@@ -1293,12 +1293,12 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune ordonnance</p>
             <div class="nav-ord-barre">
-                <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn">|◀</a>
-                <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn">◀</a>
+                <a title="Première ordonnance" href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn">|◀</a>
+                <a title="Ordonnance précédente" href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn">◀</a>
                 <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);">0 / 0</span>
-                <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
-                <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
-                <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);">✚</button>
+                <a title="Ordonnance suivante" href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
+                <a title="Dernière ordonnance" href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
+                <button title="Créer une nouvelle ordonnance" type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);">✚</button>
             </div>
         <?php endif; ?>
 
@@ -1542,7 +1542,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
     <div style="background:var(--th-bg-card);border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--th-col-success);">
             <strong style="color:var(--th-col-success);font-size:15px;">✚ Nouvelle ordonnance</strong>
-            <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
+            <button title="Annuler la nouvelle ordonnance" type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
         </div>
         <!-- BLOC 1 : DATE ORDONNANCE -->
         <div style="margin-bottom:14px;">
@@ -1566,7 +1566,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <tbody id="no_lignes"></tbody>
         </table>
         <div style="margin-top:10px;margin-bottom:16px;">
-            <button type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
+            <button title="Ajouter un médicament" type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
         </div>
 
         <!-- BLOC 3 : RDV + ACTE -->
@@ -1575,12 +1575,12 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <input type="hidden" id="no_rdv"   value="">
             <input type="hidden" id="no_heure" value="">
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
-                <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
-                <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
-                <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
-                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
-                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
-                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
+                <button title="Fixer le RDV dans 1 mois" type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
+                <button title="Fixer le RDV dans 3 mois" type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
+                <button title="Fixer le RDV dans 6 mois" type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
+                <button title="Fixer le RDV dans 7 jours" type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
+                <button title="Fixer le RDV dans 15 jours" type="button" onclick="rdvSetDelai(0,15,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
+                <button title="Fixer le RDV dans 21 jours" type="button" onclick="rdvSetDelai(0,21,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
             </div>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
                 <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
@@ -1602,7 +1602,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                        style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
                     <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
-                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                    <button title="Choisir cet acte" type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -1610,11 +1610,11 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 
         <!-- BLOC 4 : ENREGISTREMENT GLOBAL -->
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <button type="button" id="no_btn_enregistrer" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Enregistrer</button>
-            <button type="button" id="no_btn_imprimer" onclick="noImprimer()" style="display:none;background:#2e6da4;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🖨️ Imprimer</button>
-            <button type="button" id="no_btn_facture" onclick="noAllerFacture(<?= $id ?>)" style="display:none;background:#8e44ad;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🧾 Facture</button>
-            <button type="button" id="no_btn_retour" onclick="noRetourDossier(<?= $id ?>)" style="display:none;background:#95a5a6;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">📂 Retour au dossier</button>
-            <button type="button" id="no_btn_nouveau" onclick="noNouveau()" style="display:none;background:var(--th-col-success);color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">✕ Nouveau</button>
+            <button title="Enregistrer l'ordonnance" type="button" id="no_btn_enregistrer" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Enregistrer</button>
+            <button title="Imprimer l'ordonnance" type="button" id="no_btn_imprimer" onclick="noImprimer()" style="display:none;background:#2e6da4;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🖨️ Imprimer</button>
+            <button title="Aller à la facture" type="button" id="no_btn_facture" onclick="noAllerFacture(<?= $id ?>)" style="display:none;background:#8e44ad;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🧾 Facture</button>
+            <button title="Retour au dossier du patient" type="button" id="no_btn_retour" onclick="noRetourDossier(<?= $id ?>)" style="display:none;background:#95a5a6;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">📂 Retour au dossier</button>
+            <button title="Effacer et créer une nouvelle ordonnance" type="button" id="no_btn_nouveau" onclick="noNouveau()" style="display:none;background:var(--th-col-success);color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">✕ Nouveau</button>
             <span id="no_msg" style="font-size:12px;color:var(--th-col-success);"></span>
         </div>
     </div>
@@ -1692,7 +1692,7 @@ function diagAjouter(type, patId, liste) {
             div.innerHTML = `<input type="text" value="${valeur.replace(/"/g,'&quot;')}" list="datalist_diag_${type}"
                 onblur="diagUpdate(${type},${data.n_dic},this.value)"
                 style="flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 5px;font-size:12px;">
-                <button type="button" onclick="diagDelete(${type},${data.n_dic},${patId},this)"
+                <button title="Supprimer ce diagnostic" type="button" onclick="diagDelete(${type},${data.n_dic},${patId},this)"
                 style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>`;
             bloc.appendChild(div); input.value = '';
             if (!existe) { const dl=document.getElementById('datalist_diag_'+type); if(dl){const o=document.createElement('option');o.value=valeur;dl.appendChild(o);} }
@@ -1838,15 +1838,15 @@ function jfAfficher(data, onChoix, onGarder) {
     const base = 'border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:bold;';
     let btns = '';
     if (data.date_avant)
-        btns += `<button style="${base}background:#2e6da4;color:white;" onclick="jfChoisir('${data.date_avant}')">◀ ${data.label_avant}</button>`;
+        btns += `<button title="Choisir la date précédente" style="${base}background:#2e6da4;color:white;" onclick="jfChoisir('${data.date_avant}')">◀ ${data.label_avant}</button>`;
     if ((estLundi || estSamedi) && data.date_cible) {
         const lbl = estLundi ? 'Garder lundi' : 'Garder samedi';
-        btns += `<button style="${base}background:#e67e22;color:white;" onclick="jfGarder('${data.date_cible}')">${lbl}</button>`;
+        btns += `<button title="Garder cette date" style="${base}background:#e67e22;color:white;" onclick="jfGarder('${data.date_cible}')">${lbl}</button>`;
     }
     if (data.date_apres)
-        btns += `<button style="${base}background:#1a4a7a;color:white;" onclick="jfChoisir('${data.date_apres}')">${data.label_apres} ▶</button>`;
-    btns += `<button style="${base}background:#555;color:white;" onclick="jfChoisirDate()">📅 Choisir date</button>`;
-    btns += `<button style="${base}background:#ddd;color:#444;" onclick="jfFermer()">✕ Annuler</button>`;
+        btns += `<button title="Choisir la date suivante" style="${base}background:#1a4a7a;color:white;" onclick="jfChoisir('${data.date_apres}')">${data.label_apres} ▶</button>`;
+    btns += `<button title="Choisir une autre date" style="${base}background:#555;color:white;" onclick="jfChoisirDate()">📅 Choisir date</button>`;
+    btns += `<button title="Annuler" style="${base}background:#ddd;color:#444;" onclick="jfFermer()">✕ Annuler</button>`;
 
     document.body.insertAdjacentHTML('beforeend', `
     <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
@@ -1859,7 +1859,7 @@ function jfAfficher(data, onChoix, onGarder) {
             <div id="jf-datepicker" style="display:none;margin-top:14px;">
                 <input type="date" id="jf-input-date"
                        style="padding:5px 8px;border:1px solid #2e6da4;border-radius:4px;font-size:12px;">
-                <button style="${base}background:#1a4a7a;color:white;margin-left:8px;" onclick="jfConfirmerDate()">✔ Confirmer</button>
+                <button title="Confirmer la date choisie" style="${base}background:#1a4a7a;color:white;margin-left:8px;" onclick="jfConfirmerDate()">✔ Confirmer</button>
             </div>
         </div>
     </div>`);
@@ -2167,16 +2167,16 @@ function noAjouterLigne() {
         <td style="padding:3px 4px;"><select id="no_poso_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsPoso}</select></td>
         <td style="padding:3px 2px;">
             <div style="display:flex;flex-wrap:wrap;gap:2px;max-width:106px;">
-                <button type="button" onclick="noSetDuree(${i},'7 jours')"  style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">7J</button>
-                <button type="button" onclick="noSetDuree(${i},'15 jours')" style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">15J</button>
-                <button type="button" onclick="noSetDuree(${i},'1 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">1M</button>
-                <button type="button" onclick="noSetDuree(${i},'2 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">2M</button>
-                <button type="button" onclick="noSetDuree(${i},'3 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">3M</button>
-                <button type="button" onclick="noSetDuree(${i},'6 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">6M</button>
+                <button title="Durée : 7 jours" type="button" onclick="noSetDuree(${i},'7 jours')"  style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">7J</button>
+                <button title="Durée : 15 jours" type="button" onclick="noSetDuree(${i},'15 jours')" style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">15J</button>
+                <button title="Durée : 1 mois" type="button" onclick="noSetDuree(${i},'1 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">1M</button>
+                <button title="Durée : 2 mois" type="button" onclick="noSetDuree(${i},'2 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">2M</button>
+                <button title="Durée : 3 mois" type="button" onclick="noSetDuree(${i},'3 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">3M</button>
+                <button title="Durée : 6 mois" type="button" onclick="noSetDuree(${i},'6 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">6M</button>
             </div>
         </td>
         <td style="padding:3px 4px;"><select id="no_duree_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsDuree}</select></td>
-        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
+        <td style="padding:3px 4px;"><button title="Supprimer ce médicament" type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
     document.getElementById('no_lignes').appendChild(tr);
 }
 
@@ -2298,7 +2298,7 @@ function nfAjouterLigne(sfx) {
         <input type="hidden" id="nf_prix_${sfx}_${i}" value="">
         <td style="padding:3px 4px;"><input type="number" id="nf_verse_${sfx}_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer('${sfx}',${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
         <td style="padding:3px 4px;text-align:right;font-weight:600;color:#c0392b;" id="nf_dette_${sfx}_${i}">0</td>
-        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux('${sfx}')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
+        <td style="padding:3px 4px;"><button title="Supprimer cet acte" type="button" onclick="this.closest('tr').remove();nfMajTotaux('${sfx}')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
     document.getElementById('nf_lignes_' + sfx).appendChild(tr);
 }
 function nfRemplirPrix(sfx, i) {
@@ -2687,21 +2687,21 @@ function calcNbrJAcc() {
     <div class="popup-rdv-box">
         <div class="popup-rdv-header">
             <strong style="font-size:14px;">RDV prochain</strong>
-            <button onclick="fermerPopupRdv()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;">✕</button>
+            <button title="Fermer" onclick="fermerPopupRdv()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;">✕</button>
         </div>
         <div class="popup-rdv-body">
             <!-- Boutons délai -->
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
-                <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
-                <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
-                <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
-                <button type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
-                <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
-                <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
+                <button title="Fixer le RDV dans 1 mois" type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
+                <button title="Fixer le RDV dans 3 mois" type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
+                <button title="Fixer le RDV dans 6 mois" type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
+                <button title="Fixer le RDV dans 7 jours" type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
+                <button title="Fixer le RDV dans 10 jours" type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
+                <button title="Fixer le RDV dans 15 jours" type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                 <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
-                <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
+                <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
+                <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
+                <button title="Enregistrer le RDV" type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
                         style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:bold;margin-left:auto;">
                     📅 RDV
                 </button>
@@ -2736,7 +2736,7 @@ function calcNbrJAcc() {
                        style="width:100%;padding:4px 8px;border:1px solid var(--th-col-rdvn);border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
                     <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
-                    <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
+                    <button title="Choisir cet acte" type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
                         style="background:var(--th-col-rdvn);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
@@ -2769,7 +2769,7 @@ function calcNbrJAcc() {
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 🏅 Certificat médical d'aptitude physique
             </a>
-            <button onclick="ouvrirModalRapport();"
+            <button title="Ouvrir le compte rendu de l'examen cardio-vasculaire" onclick="ouvrirModalRapport();"
                style="display:block;width:100%;background:#c0392b;color:white;border:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
                       cursor:pointer;text-align:left;">
@@ -2785,7 +2785,7 @@ function calcNbrJAcc() {
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 Ordonnance
             </a>
-            <button onclick="fermerMenuRapports()"
+            <button title="Fermer le menu des rapports" onclick="fermerMenuRapports()"
                style="display:block;width:100%;background:#7f8c8d;color:white;border:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
                       cursor:pointer;text-align:center;margin-top:2px;">
@@ -2803,7 +2803,7 @@ function calcNbrJAcc() {
         <div style="background:#c0392b;color:white;padding:10px 16px;
                     display:flex;align-items:center;justify-content:space-between;">
             <span style="font-weight:bold;font-size:13px;">🖨️ Rapport cardio-vasculaire</span>
-            <button onclick="fermerModalRapport()" style="background:none;border:none;color:white;
+            <button title="Fermer" onclick="fermerModalRapport()" style="background:none;border:none;color:white;
                     font-size:18px;cursor:pointer;line-height:1;">✕</button>
         </div>
         <!-- Corps -->
@@ -2841,10 +2841,10 @@ function calcNbrJAcc() {
                 </div>
                 <!-- Boutons action -->
                 <div style="display:flex;justify-content:flex-end;gap:8px;">
-                    <button onclick="fermerModalRapport()"
+                    <button title="Annuler" onclick="fermerModalRapport()"
                         style="background:#95a5a6;color:white;border:none;border-radius:5px;
                                padding:6px 16px;font-size:12px;cursor:pointer;">Annuler</button>
-                    <button onclick="imprimerRapport()"
+                    <button title="Imprimer le rapport" onclick="imprimerRapport()"
                         style="background:#c0392b;color:white;border:none;border-radius:5px;
                                padding:6px 16px;font-size:12px;font-weight:bold;cursor:pointer;">🖨️ Imprimer</button>
                 </div>
@@ -3182,15 +3182,15 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
         <!-- Header -->
         <div style="background:#1a4a7a;color:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <span style="font-weight:bold;font-size:15px;">📋 Motif — Antécédents — Facteurs de risque</span>
-            <button onclick="fermerPopupMAD()" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
+            <button title="Fermer" onclick="fermerPopupMAD()" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
         </div>
 
         <!-- Onglets -->
         <div style="display:flex;border-bottom:2px solid #e0e0e0;flex-shrink:0;">
-            <button id="ong_motif" onclick="switchOnglet('motif')" style="flex:1;padding:7px 4px;border:none;background:#e8f0fa;font-size:14px;font-weight:bold;cursor:pointer;color:var(--th-color-primary);border-bottom:2px solid #1a4a7a;">Motif</button>
-            <button id="ong_atcd" onclick="switchOnglet('atcd')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Antécédents</button>
-            <button id="ong_diag" onclick="switchOnglet('diag')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Diagnostic</button>
-            <button id="ong_fdr" onclick="switchOnglet('fdr')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Fact. risque</button>
+            <button title="Afficher l'onglet Motif" id="ong_motif" onclick="switchOnglet('motif')" style="flex:1;padding:7px 4px;border:none;background:#e8f0fa;font-size:14px;font-weight:bold;cursor:pointer;color:var(--th-color-primary);border-bottom:2px solid #1a4a7a;">Motif</button>
+            <button title="Afficher l'onglet Antécédents" id="ong_atcd" onclick="switchOnglet('atcd')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Antécédents</button>
+            <button title="Afficher l'onglet Diagnostic" id="ong_diag" onclick="switchOnglet('diag')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Diagnostic</button>
+            <button title="Afficher l'onglet Facteurs de risque" id="ong_fdr" onclick="switchOnglet('fdr')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Fact. risque</button>
         </div>
 
         <!-- Contenu scrollable -->
@@ -3651,9 +3651,9 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
         <!-- Footer boutons -->
         <div style="padding:8px 12px;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:#f9f9f9;">
-            <button type="button" onclick="madToutDecocher()"
+            <button title="Tout décocher" type="button" onclick="madToutDecocher()"
                 style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:4px 12px;font-size:14px;cursor:pointer;">✕ Tout décocher</button>
-            <button type="button" onclick="madValiderTout()"
+            <button title="Valider et insérer la sélection" type="button" onclick="madValiderTout()"
                 style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:4px 16px;font-size:12px;font-weight:bold;cursor:pointer;">✓ Valider et insérer</button>
         </div>
     </div>
