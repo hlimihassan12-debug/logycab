@@ -474,10 +474,10 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
                style="display:block;background:var(--th-col-success);color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 🏅 Certificat médical d'aptitude physique
             </a>
-            <a href="print_rapport.php?id=<?= $id ?>" target="_blank" title="Imprimer le compte rendu cardio-vasculaire"
-               style="display:block;background:#c0392b;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+            <button type="button" onclick="imprimerRapportDepuisBilan()" title="Imprimer le compte rendu cardio-vasculaire avec les dates actuellement affichées"
+               style="display:block;width:100%;background:#c0392b;color:white;border:none;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;cursor:pointer;text-align:left;">
                 📄 Compte rendu de l'examen cardio-vasculaire
-            </a>
+            </button>
             <a href="print_lettre.php?id=<?= $id ?>" target="_blank" title="Imprimer la lettre de correspondance"
                style="display:block;background:#16a085;color:white;text-decoration:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 ✉️ Lettre de correspondance
@@ -2241,6 +2241,25 @@ function nouveauTout() {
     });
     var lbl = document.getElementById('nav_global_label');
     if (lbl) lbl.textContent = '— nouveau —';
+}
+
+/* ══ Impression du rapport avec les dates actuellement affichées ══ */
+function imprimerRapportDepuisBilan() {
+    var url = 'print_rapport.php?id=<?= $id ?>';
+    ['examen','ecg','echo'].forEach(function(type) {
+        var param = (type === 'examen') ? 'date_ex' : 'date_' + type;
+        var exclParam = (type === 'examen') ? 'excl_examen' : 'excl_' + type;
+        if (bilanRef[type] === 0) {
+            // Mode "— nouveau —" : pas de bilan enregistré à cette date, on exclut la rubrique
+            url += '&' + exclParam + '=1';
+        } else {
+            var champ = document.getElementById('date_' + type);
+            if (champ && champ.value) {
+                url += '&' + param + '=' + encodeURIComponent(champ.value);
+            }
+        }
+    });
+    window.open(url, '_blank');
 }
 
 function nouveauBilan(type) {
