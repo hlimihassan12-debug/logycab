@@ -422,11 +422,11 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="info"><label>🏥 Recrutement</label><span><?= $datePVAff ?></span></div>
     <!-- Navigation entre patients -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
-        <a href="dossier.php?id=<?= $first_id ?>" title="Premier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
-        <a href="dossier.php?id=<?= $prev_id ?>"  title="Précédent" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $first_id ?>" title="Premier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $prev_id ?>"  title="Précédent" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">◀</a>
         <span style="color:var(--th-col-header-accent);font-size:11px;min-width:60px;text-align:center;"><?= $pos_patient ?> / <?= $total_patients ?></span>
-        <a href="dossier.php?id=<?= $next_id ?>"  title="Suivant" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
-        <a href="dossier.php?id=<?= $last_id ?>"  title="Dernier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $next_id ?>"  title="Suivant" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">▶</a>
+        <a href="nouveau_bilan_clinique.php?id=<?= $last_id ?>"  title="Dernier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏭</a>
     </div>
     <div style="flex:1;"></div>
     <div style="display:flex;align-items:center;gap:3px;">

@@ -2977,6 +2977,11 @@ function madValiderTout() {
     var fcMin = document.getElementById('md_fc_min');
     if (fcMoy && fcMoy.value) diags.push('- Bradycardie sinusale — FC moy: ' + fcMoy.value + '/min');
     if (fcMin && fcMin.value) diags.push('- Bradycardie sinusale — FC min: ' + fcMin.value + '/min');
+    var diagAutre  = document.getElementById('mad_diag_autre_cb');
+    var diagAutreD = document.getElementById('mad_diag_autre_detail');
+    if (diagAutre && diagAutre.checked && diagAutreD && diagAutreD.value.trim()) {
+        diags.push('- ' + diagAutreD.value.trim());
+    }
     if (diags.length > 0) {
         var champDiag = document.getElementById('champ_diagnostic');
         if (champDiag) {
@@ -3217,6 +3222,17 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
     </div>
 
     <!-- ══════════════════════════════════════════════════════
+         HYPERTENSION ARTÉRIELLE
+    ══════════════════════════════════════════════════════ -->
+    <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_hta" onchange="madToggle(this)"> ▶ Hypertension artérielle</label>
+    <div id="md_hta" style="display:none;margin-left:10px;">
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA essentielle"> HTA essentielle</label>
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA secondaire"> HTA secondaire</label>
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTAP"> HTAP</label>
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA résistante"> HTA résistante</label>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
          MALADIES VALVULAIRES
     ══════════════════════════════════════════════════════ -->
     <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_valv" onchange="madToggle(this)"> ▶ Maladies valvulaires</label>
@@ -3397,16 +3413,6 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════
-         HYPERTENSION ARTÉRIELLE
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_hta" onchange="madToggle(this)"> ▶ Hypertension artérielle</label>
-    <div id="md_hta" style="display:none;margin-left:10px;">
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA essentielle"> HTA essentielle</label>
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA secondaire"> HTA secondaire</label>
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTAP"> HTAP</label>
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA résistante"> HTA résistante</label>
-    </div>
 
     <!-- ══════════════════════════════════════════════════════
          PATHOLOGIES VASCULAIRES
@@ -3428,6 +3434,10 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
         <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Endocardite infectieuse"> Endocardite infectieuse</label>
         <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Cardiopathie congénitale"> Cardiopathie congénitale</label>
         <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syncope d'origine cardiaque"> Syncope d'origine cardiaque</label>
+        <label style="font-size:14px;display:flex;align-items:center;gap:3px;margin-bottom:1px;">
+            <input type="checkbox" id="mad_diag_autre_cb"> Autre —
+            <input type="text" id="mad_diag_autre_detail" placeholder="préciser le diagnostic..." style="flex:1;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:13px;">
+        </label>
     </div>
 
 </div><!-- fin tab_diag -->

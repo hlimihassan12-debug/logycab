@@ -58,7 +58,7 @@ $dateAuj = date('j') . ' ' . $moisFr[(int)date('n')] . ' ' . date('Y');
     * { margin:0; padding:0; box-sizing:border-box; }
 
     @page {
-        size: 176mm 250mm;
+        size: 147mm 212mm;
         margin: 0;
     }
 
@@ -67,19 +67,18 @@ $dateAuj = date('j') . ' ' . $moisFr[(int)date('n')] . ' ' . date('Y');
         font-size: 13px;
         color: #111;
         background: white;
-        width: 176mm;
-        min-height: 250mm;
-        padding-top:    5cm;    /* réservé à l'en-tête physique imprimé */
+        width: 147mm;
+        padding-top:    5.3cm;  /* en-tête physique + marge de sécurité */
         padding-bottom: 2cm;    /* pied de page physique */
-        padding-left:   1cm;
-        padding-right:  1cm;
+        padding-left:   1.5cm;
+        padding-right:  1.5cm;
     }
 
     /* ── Numéro discret en haut à droite ── */
     .num-cert {
         position: absolute;
-        top: 4.6cm;             /* juste sous l'en-tête physique */
-        right: 1cm;
+        top: 4.9cm;             /* juste sous l'en-tête physique */
+        right: 1.5cm;
         font-size: 9px;
         color: #bbb;
         letter-spacing: 0.5px;
@@ -130,7 +129,7 @@ $dateAuj = date('j') . ' ' . $moisFr[(int)date('n')] . ' ' . date('Y');
     .signature {
         position: fixed;
         bottom: 2.4cm;
-        right: 1cm;
+        right: 1.5cm;
         text-align: right;
         font-size: 12px;
         color: #333;
