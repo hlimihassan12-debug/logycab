@@ -13,15 +13,81 @@ try {
     if ($rowMax) $nbrMax = (int)$rowMax['Valeur'];
 } catch (Exception $e) {}
 
+// ── Cherche un patient existant par téléphone (9 derniers chiffres), sinon le crée ──
+function trouverOuCreerPatient(PDO $db, string $nom, string $telephone): int {
+    $chiffres = preg_replace('/\D/', '', $telephone);
+    $dernier9 = substr($chiffres, -9);
+
+    if ($dernier9 !== '') {
+        $stmt = $db->prepare("SELECT TOP 1 [N°PAT] FROM ID WHERE [TEL D] LIKE ? ORDER BY [N°PAT] DESC");
+        $stmt->execute(['%' . $dernier9]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) return (int)$row['N°PAT'];
+    }
+
+    $stmt = $db->prepare("
+        INSERT INTO ID (NOMPRENOM, [TEL D], DateRecrt)
+        OUTPUT INSERTED.[N°PAT]
+        VALUES (?, ?, CONVERT(datetime,?,120))
+    ");
+    $stmt->execute([strtoupper($nom), $telephone ?: null, date('Y-m-d H:i:s')]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ? (int)$row['N°PAT'] : 0;
+}
+
 // Traitement Confirmer / Refuser
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = (int)($_POST['id'] ?? 0);
+    $id     = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
+
     if ($id > 0 && in_array($action, ['confirmer', 'refuser'], true)) {
-        $statut = $action === 'confirmer' ? 'confirme' : 'refuse';
-        $stmt = $db->prepare("UPDATE T_DemandesRDV SET statut = ? WHERE id = ?");
-        $stmt->execute([$statut, $id]);
+
+        if ($action === 'refuser') {
+            $stmt = $db->prepare("UPDATE T_DemandesRDV SET statut = 'refuse' WHERE id = ?");
+            $stmt->execute([$id]);
+            header('Location: demandes_rdv.php?msg=refuse');
+            exit;
+        }
+
+        // ── Confirmer : automatisation ──
+        try {
+            $stmtD = $db->prepare("SELECT * FROM T_DemandesRDV WHERE id = ?");
+            $stmtD->execute([$id]);
+            $demande = $stmtD->fetch(PDO::FETCH_ASSOC);
+
+            if (!$demande) {
+                header('Location: demandes_rdv.php?msg=erreur');
+                exit;
+            }
+
+            $patientId = trouverOuCreerPatient($db, $demande['nom'], $demande['telephone']);
+
+            $msgRetour = 'confirme_sansrdv';
+            if ($patientId > 0 && !empty($demande['date_souhaitee'])) {
+                $dateRdv  = $demande['date_souhaitee'] . ' 00:00:00';
+                $heureRdv = $demande['heure_souhaitee'] ?: '';
+                $acte     = $demande['motif'] ?: '';
+                $obs      = 'Demande site web' . (!empty($demande['message']) ? ' — ' . $demande['message'] : '');
+
+                $stmtRdv = $db->prepare("
+                    INSERT INTO ORD (id, Date_Rdv, HeureRDV, acte1, Observation, DateSaisie, vu, SansReponse, Urgence)
+                    VALUES (?, CONVERT(datetime,?,120), ?, ?, ?, CONVERT(datetime,?,120), 0, 0, 0)
+                ");
+                $stmtRdv->execute([$patientId, $dateRdv, $heureRdv, $acte, $obs, date('Y-m-d H:i:s')]);
+                $msgRetour = 'confirme_rdv';
+            }
+
+            $stmt = $db->prepare("UPDATE T_DemandesRDV SET statut = 'confirme' WHERE id = ?");
+            $stmt->execute([$id]);
+
+            header('Location: demandes_rdv.php?msg=' . $msgRetour);
+            exit;
+        } catch (Exception $e) {
+            header('Location: demandes_rdv.php?msg=erreur');
+            exit;
+        }
     }
+
     header('Location: demandes_rdv.php');
     exit;
 }
@@ -39,6 +105,9 @@ function formatDateFr($d) {
 $themes_valides = ['theme-0','theme-a','theme-b','theme-c'];
 $theme = $_COOKIE['logycab_theme'] ?? 'theme-0';
 if (!in_array($theme, $themes_valides)) $theme = 'theme-0';
+
+// Message de retour après confirmer/refuser
+$msg = $_GET['msg'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -94,6 +163,11 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .statut-badge.refuse   { background: #fde8e8; color: #c0392b; }
 
 .empty { padding: 24px; text-align: center; color: var(--th-color-text-muted); font-style: italic; }
+
+.alerte { margin: 0 0 16px; padding: 12px 16px; border-radius: 6px; font-size: 12.5px; font-weight: bold; }
+.alerte.ok    { background: #e8f5e9; color: #1a7a40; border-left: 4px solid #27ae60; }
+.alerte.warn  { background: #fff6e0; color: #8a6300; border-left: 4px solid #f39c12; }
+.alerte.err   { background: #fde8e8; color: #c0392b; border-left: 4px solid #c0392b; }
 </style>
 </head>
 <body class="<?= htmlspecialchars($theme) ?>">
@@ -113,6 +187,17 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 </div>
 
 <div class="container">
+
+    <?php if ($msg === 'confirme_rdv'): ?>
+        <div class="alerte ok">✅ Demande confirmée — le rendez-vous a été créé automatiquement dans l'agenda.</div>
+    <?php elseif ($msg === 'confirme_sansrdv'): ?>
+        <div class="alerte warn">⚠ Demande confirmée, mais aucune date n'avait été précisée par le patient — pensez à créer le RDV manuellement dans l'agenda.</div>
+    <?php elseif ($msg === 'refuse'): ?>
+        <div class="alerte err">✘ Demande refusée.</div>
+    <?php elseif ($msg === 'erreur'): ?>
+        <div class="alerte err">⚠ Une erreur est survenue pendant le traitement de la demande.</div>
+    <?php endif; ?>
+
     <div class="card">
         <div class="card-header">
             <span>📥 Demandes en attente</span>

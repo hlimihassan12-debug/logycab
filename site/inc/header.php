@@ -3,6 +3,10 @@ require_once __DIR__ . '/site_config.php';
 $cfg = getCabinetConfig();
 $navActuelle = basename($_SERVER['SCRIPT_NAME']);
 $nomCabinet = $cfg['Cabinet_Nom'] ?? 'Cabinet médical';
+
+// Cache-busting : force le rechargement du CSS à chaque modification du fichier
+$cssPath = __DIR__ . '/../assets/site.css';
+$cssVersion = file_exists($cssPath) ? filemtime($cssPath) : time();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -10,7 +14,7 @@ $nomCabinet = $cfg['Cabinet_Nom'] ?? 'Cabinet médical';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= isset($pageTitre) ? htmlspecialchars($pageTitre) . ' — ' : '' ?><?= htmlspecialchars($nomCabinet) ?></title>
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=<?= $cssVersion ?>">
 </head>
 <body>
 

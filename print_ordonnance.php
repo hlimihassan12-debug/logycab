@@ -81,8 +81,9 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         color: #111;
         background: white;
         width: 147mm;
-        padding-top:    5cm;    /* en-tête physique (mesuré) */
-        padding-bottom: 1.7cm;  /* pied physique (mesuré) */
+        min-height: 212mm;
+        padding-top:    5cm;    /* en-tête physique */
+        padding-bottom: 2cm;    /* pied physique */
         padding-left:   1cm;    /* marge gauche */
         padding-right:  1cm;    /* marge droite */
     }
@@ -92,7 +93,6 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-top: 6mm;
         margin-bottom: 0;
         border-bottom: 1px solid #ccc;
         padding-bottom: 4px;
@@ -119,15 +119,10 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         font-weight: bold;
         color: #111;
     }
-    .infos-droite .n-pat .sep {
+    .infos-droite .n-ord {
+        font-size: 11px;
         color: #aaa;
-        font-weight: normal;
-        margin: 0 3px;
-    }
-    .infos-droite .n-pat .n-ord {
-        font-size: 12px;
-        color: #aaa;
-        font-weight: normal;
+        margin-top: 2px;
     }
 
     /* ══ MÉDICAMENTS ══ */
@@ -136,13 +131,13 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         padding-left: 7mm;      /* décalage niveau 1 : nom médicament */
     }
     .med-item {
-        margin-bottom: 2mm;     /* entre médicaments (réduit) */
+        margin-bottom: 4mm;     /* entre médicaments = 4mm */
     }
     .med-nom {
         font-size: 13px;
         font-weight: bold;
         text-transform: uppercase;
-        margin-bottom: 0.5mm;   /* espace nom médicament → posologie (réduit) */
+        margin-bottom: 2mm;     /* espace nom médicament → posologie */
         white-space: nowrap;
     }
     .med-detail {
@@ -158,7 +153,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     /* ══ RDV BAS DE PAGE ══ */
     .rdv-footer {
         position: fixed;
-        bottom: 1.7cm;
+        bottom: 2cm;
         left:  1cm;
         right: 1cm;
         border-top: 1px solid #ccc;
@@ -174,7 +169,27 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     .rdv-label  { color: #555; white-space: nowrap; }
     .rdv-val    { font-weight: bold; }
     .rdv-heure  { font-weight: bold; margin-left: 4px; }
-    .rdv-acte-ligne { margin-top: 4px; }
+    .ar-label   { direction: rtl; unicode-bidi: isolate; font-family: Tahoma, Arial, sans-serif; color: #555; }
+
+    /* ══ INFO PATIENT BILINGUE — une seule ligne compacte ══ */
+    .info-patient {
+        margin-top: 4px;
+        padding-top: 3px;
+        border-top: 1px dashed #ccc;
+        font-size: 8px;
+        color: #555;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 5px;
+    }
+    .info-patient .ar {
+        direction: rtl;
+        unicode-bidi: isolate;
+        font-family: Tahoma, Arial, sans-serif;
+    }
+    .info-patient .sep { color: #bbb; }
+    .info-patient .site { direction: ltr; unicode-bidi: isolate; }
 
     @media screen {
         body {
@@ -192,7 +207,8 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     <div class="nom-patient"><?= $nomPatient ?></div>
     <div class="infos-droite">
         <div class="date-ord"><?= $dateOrd ?></div>
-        <div class="n-pat"><?= $nPat ?><span class="sep">/</span><span class="n-ord"><?= $nOrd ?></span></div>
+        <div class="n-pat"><?= $nPat ?></div>
+        <div class="n-ord"><?= $nOrd ?></div>
     </div>
 </div>
 
@@ -205,7 +221,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         <div class="med-detail">
             <span class="med-poso"><?= htmlspecialchars($m['posologie'] ?? '') ?></span>
             <?php if (!empty($m['DUREE'])): ?>
-            <span class="med-duree">Tt de <?= htmlspecialchars(preg_replace('/^traitement\s*(de)?\s*/i', '', trim($m['DUREE']))) ?></span>
+            <span class="med-duree">Traitement de <?= htmlspecialchars($m['DUREE']) ?></span>
             <?php endif; ?>
         </div>
     </div>
@@ -219,19 +235,24 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 <?php if ($dateRDV): ?>
 <div class="rdv-footer">
     <div class="rdv-ligne">
-        <span class="rdv-label">date rendez-vous</span>
+        <span class="rdv-label">RDV :</span>
         <span class="rdv-val"><?= $dateRDV ?></span>
         <?php if ($heureRDV): ?>
         <span class="rdv-label">A :</span>
         <span class="rdv-heure"><?= $heureRDV ?></span>
         <?php endif; ?>
+        <span class="ar-label" dir="rtl">: الموعد</span>
+        <?php if ($acteRDV): ?>
+        <span class="rdv-label">Acte :</span>
+        <span class="rdv-val"><?= $acteRDV ?></span>
+        <?php endif; ?>
     </div>
-    <?php if ($acteRDV): ?>
-    <div class="rdv-acte-ligne">
-        <span class="rdv-label">pour</span>
-        <span style="font-weight:bold;margin-left:6px;"><?= $acteRDV ?></span>
+
+    <div class="info-patient">
+        <span class="fr">RDV en ligne possible</span>
+        <span class="site">« drhlimihassan.com »</span>
+        <span class="ar" dir="rtl">يمكن حجز الموعد عبر</span>
     </div>
-    <?php endif; ?>
 </div>
 <?php endif; ?>
 

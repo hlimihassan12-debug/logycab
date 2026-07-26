@@ -53,7 +53,7 @@ $horaireAujourdhui = horaireDuJour($cfg, $jourAujourdhui);
         <div class="galerie-item">🩺</div>
         <div class="galerie-item">🛋</div>
     </div>
-    <p style="margin-top:16px;"><a href="cabinet.php">Voir toutes les photos et l'adresse ▶</a></p>
+    <p style="margin-top:8px;"><a href="cabinet.php">Voir toutes les photos et l'adresse ▶</a></p>
 </div>
 
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

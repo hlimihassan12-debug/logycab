@@ -155,7 +155,7 @@ if ($nOrd) {
     $medicaments = $stmtMed->fetchAll();
 }
 
-$stmtEx = $db->prepare("SELECT * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC, N1 DESC");
+$stmtEx = $db->prepare("SELECT * FROM t_examen WHERE NPAT=? ORDER BY DateExam DESC");
 $stmtEx->execute([$id]);
 $examens = $stmtEx->fetchAll();
 $nExam = (int)($_GET['exam'] ?? ($examens ? $examens[0]['N1'] : 0));
@@ -163,14 +163,14 @@ $examen = null; $idxExam = 0;
 foreach ($examens as $i => $e) { if ($e['N1'] == $nExam) { $examen = $e; $idxExam = $i; break; } }
 if (!$examen && $examens) { $examen = $examens[0]; }
 
-$stmtECGs = $db->prepare("SELECT * FROM ecg WHERE [N-PAT]=? ORDER BY [Date ECG] DESC, [N°] DESC");
+$stmtECGs = $db->prepare("SELECT * FROM ecg WHERE [N-PAT]=? ORDER BY [Date ECG] DESC");
 $stmtECGs->execute([$id]);
 $ecgs = $stmtECGs->fetchAll();
 $nECG = (int)($_GET['ecg'] ?? ($ecgs ? $ecgs[0]['N°'] : 0));
 $ecgCourant = null; $idxECG = 0;
 foreach ($ecgs as $i => $e) { if ($e['N°'] == $nECG) { $ecgCourant = $e; $idxECG = $i; break; } }
 
-$stmtEchos = $db->prepare("SELECT * FROM echo WHERE [N-PAT]=? ORDER BY DATEchog DESC, [N°] DESC");
+$stmtEchos = $db->prepare("SELECT * FROM echo WHERE [N-PAT]=? ORDER BY DATEchog DESC");
 $stmtEchos->execute([$id]);
 $echos = $stmtEchos->fetchAll();
 $nEcho = (int)($_GET['echo'] ?? ($echos ? $echos[0]['N°'] : 0));
@@ -381,7 +381,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 .nav-btns { display: flex; gap: 3px; }
 .nav-btn { background: var(--th-btn-navy); color: white; border: none; padding: 5px 11px; border-radius: 3px; cursor: pointer; font-size: 11px; text-decoration: none; }
 .nav-btn:hover { background: var(--th-color-secondary); }
-.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); margin-bottom: 16px; }
+.nav-ord-barre { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--th-border-statsbar); }
 .champ { margin-bottom: 6px; }
 .champ label { font-size: 10px; color: var(--th-color-text-muted); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
 .champ input, .champ select, .champ textarea { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; color: #222; background:var(--th-bg-card); }
@@ -470,16 +470,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     <!-- Espace flexible : pousse Rapports/boutons/horloge/déconnexion à droite -->
     <div style="flex:1;"></div>
     <!-- Rapports, juste à gauche de Accueil -->
-    <button title="Ouvrir le menu des rapports" type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
+    <button type="button" onclick="ouvrirMenuRapports()" class="btn-h" style="background:#c0392b;border:none;cursor:pointer;">📑 Rapports</button>
     <!-- MILIEU : boutons fixes (dossier = gris car page courante) -->
-    <a title="Retour à l'accueil" href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
+    <a href="index.php" class="btn-h" style="background:#c0392b;font-size:11px;">🏠 Accueil</a>
     <span                               class="btn-h grey"  >🏠 Dossier</span>
-    <a title="Ouvrir le bilan clinique" href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:var(--th-col-success);font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
-    <a title="Ouvrir l'agenda" href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
-    <a title="Ouvrir le planning" href="planning.php"              class="btn-h blue"  >📊 Planning</a>
-    <a title="Ouvrir la grille semaine" href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
-    <a title="Ouvrir le module Biologie" href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
-    <a title="Gérer les jours fériés" href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" class="btn-h" style="background:var(--th-col-success);font-size:13px;padding:5px 14px;font-weight:bold;">📋 Aperçu</a>
+    <a href="agenda.php"                class="btn-h navy"  >📅 Agenda</a>
+    <a href="planning.php"              class="btn-h blue"  >📊 Planning</a>
+    <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
+    <a href="biologie.php?id=<?= $id ?>" class="btn-h orange">🧪 Biologie</a>
+    <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <a href="site/index.php"            class="btn-h" style="background:#16a085;">🌐 Site</a>
+    <a href="demandes_rdv.php"          class="btn-h" style="background:#c0392b;">📥 Demandes RDV</a>
     <!-- DROITE : horloge puis déconnexion tout au bord -->
     <div class="header-clock">
         <div id="clockTime" class="ct">--:--:--</div>
@@ -526,60 +528,60 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     ?>
 
     <!-- Motif -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
-            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Motif</span>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:var(--th-btn-navy);border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('motif')" title="Cliquer pour ouvrir la liste Motif">
+            <span style="font-size:14px;font-weight:bold;color:white;">📋 Motif</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_motif','MOTIF CONSULTATION')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_motif" onblur="sauvegarderChamp('MOTIF CONSULTATION', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['MOTIF CONSULTATION'] ?? '') ?></textarea>
     </div>
 
     <!-- Antécédents -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
-            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Antécédents</span>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#e67e22;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('atcd')" title="Cliquer pour ouvrir la liste Antécédents">
+            <span style="font-size:14px;font-weight:bold;color:white;">📂 Antécédents</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_atcd','ATCD')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_atcd" onblur="sauvegarderChamp('ATCD', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['ATCD'] ?? '') ?></textarea>
     </div>
 
     <!-- Facteurs de risque -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
-            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Facteurs de risque</span>
-            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#c0392b;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('fdr')" title="Cliquer pour ouvrir la liste Facteurs de risque">
+            <span style="font-size:14px;font-weight:bold;color:white;">⚠️ Facteurs de risque</span>
+            <button type="button" onclick="event.stopPropagation(); viderChamp('champ_fdr','CHAMP_FDR')" style="background:#8e44ad;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_fdr" onblur="sauvegarderChamp('CHAMP_FDR', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['CHAMP_FDR'] ?? '') ?></textarea>
     </div>
 
     <!-- Diagnostic -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
-            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Diagnostic</span>
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer;background:#27ae60;border-radius:4px;padding:4px 6px;" onclick="ouvrirPopupMAD('diag')" title="Cliquer pour ouvrir la liste Diagnostic">
+            <span style="font-size:14px;font-weight:bold;color:white;">🩺 Diagnostic</span>
             <button type="button" onclick="event.stopPropagation(); viderChamp('champ_diagnostic','diagnostic')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:1px 7px;font-size:12px;cursor:pointer;" title="Vider">✕</button>
         </div>
         <textarea id="champ_diagnostic" onblur="sauvegarderChamp('diagnostic', this.value)"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;"
         ><?= htmlspecialchars($patient['diagnostic'] ?? '') ?></textarea>
     </div>
 
     <!-- Au total CAT -->
-    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:3px;">
+    <div style="background:var(--th-bg-card);border:1px solid var(--th-border-card);border-radius:6px;padding:5px 6px;margin-bottom:5px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-            <span style="font-size:13px;font-weight:bold;color:var(--th-color-primary);">Au total CAT</span>
+            <span style="font-size:14px;font-weight:bold;color:var(--th-color-primary);">📋 Au total CAT</span>
             <?php if ($examen): ?>
-            <button title="Enregistrer la conduite à tenir (CAT)" type="button" onclick="sauvegarderCAT()" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:12px;font-weight:bold;cursor:pointer;">💾 Enregistrer</button>
+            <button type="button" onclick="sauvegarderCAT()" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 8px;font-size:12px;font-weight:bold;cursor:pointer;">💾 Enregistrer</button>
             <?php endif; ?>
         </div>
         <?php if ($examen): ?>
         <textarea id="champ_cat"
-            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:13px;line-height:1.3;resize:vertical;min-height:50px;field-sizing:content;box-sizing:border-box;"
+            style="border:1px solid #ddd;border-radius:3px;padding:2px 4px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:50px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($examen['Conduite_ATenir'] ?: 'Traitement prescrit et RDV fixé') ?></textarea>
         <span id="cat_status" style="font-size:11px;color:#888;"></span>
         <?php else: ?>
@@ -591,7 +593,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 
     <!-- Remarque patient -->
     <div class="card" style="flex:1;">
-        <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">Remarque</div>
+        <div style="font-size:14px;font-weight:bold;color:var(--th-color-primary);margin-bottom:4px;">📝 Remarque</div>
         <textarea id="champ_remarque2" onblur="sauvegarderChamp('REMARQUE', this.value)"
             style="border:1px solid #ddd;border-radius:3px;padding:3px 5px;width:100%;font-family:inherit;font-size:14px;line-height:1.4;resize:vertical;min-height:60px;field-sizing:content;box-sizing:border-box;"
         ><?= htmlspecialchars($patient['REMARQUE'] ?? '') ?></textarea>
@@ -603,7 +605,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 <div class="col-mid">
     <div class="card">
         <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;">
-            <span style="font-size:13px;">Ordonnance
+            <span style="font-size:13px;">📋 Ordonnance
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
                     $tsOrd = strtotime($ordCourante['date_ordon']);
@@ -623,7 +625,6 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             </span>
         </div>
 
-        <?php $rdvFuturVal = ''; // valeur par défaut, utilisée même sans ordonnance (popup RDV prochain) ?>
         <?php if ($ordCourante): ?>
         <div id="vue-ordonnance">
         <?php
@@ -642,6 +643,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             $rdvp_heure = htmlspecialchars($ordPrecedente['HeureRDV'] ?? '—');
             $rdvp_acte  = htmlspecialchars($ordPrecedente['acte1'] ?? '—');
         }
+        $rdvFuturVal = '';
         if (!empty($ordCourante['DATE REDEZ VOUS'])) {
             $ts = strtotime($ordCourante['DATE REDEZ VOUS']);
             if ($ts && $ts > 86400) $rdvFuturVal = date('Y-m-d', $ts);
@@ -716,9 +718,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <!-- MÉDICAMENTS (identique) -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">Médicaments (<?= count($medicaments) ?>)</label>
-                <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
-                <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
             </div>
             <?php if (!empty($medicaments)): ?>
@@ -754,18 +756,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <thead>
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:80px;"></th>
-                    <th style="background:var(--th-col-visite);color:white;">Dernière visite</th>
-                    <th style="background:var(--th-col-rdvp);color:white;">RDV prévu</th>
-                    <th style="background:var(--th-col-success);color:white;">Actuel<br><small><?= date('d/m/Y') ?></small></th>
+                    <th style="background:var(--th-col-visite);color:white;">🏥 Dernière visite</th>
+                    <th style="background:var(--th-col-rdvp);color:white;">📅 RDV prévu</th>
+                    <th style="background:var(--th-col-success);color:white;">🩺 Actuel<br><small><?= date('d/m/Y') ?></small></th>
                     <th class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" title="Cliquer pour donner un RDV"
                         style="background:var(--th-col-rdvn);color:white;">
-                        RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
+                        📆 RDV prochain<br><small style="font-weight:normal;opacity:0.8;">▶ Cliquer</small></th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Ligne Date / Heure -->
                 <tr>
-                    <td>Date<br>Heure</td>
+                    <td>📅 Date<br>⏰ Heure</td>
                     <td class="col-rdv-fixe">
                         <strong style="color:var(--th-col-visite);"><?= $dv_dateOrd ?></strong><br>
                         <span style="color:var(--th-col-visite);font-size:11px;"><?= $dv_heure ?></span>
@@ -776,7 +778,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </td>
                     <td class="col-visite">
                         <strong style="color:var(--th-col-success);"><?= $dateAujFr ?></strong><br>
-                        <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
+                        <div style="display:flex;align-items:center;gap:3px;">
                             <input type="time" id="heure_consultation_acc"
                                    value="<?= $heureVisite ?>"
                                    style="border:1px solid #b2dfb2;border-radius:3px;padding:1px 4px;font-size:11px;color:var(--th-col-success);font-weight:bold;width:70px;background:#f0fff0;">
@@ -796,7 +798,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne Délai -->
                 <tr>
-                    <td>Délai</td>
+                    <td>⏱ Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?></td>
                     <td class="col-visite" style="color:var(--th-col-success);font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
@@ -806,7 +808,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne ECG -->
                 <tr>
-                    <td>ECG (<?= $tot_ecg ?>)</td>
+                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
@@ -814,7 +816,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne EDC -->
                 <tr>
-                    <td>EDC (<?= $tot_edc ?>)</td>
+                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
@@ -822,7 +824,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne DTSA -->
                 <tr>
-                    <td>DTSA (<?= $tot_dtsa ?>)</td>
+                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
@@ -834,14 +836,14 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 
 
         <!-- FACTURATION + CERTIFICAT côte à côte -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-top:20px;border-top:1px solid #eee;padding-top:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
         <div><!-- Facturation -->
 
 
         <!-- FACTURATION ACCUEIL (sans colonne Prix) -->
         <div>
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">Facturation</span>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">💰 Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php $tsFA=strtotime($factCourante['date_facture']??''); $dfA=($tsFA&&$tsFA>86400)?date('d/m/Y',$tsFA):'—'; $estAujFA=($tsFA&&date('Y-m-d',$tsFA)===date('Y-m-d')); ?>
                 <div style="text-align:right;">
@@ -879,18 +881,17 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tfoot>
             </table>
             <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;">
-                <a title="Première facture" href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
-                <a title="Facture précédente" href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a title="Facture suivante" href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
-                <a title="Dernière facture" href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
-                <a href="print_facture.php?id=<?= $id ?>&fact=<?= $factCourante['n_facture'] ?>" target="_blank" class="nav-btn" style="background:#2e6da4;color:white;padding:2px 5px;font-size:10px;text-decoration:none;" title="Imprimer la note d'honoraires">🖨️ Facture</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚</button>
             </div>
             <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
             <div style="display:flex;justify-content:center;margin-top:8px;">
-                <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
+                <button type="button" onclick="toggleNouvelleFacture('acc')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
             </div>
             <?php endif; ?>
 
@@ -898,7 +899,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <div id="formNouvelleFacture_acc" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:var(--th-color-primary);font-size:12px;">Nouvelle facture</strong>
-                    <button title="Fermer le formulaire de facture" type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
+                    <button type="button" onclick="toggleNouvelleFacture('acc')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
@@ -926,8 +927,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button title="Ajouter une ligne d'acte" type="button" onclick="nfAjouterLigne('acc')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button title="Enregistrer la facture" type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <button type="button" onclick="nfAjouterLigne('acc')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'acc')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
                     <span id="nf_msg_acc" style="font-size:11px;color:var(--th-col-success);align-self:center;"></span>
                 </div>
             </div>
@@ -936,7 +937,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         </div><!-- FIN Facturation -->
         <div><!-- Certificat -->
         <div>
-            <button title="Afficher/masquer le certificat médical" type="button"
+            <button type="button"
                 onclick="var z=document.getElementById('cert-zone-acc');z.style.display=z.style.display==='none'?'block':'none'"
                 style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;">
                 Certificat médical
@@ -975,15 +976,15 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <thead>
                 <tr>
                     <th style="background:#1a4a7a;color:white;width:70px;"></th>
-                    <th style="background:var(--th-col-visite);color:white;font-size:11px;">Dernière visite</th>
-                    <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">RDV prévu</th>
-                    <th style="background:var(--th-col-success);color:white;font-size:11px;">Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
-                    <th style="background:var(--th-col-rdvn);color:white;font-size:11px;">RDV prochain</th>
+                    <th style="background:var(--th-col-visite);color:white;font-size:11px;">🏥 Dernière visite</th>
+                    <th style="background:var(--th-col-rdvp);color:white;font-size:11px;">📅 RDV prévu</th>
+                    <th style="background:var(--th-col-success);color:white;font-size:11px;">🩺 Actuel visite<br><span style="font-size:10px;font-weight:normal;"><?= date('d/m/Y') ?></span></th>
+                    <th style="background:var(--th-col-rdvn);color:white;font-size:11px;">📆 RDV prochain</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Date<br>Heure</td>
+                    <td>📅 Date<br>⏰ Heure</td>
                     <td class="col-rdv-fixe" style="text-align:center;">
                         <strong style="color:var(--th-col-visite);font-size:13px;"><?= $dv_dateOrd ?></strong><br>
                         <strong style="color:var(--th-col-visite);font-size:12px;"><?= $dv_heure ?></strong>
@@ -1007,15 +1008,15 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                         <input type="hidden" id="rdv_futur"       value="<?= $rdvFuturVal ?>">
                         <input type="hidden" id="heure_rdv_futur" value="<?= htmlspecialchars($ordCourante['HeureRDV'] ?? '') ?>">
                         <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px;align-items:center;">
-                            <button title="Fixer le RDV dans 1 mois" type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
-                            <button title="Fixer le RDV dans 3 mois" type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
-                            <button title="Fixer le RDV dans 6 mois" type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
-                            <button title="Fixer le RDV dans 7 jours" type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
-                            <button title="Fixer le RDV dans 10 jours" type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
-                            <button title="Fixer le RDV dans 15 jours" type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
+                            <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
+                            <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
+                            <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
+                            <button type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
+                            <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
+                            <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                             <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                            <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
-                            <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
+                            <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
+                            <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 5px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
                     <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?>)"
                             title="Enregistrer le RDV"
                             style="background:var(--th-col-success);color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;">
@@ -1054,7 +1055,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne Délai -->
                 <tr>
-                    <td>Délai</td>
+                    <td>⏱ Délai</td>
                     <td class="col-rdv-fixe"><span style="color:#aaa;">—</span></td>
                     <td style="background:var(--th-col-rdvp-bg);color:var(--th-col-rdvp);font-weight:bold;"><?= $rdvp_delai ?? '—' ?></td>
                     <td class="col-visite" style="color:var(--th-col-success);font-weight:bold;"><?= $delaiVisite ?: '—' ?></td>
@@ -1062,7 +1063,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne ECG -->
                 <tr>
-                    <td>ECG (<?= $tot_ecg ?>)</td>
+                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
@@ -1070,7 +1071,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne EDC -->
                 <tr>
-                    <td>EDC (<?= $tot_edc ?>)</td>
+                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
@@ -1078,7 +1079,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tr>
                 <!-- Ligne DTSA -->
                 <tr>
-                    <td>DTSA (<?= $tot_dtsa ?>)</td>
+                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
@@ -1090,9 +1091,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <!-- MÉDICAMENTS -->
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">Médicaments (<?= count($medicaments) ?>)</label>
-                <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 3mois</button>
-                <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">report mm Trt 6mois</button>
+                <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
                 <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
@@ -1130,7 +1131,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <!-- COL DROITE : FACTURATION -->
         <div>
             <div class="card-title" style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:6px;">
-                <span style="font-size:13px;">Facturation</span>
+                <span style="font-size:13px;">💰 Facturation</span>
                 <?php if ($factCourante): ?>
                 <?php
                     $tsFactTitre  = strtotime($factCourante['date_facture'] ?? '');
@@ -1186,19 +1187,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 </tfoot>
             </table>
             <div style="display:flex;justify-content:center;gap:2px;margin-top:6px;">
-                <a title="Première facture" href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
-                <a title="Facture précédente" href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
-                <a title="Facture suivante" href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
-                <a title="Dernière facture" href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
-                <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚ Nouvelle facture</button>
+                <a href="?id=<?= $id ?>&fact=<?= $factNext ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">▶</a>
+                <a href="?id=<?= $id ?>&fact=<?= $factDerniere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">▶|</a>
+                <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);padding:2px 5px;font-size:10px;">✚</button>
 				<a href="factures.php?id=<?= $id ?>" class="nav-btn" style="background:#2e6da4;padding:2px 5px;font-size:10px;" title="Toutes les factures">💰 Liste</a>
-                <a href="print_facture.php?id=<?= $id ?>&fact=<?= $factCourante['n_facture'] ?>" target="_blank" class="nav-btn" style="background:#2e6da4;color:white;padding:2px 5px;font-size:10px;text-decoration:none;" title="Imprimer la note d'honoraires">🖨️ Facture</a>
             </div>
             <?php else: ?>
                 <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune facture</p>
                 <div style="display:flex;justify-content:center;margin-top:8px;">
-                    <button title="Créer une nouvelle facture" type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
+                    <button type="button" onclick="toggleNouvelleFacture('cons')" class="nav-btn" style="background:var(--th-col-success);">✚ Nouvelle facture</button>
                 </div>
             <?php endif; ?>
             </div>
@@ -1207,7 +1207,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <div id="formNouvelleFacture_cons" style="display:none;margin-top:10px;border-top:2px solid #1a4a7a;padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <strong style="color:var(--th-color-primary);font-size:12px;">Nouvelle facture</strong>
-                    <button title="Fermer le formulaire de facture" type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
+                    <button type="button" onclick="toggleNouvelleFacture('cons')" style="background:none;border:none;cursor:pointer;color:var(--th-color-text-muted);font-size:14px;">✕</button>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px;font-weight:600;">Date facture :</label>
@@ -1236,8 +1236,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </tfoot>
                 </table>
                 <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button title="Ajouter une ligne d'acte" type="button" onclick="nfAjouterLigne('cons')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
-                    <button title="Enregistrer la facture" type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
+                    <button type="button" onclick="nfAjouterLigne('cons')" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-size:11px;">✚ Acte</button>
+                    <button type="button" onclick="nfEnregistrer(<?= $id ?>,'cons')" style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">💾 Enregistrer</button>
                     <span id="nf_msg_cons" style="font-size:11px;color:var(--th-col-success);align-self:center;"></span>
                 </div>
             </div>
@@ -1246,7 +1246,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             <div style="margin-top:12px;border-top:2px solid #e0e0e0;padding-top:10px;">
 
                 <!-- BOUTON CERTIFICAT -->
-                <button title="Afficher/masquer le certificat médical" type="button"
+                <button type="button"
                     onclick="var z=document.getElementById('cert-zone');z.style.display=z.style.display==='none'?'block':'none'"
                     style="background:var(--th-bg-card);color:var(--th-color-text);border:1px solid #ccc;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:normal;margin-bottom:10px;">
                     Certificat médical
@@ -1293,12 +1293,12 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <?php else: ?>
             <p style="color:var(--th-color-text-muted);font-size:12px;">Aucune ordonnance</p>
             <div class="nav-ord-barre">
-                <a title="Première ordonnance" href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn">|◀</a>
-                <a title="Ordonnance précédente" href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn">◀</a>
+                <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn">|◀</a>
+                <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn">◀</a>
                 <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);">0 / 0</span>
-                <a title="Ordonnance suivante" href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
-                <a title="Dernière ordonnance" href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
-                <button title="Créer une nouvelle ordonnance" type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);">✚</button>
+                <a href="?id=<?= $id ?>&ord=<?= $ordNext ?>"     class="nav-btn">▶</a>
+                <a href="?id=<?= $id ?>&ord=<?= $ordDerniere ?>" class="nav-btn">▶|</a>
+                <button type="button" onclick="afficherNouvelleOrdonnance()" class="nav-btn" style="background:var(--th-col-success);">✚</button>
             </div>
         <?php endif; ?>
 
@@ -1358,13 +1358,13 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             }
         ?>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e0e0e0;">
-            <span style="color:var(--th-color-primary);font-size:13px;font-weight:bold;">Examen</span>
+            <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">🩺 Examen</span>
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="<?= $dateExamStyle ?>"><?= $dateExamAff ?></span>
             </div>
         </div>
         <?php if ($examen && !empty($examen['CMLM_EXAMEN'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;">
             <?= nl2br(htmlspecialchars($examen['CMLM_EXAMEN'])) ?>
         </div>
         <?php elseif ($examen): ?>
@@ -1379,34 +1379,21 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam < count($examens)-1 ? $examens[$idxExam+1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[count($examens)-1]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel examen">Nouveau Exam</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=examen" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel examen">✚</a>
         </div>
-        <?php if ($examens): ?>
-        <select onchange="if(this.value) location.href='?id=<?= $id ?>&exam='+this.value;" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
-            <option value="">— choisir une date (<?= count($examens) ?>) —</option>
-            <?php foreach ($examens as $i => $e): ?>
-            <option value="<?= (int)$e['N1'] ?>"<?= ($e['N1'] == $nExam) ? ' selected' : '' ?>><?= $e['DateExam'] ? date('d/m/Y', strtotime($e['DateExam'])) : '—' ?> (<?= $i+1 ?>/<?= count($examens) ?>)</option>
-            <?php endforeach; ?>
-        </select>
-        <?php endif; ?>
         <?php endif; ?>
 <!-- ══ ECG COMPACT ══ -->
     <div class="card" style="padding:6px;">
-        <div class="card-title" style="font-size:13px;margin-bottom:4px;">
-            <span>ECG</span>
+        <div class="card-title" style="font-size:14px;margin-bottom:4px;">
+            <span>⚡ ECG</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($ecgCourant && $ecgCourant['Date ECG']):
-                    $ecgDateStyle = 'font-size:12px;font-weight:bold;color:var(--th-color-primary);';
-                    if (date('Y-m-d', strtotime($ecgCourant['Date ECG'])) === date('Y-m-d')) {
-                        $ecgDateStyle = 'font-size:12px;font-weight:bold;color:#e74c3c;';
-                    }
-                ?>
-                <span style="<?= $ecgDateStyle ?>"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
+                <?php if ($ecgCourant && $ecgCourant['Date ECG']): ?>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($ecgCourant['Date ECG'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <?php if ($ecgCourant && !empty($ecgCourant['CMLM_ECG'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;">
             <?= nl2br(htmlspecialchars($ecgCourant['CMLM_ECG'])) ?>
         </div>
         <?php elseif ($ecgCourant): ?>
@@ -1421,35 +1408,22 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG < count($ecgs)-1 ? $ecgs[$idxECG+1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[count($ecgs)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel ECG">Nouvel ECG</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=ecg" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel ECG">✚</a>
         </div>
-        <?php if ($ecgs): ?>
-        <select onchange="if(this.value) location.href='?id=<?= $id ?>&ecg='+this.value;" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
-            <option value="">— choisir une date (<?= count($ecgs) ?>) —</option>
-            <?php foreach ($ecgs as $i => $e): ?>
-            <option value="<?= (int)$e['N°'] ?>"<?= ($e['N°'] == $nECG) ? ' selected' : '' ?>><?= $e['Date ECG'] ? date('d/m/Y', strtotime($e['Date ECG'])) : '—' ?> (<?= $i+1 ?>/<?= count($ecgs) ?>)</option>
-            <?php endforeach; ?>
-        </select>
-        <?php endif; ?>
     </div>
 
     <!-- ══ ECHO-DOPPLER COMPACT ══ -->
     <div class="card" style="padding:6px;">
-        <div class="card-title" style="font-size:13px;margin-bottom:4px;">
-            <span>Echo-Doppler</span>
+        <div class="card-title" style="font-size:14px;margin-bottom:4px;">
+            <span>🫀 Echo-Doppler</span>
             <div style="display:flex;align-items:center;gap:6px;">
-                <?php if ($echoCourant && $echoCourant['DATEchog']):
-                    $echoDateStyle = 'font-size:12px;font-weight:bold;color:var(--th-color-primary);';
-                    if (date('Y-m-d', strtotime($echoCourant['DATEchog'])) === date('Y-m-d')) {
-                        $echoDateStyle = 'font-size:12px;font-weight:bold;color:#e74c3c;';
-                    }
-                ?>
-                <span style="<?= $echoDateStyle ?>"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
+                <?php if ($echoCourant && $echoCourant['DATEchog']): ?>
+                <span style="font-size:12px;font-weight:bold;color:var(--th-color-primary);"><?= date('d/m/Y', strtotime($echoCourant['DATEchog'])) ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <?php if ($echoCourant && !empty($echoCourant['CMLM_ECHO'])): ?>
-        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;">
+        <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;">
             <?= nl2br(htmlspecialchars($echoCourant['CMLM_ECHO'])) ?>
         </div>
         <?php elseif ($echoCourant): ?>
@@ -1464,22 +1438,14 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho < count($echos)-1 ? $echos[$idxEcho+1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant (plus ancien)">▶</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[count($echos)-1]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel Echo">Nouvelle Echo</a>
+            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>&onglet=echo" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Nouvel Echo">✚</a>
         </div>
-        <?php if ($echos): ?>
-        <select onchange="if(this.value) location.href='?id=<?= $id ?>&echo='+this.value;" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
-            <option value="">— choisir une date (<?= count($echos) ?>) —</option>
-            <?php foreach ($echos as $i => $e): ?>
-            <option value="<?= (int)$e['N°'] ?>"<?= ($e['N°'] == $nEcho) ? ' selected' : '' ?>><?= $e['DATEchog'] ? date('d/m/Y', strtotime($e['DATEchog'])) : '—' ?> (<?= $i+1 ?>/<?= count($echos) ?>)</option>
-            <?php endforeach; ?>
-        </select>
-        <?php endif; ?>
     </div>
 
 <!-- ══ BIOLOGIE COMPACT ══ -->
         <div class="card" style="padding:6px;margin-top:6px;" id="card-bio-dossier">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:2px solid #e0e0e0;">
-                <span style="color:var(--th-color-primary);font-size:13px;font-weight:bold;">Biologie</span>
+                <span style="color:var(--th-color-primary);font-size:15px;font-weight:bold;">🧪 Biologie</span>
                 <div style="display:flex;align-items:center;gap:5px;">
                     <span id="bio-nb-anormal" style="font-size:12px;font-weight:bold;color:#e74c3c;display:none;"></span>
                     <span id="bio-date-affich" style="font-size:12px;font-weight:bold;color:var(--th-color-primary);">—</span>
@@ -1492,7 +1458,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
  
             <!-- Aperçu biologie anormale — visible directement -->
             <div id="apercu-bio-dossier" style="margin-top:4px;">
-                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:13px;color:#0d2b4e;font-weight:400;line-height:1.3;" id="apercu-bio-texte">
+                <div style="background:#ffffff;border:1px solid #2e6da4;border-radius:3px;padding:5px 7px;font-family:inherit;font-size:14px;color:#0d2b4e;font-weight:400;line-height:1.4;" id="apercu-bio-texte">
                     <?php
                     $apercuBioLignes = [];
                     foreach ($lignesBioActuel as $bl) {
@@ -1519,16 +1485,8 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 </span>
                 <button onclick="bioNav('next')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Suivant">▶</button>
                 <button onclick="bioNav('last')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus ancien">▶|</button>
-                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:var(--th-col-success);padding:1px 4px;font-size:12px;" title="Ouvrir module Biologie">Nouveau bilan</a>
+                <a href="biologie.php?id=<?= $id ?>" class="nav-btn" style="background:#e67e22;padding:1px 4px;font-size:12px;" title="Ouvrir module Biologie">✚</a>
             </div>
-            <?php if ($bilansListe): ?>
-            <select id="sel_date_bio" onchange="bioGoto(this.value)" style="width:100%;font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;margin-top:4px;">
-                <option value="">— choisir une date (<?= count($bilansListe) ?>) —</option>
-                <?php foreach ($bilansListe as $i => $b): ?>
-                <option value="<?= (int)$i ?>"<?= ($i == 0) ? ' selected' : '' ?>><?= htmlspecialchars($b['date_fr']) ?> (<?= $i+1 ?>/<?= count($bilansListe) ?>)</option>
-                <?php endforeach; ?>
-            </select>
-            <?php endif; ?>
         </div><!-- FIN card biologie -->
 
     </div>
@@ -1542,7 +1500,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
     <div style="background:var(--th-bg-card);border-radius:8px;padding:20px;margin:40px auto;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--th-col-success);">
             <strong style="color:var(--th-col-success);font-size:15px;">✚ Nouvelle ordonnance</strong>
-            <button title="Annuler la nouvelle ordonnance" type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
+            <button type="button" onclick="masquerNouvelleOrdonnance()" style="background:#e74c3c;color:white;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:13px;">✕ Annuler</button>
         </div>
         <!-- BLOC 1 : DATE ORDONNANCE -->
         <div style="margin-bottom:14px;">
@@ -1566,7 +1524,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <tbody id="no_lignes"></tbody>
         </table>
         <div style="margin-top:10px;margin-bottom:16px;">
-            <button title="Ajouter un médicament" type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
+            <button type="button" onclick="noAjouterLigne()" style="background:var(--th-col-add-btn);color:white;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:13px;">✚ Médicament</button>
         </div>
 
         <!-- BLOC 3 : RDV + ACTE -->
@@ -1575,12 +1533,12 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <input type="hidden" id="no_rdv"   value="">
             <input type="hidden" id="no_heure" value="">
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
-                <button title="Fixer le RDV dans 1 mois" type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
-                <button title="Fixer le RDV dans 3 mois" type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
-                <button title="Fixer le RDV dans 6 mois" type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
-                <button title="Fixer le RDV dans 7 jours" type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
-                <button title="Fixer le RDV dans 15 jours" type="button" onclick="rdvSetDelai(0,15,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
-                <button title="Fixer le RDV dans 21 jours" type="button" onclick="rdvSetDelai(0,21,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
+                <button type="button" onclick="rdvSetDelai(1,0,'no')"  style="background:#2e6da4;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">1M</button>
+                <button type="button" onclick="rdvSetDelai(3,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">3M</button>
+                <button type="button" onclick="rdvSetDelai(6,0,'no')"  style="background:#1a4a7a;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">6M</button>
+                <button type="button" onclick="rdvSetDelai(0,7,'no')"  style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">7J</button>
+                <button type="button" onclick="rdvSetDelai(0,15,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">15J</button>
+                <button type="button" onclick="rdvSetDelai(0,21,'no')" style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;">21J</button>
             </div>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
                 <input type="date" id="no_rdv_visible" onchange="rdvDateChange(this.value,'no')"
@@ -1602,19 +1560,15 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                        style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
                     <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
-                    <button title="Choisir cet acte" type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
+                    <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
             </div>
         </div>
 
         <!-- BLOC 4 : ENREGISTREMENT GLOBAL -->
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <button title="Enregistrer l'ordonnance" type="button" id="no_btn_enregistrer" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Enregistrer</button>
-            <button title="Imprimer l'ordonnance" type="button" id="no_btn_imprimer" onclick="noImprimer()" style="display:none;background:#2e6da4;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🖨️ Imprimer</button>
-            <button title="Aller à la facture" type="button" id="no_btn_facture" onclick="noAllerFacture(<?= $id ?>)" style="display:none;background:#8e44ad;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">🧾 Facture</button>
-            <button title="Retour au dossier du patient" type="button" id="no_btn_retour" onclick="noRetourDossier(<?= $id ?>)" style="display:none;background:#95a5a6;color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">📂 Retour au dossier</button>
-            <button title="Effacer et créer une nouvelle ordonnance" type="button" id="no_btn_nouveau" onclick="noNouveau()" style="display:none;background:var(--th-col-success);color:white;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-size:14px;font-weight:700;">✕ Nouveau</button>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <button type="button" onclick="noEnregistrer(<?= $id ?>)" style="background:#1a4a7a;color:white;border:none;border-radius:6px;padding:10px 24px;cursor:pointer;font-size:14px;font-weight:700;">💾 Tout enregistrer</button>
             <span id="no_msg" style="font-size:12px;color:var(--th-col-success);"></span>
         </div>
     </div>
@@ -1692,7 +1646,7 @@ function diagAjouter(type, patId, liste) {
             div.innerHTML = `<input type="text" value="${valeur.replace(/"/g,'&quot;')}" list="datalist_diag_${type}"
                 onblur="diagUpdate(${type},${data.n_dic},this.value)"
                 style="flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 5px;font-size:12px;">
-                <button title="Supprimer ce diagnostic" type="button" onclick="diagDelete(${type},${data.n_dic},${patId},this)"
+                <button type="button" onclick="diagDelete(${type},${data.n_dic},${patId},this)"
                 style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>`;
             bloc.appendChild(div); input.value = '';
             if (!existe) { const dl=document.getElementById('datalist_diag_'+type); if(dl){const o=document.createElement('option');o.value=valeur;dl.appendChild(o);} }
@@ -1838,15 +1792,15 @@ function jfAfficher(data, onChoix, onGarder) {
     const base = 'border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:bold;';
     let btns = '';
     if (data.date_avant)
-        btns += `<button title="Choisir la date précédente" style="${base}background:#2e6da4;color:white;" onclick="jfChoisir('${data.date_avant}')">◀ ${data.label_avant}</button>`;
+        btns += `<button style="${base}background:#2e6da4;color:white;" onclick="jfChoisir('${data.date_avant}')">◀ ${data.label_avant}</button>`;
     if ((estLundi || estSamedi) && data.date_cible) {
         const lbl = estLundi ? 'Garder lundi' : 'Garder samedi';
-        btns += `<button title="Garder cette date" style="${base}background:#e67e22;color:white;" onclick="jfGarder('${data.date_cible}')">${lbl}</button>`;
+        btns += `<button style="${base}background:#e67e22;color:white;" onclick="jfGarder('${data.date_cible}')">${lbl}</button>`;
     }
     if (data.date_apres)
-        btns += `<button title="Choisir la date suivante" style="${base}background:#1a4a7a;color:white;" onclick="jfChoisir('${data.date_apres}')">${data.label_apres} ▶</button>`;
-    btns += `<button title="Choisir une autre date" style="${base}background:#555;color:white;" onclick="jfChoisirDate()">📅 Choisir date</button>`;
-    btns += `<button title="Annuler" style="${base}background:#ddd;color:#444;" onclick="jfFermer()">✕ Annuler</button>`;
+        btns += `<button style="${base}background:#1a4a7a;color:white;" onclick="jfChoisir('${data.date_apres}')">${data.label_apres} ▶</button>`;
+    btns += `<button style="${base}background:#555;color:white;" onclick="jfChoisirDate()">📅 Choisir date</button>`;
+    btns += `<button style="${base}background:#ddd;color:#444;" onclick="jfFermer()">✕ Annuler</button>`;
 
     document.body.insertAdjacentHTML('beforeend', `
     <div id="modal-jour-ferme" style="position:fixed;top:0;left:0;width:100%;height:100%;
@@ -1859,7 +1813,7 @@ function jfAfficher(data, onChoix, onGarder) {
             <div id="jf-datepicker" style="display:none;margin-top:14px;">
                 <input type="date" id="jf-input-date"
                        style="padding:5px 8px;border:1px solid #2e6da4;border-radius:4px;font-size:12px;">
-                <button title="Confirmer la date choisie" style="${base}background:#1a4a7a;color:white;margin-left:8px;" onclick="jfConfirmerDate()">✔ Confirmer</button>
+                <button style="${base}background:#1a4a7a;color:white;margin-left:8px;" onclick="jfConfirmerDate()">✔ Confirmer</button>
             </div>
         </div>
     </div>`);
@@ -2132,12 +2086,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <?php if (isset($_GET['edit']) && $_GET['edit'] === '1' && $ordCourante): ?>
     afficherModifierOrdonnanceModal();
     <?php endif; ?>
-    <?php if (($_GET['action'] ?? '') === 'nouvelle_ordonnance'): ?>
-    afficherNouvelleOrdonnance();
-    <?php endif; ?>
-    <?php if (($_GET['action'] ?? '') === 'facture'): ?>
-    toggleNouvelleFacture('acc');
-    <?php endif; ?>
 });
 
 const noMeds = <?= json_encode(array_map(fn($m)=>['id'=>$m['NuméroPRODUIT'],'nom'=>$m['PRODUIT']],$listeMeds)) ?>;
@@ -2167,16 +2115,16 @@ function noAjouterLigne() {
         <td style="padding:3px 4px;"><select id="no_poso_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsPoso}</select></td>
         <td style="padding:3px 2px;">
             <div style="display:flex;flex-wrap:wrap;gap:2px;max-width:106px;">
-                <button title="Durée : 7 jours" type="button" onclick="noSetDuree(${i},'7 jours')"  style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">7J</button>
-                <button title="Durée : 15 jours" type="button" onclick="noSetDuree(${i},'15 jours')" style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">15J</button>
-                <button title="Durée : 1 mois" type="button" onclick="noSetDuree(${i},'1 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">1M</button>
-                <button title="Durée : 2 mois" type="button" onclick="noSetDuree(${i},'2 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">2M</button>
-                <button title="Durée : 3 mois" type="button" onclick="noSetDuree(${i},'3 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">3M</button>
-                <button title="Durée : 6 mois" type="button" onclick="noSetDuree(${i},'6 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">6M</button>
+                <button type="button" onclick="noSetDuree(${i},'7 jours')"  style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">7J</button>
+                <button type="button" onclick="noSetDuree(${i},'15 jours')" style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">15J</button>
+                <button type="button" onclick="noSetDuree(${i},'1 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">1M</button>
+                <button type="button" onclick="noSetDuree(${i},'2 mois')"   style="background:#2e6da4;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">2M</button>
+                <button type="button" onclick="noSetDuree(${i},'3 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">3M</button>
+                <button type="button" onclick="noSetDuree(${i},'6 mois')"   style="background:#1a4a7a;color:white;border:none;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">6M</button>
             </div>
         </td>
         <td style="padding:3px 4px;"><select id="no_duree_${i}" style="width:100%;border:1px solid #ddd;border-radius:3px;padding:5px;font-size:13px;">${optsDuree}</select></td>
-        <td style="padding:3px 4px;"><button title="Supprimer ce médicament" type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
+        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove()" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
     document.getElementById('no_lignes').appendChild(tr);
 }
 
@@ -2218,58 +2166,9 @@ function noEnregistrer(patientId) {
     fetch('ajax_nouvelle_ordonnance.php',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({id:patientId,n_ordon,date_ordon,acte,date_rdv,heure_rdv,lignes})})
     .then(r=>r.json()).then(data=>{
-        if(data.success){
-            noOrdEnregistree = {id: patientId, n_ordon: data.n_ordon};
-            msgEl.textContent='✅ Ordonnance N°'+data.n_ordon+' enregistrée.';
-            msgEl.style.color='#27ae60';
-            document.getElementById('no_btn_enregistrer').disabled = true;
-            document.getElementById('no_btn_enregistrer').style.opacity = '.5';
-            document.getElementById('no_btn_imprimer').style.display = 'inline-flex';
-            document.getElementById('no_btn_facture').style.display  = 'inline-flex';
-            document.getElementById('no_btn_retour').style.display   = 'inline-flex';
-            document.getElementById('no_btn_nouveau').style.display  = 'inline-flex';
-        }
+        if(data.success) window.location.href=`dossier.php?id=${patientId}&ord=${data.n_ordon}`;
         else { document.getElementById('no_msg').textContent='❌ '+data.error; document.getElementById('no_msg').style.color='#e74c3c'; }
     }).catch(()=>{document.getElementById('no_msg').textContent='❌ Erreur réseau';document.getElementById('no_msg').style.color='#e74c3c';});
-}
-
-// Référence de l'ordonnance qui vient d'être enregistrée (pour les boutons Imprimer/Facture)
-let noOrdEnregistree = null;
-
-function noImprimer() {
-    if (!noOrdEnregistree) return;
-    window.open(`print_ordonnance.php?id=${noOrdEnregistree.id}&ord=${noOrdEnregistree.n_ordon}`, '_blank');
-}
-
-function noAllerFacture(patientId) {
-    window.location.href = `dossier.php?id=${patientId}&action=facture`;
-}
-
-function noRetourDossier(patientId) {
-    window.location.href = `dossier.php?id=${patientId}`;
-}
-
-function noNouveau() {
-    // Réinitialise le formulaire pour une nouvelle ordonnance, même patient, même popup
-    document.getElementById('no_lignes').innerHTML = '';
-    document.getElementById('no_date').value = '<?= date('Y-m-d') ?>';
-    document.getElementById('no_acte').value = '';
-    document.getElementById('no_rdv').value = '';
-    document.getElementById('no_rdv_visible').value = '';
-    document.getElementById('no_heure').value = '';
-    document.getElementById('no_heure_affichage').textContent = '—:——';
-    document.getElementById('no_grille').innerHTML = '';
-    document.getElementById('no_nord').value = '0';
-    document.getElementById('no_msg').textContent = '';
-    document.getElementById('no_btn_enregistrer').disabled = false;
-    document.getElementById('no_btn_enregistrer').style.opacity = '1';
-    document.getElementById('no_btn_imprimer').style.display = 'none';
-    document.getElementById('no_btn_facture').style.display  = 'none';
-    document.getElementById('no_btn_retour').style.display   = 'none';
-    document.getElementById('no_btn_nouveau').style.display  = 'none';
-    noOrdEnregistree = null;
-    noIdx = 0;
-    noAjouterLigne();
 }
 
 const nfActes = <?= json_encode(array_map(fn($a)=>['n_acte'=>$a['n_acte'],'ACTE'=>$a['ACTE'],'cout'=>(float)$a['cout']],$listeActes)) ?>;
@@ -2298,7 +2197,7 @@ function nfAjouterLigne(sfx) {
         <input type="hidden" id="nf_prix_${sfx}_${i}" value="">
         <td style="padding:3px 4px;"><input type="number" id="nf_verse_${sfx}_${i}" min="0" step="0.01" value="0" oninput="nfRecalculer('${sfx}',${i})" style="width:70px;border:1px solid #ddd;border-radius:3px;padding:2px;font-size:11px;text-align:right;"></td>
         <td style="padding:3px 4px;text-align:right;font-weight:600;color:#c0392b;" id="nf_dette_${sfx}_${i}">0</td>
-        <td style="padding:3px 4px;"><button title="Supprimer cet acte" type="button" onclick="this.closest('tr').remove();nfMajTotaux('${sfx}')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
+        <td style="padding:3px 4px;"><button type="button" onclick="this.closest('tr').remove();nfMajTotaux('${sfx}')" style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕</button></td>`;
     document.getElementById('nf_lignes_' + sfx).appendChild(tr);
 }
 function nfRemplirPrix(sfx, i) {
@@ -2582,15 +2481,6 @@ function bioNav(dir) {
     else if (dir === 'next')  bioIdx = Math.min(bioBilans.length - 1, bioIdx + 1);
     bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
 }
-
-/* ══ Navigation directe par date (liste déroulante) ══ */
-function bioGoto(idx) {
-    if (idx === '' || !bioBilans.length) return;
-    idx = parseInt(idx, 10);
-    if (isNaN(idx) || idx < 0 || idx >= bioBilans.length) return;
-    bioIdx = idx;
-    bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
-}
  
 async function bioCharger(n_bilan, idx) {
     const res = await fetch('ajax_bio_dossier.php', {
@@ -2604,9 +2494,8 @@ async function bioCharger(n_bilan, idx) {
     // Mettre à jour compteur position
     document.getElementById('bio-nav-pos').textContent = (idx + 1) + ' / ' + bioBilans.length;
  
-    // Mettre à jour la date affichée (rouge si c'est aujourd'hui)
+    // Mettre à jour la date affichée
     document.getElementById('bio-date-affich').textContent = res.bilan?.date_fr || '—';
-    styleDateSiAujourdhui(document.getElementById('bio-date-affich'), res.bilan?.date_fr);
  
     // Compter et afficher le nombre de résultats anormaux
     const anormaux = res.lignes.filter(l => l.resultat !== '' && l.resultat.toUpperCase() !== 'N');
@@ -2649,15 +2538,6 @@ async function bioCharger(n_bilan, idx) {
     document.getElementById('bio-btn-apercu').style.display = res.lignes.length ? '' : 'none';
 }
  
-// Fonction utilitaire : colore une date en rouge si elle correspond à aujourd'hui
-// (comparaison au format JJ/MM/AAAA, réutilisable partout dans la page)
-function styleDateSiAujourdhui(el, dateFr) {
-    if (!el) return;
-    const d = new Date();
-    const auj = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
-    el.style.color = (dateFr === auj) ? '#e74c3c' : 'var(--th-color-primary)';
-}
-
 // Initialiser l'affichage au chargement de la page
 document.addEventListener('DOMContentLoaded', function() {
     if (!bioBilans.length) return;
@@ -2668,7 +2548,6 @@ document.addEventListener('DOMContentLoaded', function() {
         elNb.style.display = '';
     }
     document.getElementById('bio-date-affich').textContent = bioBilans[0]?.date_fr || '—';
-    styleDateSiAujourdhui(document.getElementById('bio-date-affich'), bioBilans[0]?.date_fr);
     if (bioBilans[0]?.nb_total > 0) {
         document.getElementById('bio-btn-apercu').style.display = '';
     }
@@ -2686,22 +2565,22 @@ function calcNbrJAcc() {
 <div class="popup-rdv-ov" id="popup-rdv-acc">
     <div class="popup-rdv-box">
         <div class="popup-rdv-header">
-            <strong style="font-size:14px;">RDV prochain</strong>
-            <button title="Fermer" onclick="fermerPopupRdv()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;">✕</button>
+            <strong style="font-size:14px;">📆 RDV prochain</strong>
+            <button onclick="fermerPopupRdv()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;">✕</button>
         </div>
         <div class="popup-rdv-body">
             <!-- Boutons délai -->
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
-                <button title="Fixer le RDV dans 1 mois" type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
-                <button title="Fixer le RDV dans 3 mois" type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
-                <button title="Fixer le RDV dans 6 mois" type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
-                <button title="Fixer le RDV dans 7 jours" type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
-                <button title="Fixer le RDV dans 10 jours" type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
-                <button title="Fixer le RDV dans 15 jours" type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
+                <button type="button" onclick="rdvSetDelai(1,0,'rdv')"  class="delai-btn-rdv">1M</button>
+                <button type="button" onclick="rdvSetDelai(3,0,'rdv')"  class="delai-btn-rdv actif">3M</button>
+                <button type="button" onclick="rdvSetDelai(6,0,'rdv')"  class="delai-btn-rdv">6M</button>
+                <button type="button" onclick="rdvSetDelai(0,7,'rdv')"  class="delai-btn-rdv">7J</button>
+                <button type="button" onclick="rdvSetDelai(0,10,'rdv')" class="delai-btn-rdv">10J</button>
+                <button type="button" onclick="rdvSetDelai(0,15,'rdv')" class="delai-btn-rdv">15J</button>
                 <span style="width:1px;height:14px;background:#ccc;display:inline-block;margin:0 2px;"></span>
-                <button title="Reporter le traitement de 3 mois" type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 3M</button>
-                <button title="Reporter le traitement de 6 mois" type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">Report 6M</button>
-                <button title="Enregistrer le RDV" type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺6M</button>
+                <button type="button" onclick="confirmerRdv(<?= $ordCourante['n_ordon'] ?? 0 ?>)"
                         style="background:var(--th-col-success);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:bold;margin-left:auto;">
                     📅 RDV
                 </button>
@@ -2736,7 +2615,7 @@ function calcNbrJAcc() {
                        style="width:100%;padding:4px 8px;border:1px solid var(--th-col-rdvn);border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
                     <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
-                    <button title="Choisir cet acte" type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
+                    <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
                         style="background:var(--th-col-rdvn);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
@@ -2769,12 +2648,12 @@ function calcNbrJAcc() {
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
                 🏅 Certificat médical d'aptitude physique
             </a>
-            <a href="nouveau_bilan_clinique.php?id=<?= $id ?>" target="_blank"
-               title="Choisir les dates puis imprimer depuis le bilan clinique"
-               style="display:block;background:#c0392b;color:white;text-decoration:none;
-                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
+            <button onclick="ouvrirModalRapport();"
+               style="display:block;width:100%;background:#c0392b;color:white;border:none;
+                      border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
+                      cursor:pointer;text-align:left;">
                 📄 Compte rendu de l'examen cardio-vasculaire
-            </a>
+            </button>
             <a href="print_lettre.php?id=<?= $id ?>" target="_blank"
                style="display:block;background:#16a085;color:white;text-decoration:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
@@ -2783,9 +2662,9 @@ function calcNbrJAcc() {
             <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank"
                style="display:block;background:#2e6da4;color:white;text-decoration:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;">
-                Ordonnance
+                💊 Ordonnance
             </a>
-            <button title="Fermer le menu des rapports" onclick="fermerMenuRapports()"
+            <button onclick="fermerMenuRapports()"
                style="display:block;width:100%;background:#7f8c8d;color:white;border:none;
                       border-radius:5px;padding:7px 14px;font-size:12px;font-weight:bold;
                       cursor:pointer;text-align:center;margin-top:2px;">
@@ -2795,13 +2674,181 @@ function calcNbrJAcc() {
     </div>
 </div>
 
+<div id="modal-rapport" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:var(--th-bg-card);border-radius:10px;width:380px;max-width:96%;
+                box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;">
+        <!-- Header -->
+        <div style="background:#c0392b;color:white;padding:10px 16px;
+                    display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:bold;font-size:13px;">🖨️ Rapport cardio-vasculaire</span>
+            <button onclick="fermerModalRapport()" style="background:none;border:none;color:white;
+                    font-size:18px;cursor:pointer;line-height:1;">✕</button>
+        </div>
+        <!-- Corps -->
+        <div style="padding:16px;">
+            <div id="rapport-loading" style="text-align:center;color:var(--th-color-text-muted);font-size:12px;padding:20px 0;">
+                Chargement des dates…
+            </div>
+            <div id="rapport-contenu" style="display:none;">
+                <!-- Ligne Examen -->
+                <div id="ligne-examen" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">🩺 Examen clinique :</span>
+                    <select id="sel-examen" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <button onclick="toggleExclusionRubrique('examen')" id="btn-excl-examen"
+                        title="Exclure cette rubrique du rapport"
+                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
+                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <!-- Ligne ECG -->
+                <div id="ligne-ecg" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">📈 ECG :</span>
+                    <select id="sel-ecg" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <button onclick="toggleExclusionRubrique('ecg')" id="btn-excl-ecg"
+                        title="Exclure cette rubrique du rapport"
+                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
+                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <!-- Ligne Echo -->
+                <div id="ligne-echo" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                    <span style="width:130px;font-size:12px;font-weight:bold;color:var(--th-color-primary);">🫀 Echo-Doppler :</span>
+                    <select id="sel-echo" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></select>
+                    <button onclick="toggleExclusionRubrique('echo')" id="btn-excl-echo"
+                        title="Exclure cette rubrique du rapport"
+                        style="width:28px;height:28px;border:1px solid #e74c3c;border-radius:4px;
+                               background:#fff;color:#e74c3c;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <!-- Boutons action -->
+                <div style="display:flex;justify-content:flex-end;gap:8px;">
+                    <button onclick="fermerModalRapport()"
+                        style="background:#95a5a6;color:white;border:none;border-radius:5px;
+                               padding:6px 16px;font-size:12px;cursor:pointer;">Annuler</button>
+                    <button onclick="imprimerRapport()"
+                        style="background:#c0392b;color:white;border:none;border-radius:5px;
+                               padding:6px 16px;font-size:12px;font-weight:bold;cursor:pointer;">🖨️ Imprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+/* ── Exclusions rubriques rapport ── */
+var rapportExclusions = { examen: false, ecg: false, echo: false };
+
 function ouvrirMenuRapports() {
     document.getElementById('modal-rapports-menu').style.display = 'flex';
 }
 function fermerMenuRapports() {
     document.getElementById('modal-rapports-menu').style.display = 'none';
 }
+
+function ouvrirModalRapport() {
+    rapportExclusions = { examen: false, ecg: false, echo: false };
+    // Réinitialiser l'affichage des boutons exclusion
+    ['examen','ecg','echo'].forEach(function(r) {
+        var btn = document.getElementById('btn-excl-' + r);
+        var ligne = document.getElementById('ligne-' + r);
+        if (btn) { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
+        if (ligne) ligne.style.opacity = '1';
+    });
+
+    document.getElementById('modal-rapport').style.display = 'flex';
+    document.getElementById('rapport-loading').style.display = 'block';
+    document.getElementById('rapport-contenu').style.display = 'none';
+
+    fetch('ajax_dates_rapport.php?id=<?= $id ?>')
+        .then(function(r){ return r.json(); })
+        .then(function(d) {
+            remplirSelectRapport('sel-examen', d.examen || []);
+            remplirSelectRapport('sel-ecg',    d.ecg    || []);
+            remplirSelectRapport('sel-echo',   d.echo   || []);
+            document.getElementById('rapport-loading').style.display = 'none';
+            document.getElementById('rapport-contenu').style.display = 'block';
+        })
+        .catch(function(e) {
+            document.getElementById('rapport-loading').textContent = 'Erreur de chargement.';
+        });
+}
+
+function remplirSelectRapport(selectId, dates) {
+    var sel = document.getElementById(selectId);
+    sel.innerHTML = '';
+    if (!dates || dates.length === 0) {
+        var opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '— aucun —';
+        sel.appendChild(opt);
+        sel.disabled = true;
+        // Exclure automatiquement si aucune donnée
+        var rubrique = selectId.replace('sel-','');
+        rapportExclusions[rubrique] = true;
+        var btn = document.getElementById('btn-excl-' + rubrique);
+        var ligne = document.getElementById('ligne-' + rubrique);
+        if (btn) { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
+        if (ligne) ligne.style.opacity = '0.4';
+    } else {
+        sel.disabled = false;
+        dates.forEach(function(d, i) {
+            var opt = document.createElement('option');
+            opt.value = d.date_tri;   // format YYYYMMDD pour la requête SQL
+            opt.textContent = d.date_fr; // format JJ/MM/AAAA pour l'affichage
+            if (i === 0) opt.selected = true; // dernière date par défaut
+            sel.appendChild(opt);
+        });
+    }
+}
+
+function toggleExclusionRubrique(rubrique) {
+    rapportExclusions[rubrique] = !rapportExclusions[rubrique];
+    var btn   = document.getElementById('btn-excl-' + rubrique);
+    var ligne = document.getElementById('ligne-' + rubrique);
+    var sel   = document.getElementById('sel-' + rubrique);
+    if (rapportExclusions[rubrique]) {
+        // Exclure : griser, barrer, bouton ↩
+        if (btn)   { btn.textContent = '↩'; btn.style.background = '#e74c3c'; btn.style.color = '#fff'; }
+        if (ligne) ligne.style.opacity = '0.4';
+        if (sel)   sel.disabled = true;
+    } else {
+        // Réintégrer
+        if (btn)   { btn.textContent = '✕'; btn.style.background = '#fff'; btn.style.color = '#e74c3c'; }
+        if (ligne) ligne.style.opacity = '1';
+        if (sel)   sel.disabled = false;
+    }
+}
+
+function fermerModalRapport() {
+    document.getElementById('modal-rapport').style.display = 'none';
+}
+
+function imprimerRapport() {
+    var url = 'print_rapport.php?id=<?= $id ?>';
+    if (!rapportExclusions.examen) {
+        var v = document.getElementById('sel-examen').value;
+        if (v) url += '&date_ex=' + encodeURIComponent(v);
+    } else {
+        url += '&excl_examen=1';
+    }
+    if (!rapportExclusions.ecg) {
+        var v = document.getElementById('sel-ecg').value;
+        if (v) url += '&date_ecg=' + encodeURIComponent(v);
+    } else {
+        url += '&excl_ecg=1';
+    }
+    if (!rapportExclusions.echo) {
+        var v = document.getElementById('sel-echo').value;
+        if (v) url += '&date_echo=' + encodeURIComponent(v);
+    } else {
+        url += '&excl_echo=1';
+    }
+    window.open(url, '_blank');
+    fermerModalRapport();
+}
+
+// Fermer si clic sur le fond
+document.getElementById('modal-rapport').addEventListener('click', function(e) {
+    if (e.target === this) fermerModalRapport();
+});
 
 /* ══ Panneaux Motif / Antécédents / Diagnostic ══ */
 function togglePanel(id) {
@@ -2977,11 +3024,6 @@ function madValiderTout() {
     var fcMin = document.getElementById('md_fc_min');
     if (fcMoy && fcMoy.value) diags.push('- Bradycardie sinusale — FC moy: ' + fcMoy.value + '/min');
     if (fcMin && fcMin.value) diags.push('- Bradycardie sinusale — FC min: ' + fcMin.value + '/min');
-    var diagAutre  = document.getElementById('mad_diag_autre_cb');
-    var diagAutreD = document.getElementById('mad_diag_autre_detail');
-    if (diagAutre && diagAutre.checked && diagAutreD && diagAutreD.value.trim()) {
-        diags.push('- ' + diagAutreD.value.trim());
-    }
     if (diags.length > 0) {
         var champDiag = document.getElementById('champ_diagnostic');
         if (champDiag) {
@@ -3019,15 +3061,15 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
         <!-- Header -->
         <div style="background:#1a4a7a;color:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <span style="font-weight:bold;font-size:15px;">📋 Motif — Antécédents — Facteurs de risque</span>
-            <button title="Fermer" onclick="fermerPopupMAD()" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
+            <button onclick="fermerPopupMAD()" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
         </div>
 
         <!-- Onglets -->
         <div style="display:flex;border-bottom:2px solid #e0e0e0;flex-shrink:0;">
-            <button title="Afficher l'onglet Motif" id="ong_motif" onclick="switchOnglet('motif')" style="flex:1;padding:7px 4px;border:none;background:#e8f0fa;font-size:14px;font-weight:bold;cursor:pointer;color:var(--th-color-primary);border-bottom:2px solid #1a4a7a;">Motif</button>
-            <button title="Afficher l'onglet Antécédents" id="ong_atcd" onclick="switchOnglet('atcd')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Antécédents</button>
-            <button title="Afficher l'onglet Diagnostic" id="ong_diag" onclick="switchOnglet('diag')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Diagnostic</button>
-            <button title="Afficher l'onglet Facteurs de risque" id="ong_fdr" onclick="switchOnglet('fdr')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Fact. risque</button>
+            <button id="ong_motif" onclick="switchOnglet('motif')" style="flex:1;padding:7px 4px;border:none;background:#e8f0fa;font-size:14px;font-weight:bold;cursor:pointer;color:var(--th-color-primary);border-bottom:2px solid #1a4a7a;">Motif</button>
+            <button id="ong_atcd" onclick="switchOnglet('atcd')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Antécédents</button>
+            <button id="ong_diag" onclick="switchOnglet('diag')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Diagnostic</button>
+            <button id="ong_fdr" onclick="switchOnglet('fdr')" style="flex:1;padding:7px 4px;border:none;background:#f5f5f5;font-size:14px;cursor:pointer;color:var(--th-color-text-muted);">Fact. risque</button>
         </div>
 
         <!-- Contenu scrollable -->
@@ -3222,17 +3264,6 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
     </div>
 
     <!-- ══════════════════════════════════════════════════════
-         HYPERTENSION ARTÉRIELLE
-    ══════════════════════════════════════════════════════ -->
-    <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_hta" onchange="madToggle(this)"> ▶ Hypertension artérielle</label>
-    <div id="md_hta" style="display:none;margin-left:10px;">
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA essentielle"> HTA essentielle</label>
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA secondaire"> HTA secondaire</label>
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTAP"> HTAP</label>
-        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA résistante"> HTA résistante</label>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
          MALADIES VALVULAIRES
     ══════════════════════════════════════════════════════ -->
     <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_valv" onchange="madToggle(this)"> ▶ Maladies valvulaires</label>
@@ -3413,6 +3444,16 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════════
+         HYPERTENSION ARTÉRIELLE
+    ══════════════════════════════════════════════════════ -->
+    <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:1px;margin-top:3px;"><input type="checkbox" class="mad-parent" data-target="md_hta" onchange="madToggle(this)"> ▶ Hypertension artérielle</label>
+    <div id="md_hta" style="display:none;margin-left:10px;">
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA essentielle"> HTA essentielle</label>
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA secondaire"> HTA secondaire</label>
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTAP"> HTAP</label>
+        <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="HTA résistante"> HTA résistante</label>
+    </div>
 
     <!-- ══════════════════════════════════════════════════════
          PATHOLOGIES VASCULAIRES
@@ -3434,10 +3475,6 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
         <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Endocardite infectieuse"> Endocardite infectieuse</label>
         <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Cardiopathie congénitale"> Cardiopathie congénitale</label>
         <label style="font-size:14px;display:block;margin-bottom:1px;"><input type="checkbox" class="mad-diag" value="Syncope d'origine cardiaque"> Syncope d'origine cardiaque</label>
-        <label style="font-size:14px;display:flex;align-items:center;gap:3px;margin-bottom:1px;">
-            <input type="checkbox" id="mad_diag_autre_cb"> Autre —
-            <input type="text" id="mad_diag_autre_detail" placeholder="préciser le diagnostic..." style="flex:1;border:1px solid #ccc;border-radius:2px;padding:1px 3px;font-size:13px;">
-        </label>
     </div>
 
 </div><!-- fin tab_diag -->
@@ -3493,9 +3530,9 @@ document.getElementById('popup-mad').addEventListener('click', function(e) {
 
         <!-- Footer boutons -->
         <div style="padding:8px 12px;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:#f9f9f9;">
-            <button title="Tout décocher" type="button" onclick="madToutDecocher()"
+            <button type="button" onclick="madToutDecocher()"
                 style="background:#e74c3c;color:white;border:none;border-radius:3px;padding:4px 12px;font-size:14px;cursor:pointer;">✕ Tout décocher</button>
-            <button title="Valider et insérer la sélection" type="button" onclick="madValiderTout()"
+            <button type="button" onclick="madValiderTout()"
                 style="background:var(--th-col-success);color:white;border:none;border-radius:3px;padding:4px 16px;font-size:12px;font-weight:bold;cursor:pointer;">✓ Valider et insérer</button>
         </div>
     </div>

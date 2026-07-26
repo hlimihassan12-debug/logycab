@@ -23,116 +23,6 @@ function navDate($base, $offset) {
     return (new DateTime($base))->modify($offset)->format('Y-m-d');
 }
 
-// ── Affiche une carte patient (réutilisée pour Matin / Après-midi / Sans heure) ──
-function renderCartePatient($pat, $dateAff, $creneaux) {
-    $estVu     = (bool)$pat['Vu'];
-    $estAbsent = (bool)$pat['SansReponse'];
-    $cardCl    = $estVu ? 'vu' : ($estAbsent ? 'absent' : '');
-    $nomCl     = $cardCl;
-    $selCl     = $estVu ? 'is-vu' : ($estAbsent ? 'is-absent' : '');
-    $heure     = trim($pat['HeureRDV'] ?? '');
-    $heureAff  = $heure ?: '—';
-    $tel       = trim($pat['tel'] ?? '');
-    $telRaw    = preg_replace('/\D/', '', $tel);
-    $telWa     = $telRaw ? ('212' . ltrim($telRaw, '0')) : '';
-    $msgWa     = urlencode('Bonjour, rappel RDV le ' . strftime_fr($dateAff) . ' à ' . $heureAff . '. Cabinet Dr Hassan.');
-    $acte      = trim($pat['acte1'] ?? '');
-    $obs       = htmlspecialchars($pat['Observation'] ?? '');
-    $verse     = (float)$pat['montant_verse'];
-    $n         = $pat['n_ordon'];
-    ?>
-    <div class="pat-card <?= $cardCl ?>"
-         id="card-<?= $n ?>"
-         data-nom="<?= strtolower(htmlspecialchars($pat['NOMPRENOM'] ?? '')) ?>"
-         data-id="<?= $pat['id'] ?>"
-         data-heure="<?= $heure ?>"
-         ondblclick="ouvrirDossierDbl(event, <?= (int)$pat['id'] ?>)">
-
-        <div class="pat-line">
-
-            <!-- 1. Heure -->
-            <span class="pat-heure" id="heure-<?= $n ?>"><?= htmlspecialchars($heureAff) ?></span>
-
-            <!-- 2. N° patient -->
-            <span class="pat-num"><?= $pat['id'] ?></span>
-
-            <!-- 3. Téléphone -->
-            <?php if ($tel): ?>
-            <span class="pat-tel"><?= htmlspecialchars($tel) ?></span>
-            <?php else: ?>
-            <span class="pat-tel" style="color:#ddd;">—</span>
-            <?php endif; ?>
-
-            <!-- 4. Nom -->
-            <span class="pat-nom <?= $nomCl ?>" id="nom-<?= $n ?>">
-                <?= htmlspecialchars($pat['NOMPRENOM'] ?? '—') ?>
-            </span>
-
-            <!-- 5. Acte -->
-            <span class="pat-acte"><?= $acte ? htmlspecialchars($acte) : '' ?></span>
-
-            <!-- 6. Statut : une seule liste déroulante (VU / Absent / Déplacer) -->
-            <select class="statut-select <?= $selCl ?>" id="statut-<?= $n ?>"
-                    data-vu="<?= $estVu?1:0 ?>" data-absent="<?= $estAbsent?1:0 ?>"
-                    title="Changer le statut du RDV"
-                    onchange="gererStatut(this, <?= $n ?>, '<?= $dateAff ?>')">
-                <option value="">— Statut —</option>
-                <option value="vu" <?= $estVu ? 'selected' : '' ?>>VU</option>
-                <option value="absent" <?= $estAbsent ? 'selected' : '' ?>>Absent</option>
-                <option value="deplacer">Déplacer</option>
-            </select>
-
-            <!-- 7. Supprimer (inchangé) -->
-            <button class="btn-p btn-sup"
-                    title="Supprimer ce RDV définitivement"
-                    onclick="supprimerRdv(<?= $n ?>, '<?= htmlspecialchars($pat['NOMPRENOM'] ?? '') ?>')">🗑</button>
-
-            <!-- 8. Créneau horaire -->
-            <select class="creneau-select"
-                    title="Attribuer un créneau horaire"
-                    onchange="changerHeure(<?= $n ?>, this.value)">
-                <option value="">—H—</option>
-                <?php foreach ($creneaux as $cr): ?>
-                <option value="<?= $cr ?>" <?= $heure === $cr ? 'selected' : '' ?>><?= $cr ?></option>
-                <?php endforeach; ?>
-            </select>
-
-            <!-- 9. Montant DH -->
-            <span class="montant-badge <?= $verse > 0 ? 'ok' : 'non' ?>"
-                  title="Montant versé ce jour">
-                <?= $verse > 0 ? number_format($verse,0,',',' ').' DH' : '0 DH' ?>
-            </span>
-
-            <!-- 10. Observation -->
-            <input type="text" class="obs-input" placeholder="Observation..."
-                   title="Note libre — sauvegardée automatiquement à la sortie du champ"
-                   value="<?= $obs ?>"
-                   onblur="sauvegarderObs(<?= $n ?>, this.value)">
-
-            <!-- 11. WhatsApp -->
-            <?php if ($telWa): ?>
-            <a href="https://wa.me/<?= $telWa ?>?text=<?= $msgWa ?>"
-               target="_blank"
-               class="btn-wa-end has-tel"
-               title="Envoyer WhatsApp à <?= htmlspecialchars($tel) ?>">
-                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
-                </svg>
-            </a>
-            <?php else: ?>
-            <span class="btn-wa-end no-tel"
-                  title="Pas de numéro disponible">
-                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
-                </svg>
-            </span>
-            <?php endif; ?>
-
-        </div><!-- /.pat-line -->
-    </div><!-- /.pat-card -->
-    <?php
-}
-
 // ── Limite du jour ─────────────────────────────────────────────
 $stmtCfg = $db->prepare("SELECT Valeur FROM T_Config WHERE Cle='NbrMax'");
 $stmtCfg->execute();
@@ -149,12 +39,12 @@ $stmtPat = $db->prepare("
     LEFT JOIN facture f ON f.id = o.id
         AND CONVERT(date, f.date_facture) = ?
     LEFT JOIN detail_acte d ON d.N_fact = f.n_facture
-    WHERE CONVERT(date, o.[DATE REDEZ VOUS]) = ?
+    WHERE CONVERT(date, o.[DATE REDEZ VOUS]) = ? OR CONVERT(date, o.Date_Rdv) = ?
     GROUP BY o.n_ordon, o.id, o.HeureRDV, o.Vu, o.SansReponse,
              o.Observation, o.acte1, p.NOMPRENOM, p.[TEL D]
     ORDER BY o.HeureRDV, o.n_ordon
 ");
-$stmtPat->execute([$dateAff, $dateAff]);
+$stmtPat->execute([$dateAff, $dateAff, $dateAff]);
 $patients   = $stmtPat->fetchAll(PDO::FETCH_ASSOC);
 $nbPatients = count($patients);
 $totalVerse = array_sum(array_column($patients, 'montant_verse'));
@@ -278,28 +168,24 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .main { display: flex; }
 
 /* ── Créneaux ── */
-.col-creneaux { width: 58px; min-width: 58px; background: var(--th-bg-card);
-                border-right: 2px solid var(--th-border-statsbar); padding: 6px 3px;
+.col-creneaux { width: 100px; min-width: 100px; background: var(--th-bg-card);
+                border-right: 2px solid var(--th-border-statsbar); padding: 6px 4px;
                 position: sticky; top: 0; }
-.cr-item { margin-bottom: 3px; cursor: pointer; }
-.cr-badge { display: flex; align-items: center; justify-content: center;
-            width: 100%; height: 22px; border-radius: 0;
-            font-size: 10px; font-weight: bold; color: white; }
-.cr-badge.vert   { background: #27ae60; }
-.cr-badge.jaune  { background: #f39c12; }
-.cr-badge.rouge  { background: #e74c3c; }
+.col-creneaux h4 { font-size: 9px; color: var(--th-color-text-muted); text-align: center;
+                   text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+.cr-item { display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
+           padding: 3px 5px; border-radius: 5px; cursor: pointer;
+           border: 1px solid transparent; }
+.cr-item:hover { border-color: #2e6da4; background: var(--th-bg-link-hover); }
+.cr-heure { font-size: 11px; font-weight: bold; color: var(--th-color-text); min-width: 35px; }
+.cr-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.cr-dot.vert   { background: #27ae60; }
+.cr-dot.jaune  { background: #f39c12; }
+.cr-dot.rouge  { background: #e74c3c; }
+.cr-nb { font-size: 10px; color: var(--th-color-text-muted); }
 
 /* ── Patients (zone de travail — reste claire pour lisibilité) ── */
 .col-patients { flex: 1; padding: 8px; overflow-x: auto; }
-
-/* ── Bandeau "sans heure" + 2 colonnes Matinée / Après-midi ── */
-.grp-sansheure { margin-bottom: 10px; }
-.deux-colonnes { display: flex; gap: 12px; align-items: flex-start; }
-.col-demi { flex: 1; min-width: 0; overflow-x: auto; }
-.titre-demi { font-size: 11px; color: var(--th-color-text-muted); text-transform: uppercase;
-              letter-spacing: 0.5px; margin: 4px 0 5px; padding-bottom: 4px;
-              border-bottom: 1px solid var(--th-border-statsbar); }
-.empty-demi { text-align: center; padding: 14px; color: #bbb; font-size: 11px; }
 
 /* ── Carte patient — hauteur réduite pour 15-20 patients/page ── */
 .pat-card { background: white; border-radius: 5px; padding: 3px 8px;
@@ -313,22 +199,21 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 .pat-line { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
 
 /* ── Éléments LARGEUR FIXE — ne bougent pas selon le contenu ── */
-/* Disposition simple : bords non arrondis, police uniforme 11px partout */
 .pat-heure { background: #1a4a7a; color: white; padding: 0;
-             border-radius: 0; font-size: 11px; font-weight: bold;
+             border-radius: 6px; font-size: 11px; font-weight: bold;
              width: 54px; height: 22px; text-align: center; flex-shrink: 0;
              display: inline-flex; align-items: center; justify-content: center; }
 
 /* Numéro patient : largeur fixe, aligné à droite, sans préfixe N° */
-.pat-num   { font-size: 11px; color: #999; flex-shrink: 0;
+.pat-num   { font-size: 10px; color: #999; flex-shrink: 0;
              width: 32px; text-align: right; }
 
-/* Téléphone : largeur fixe */
-.pat-tel   { font-size: 11px; color: #666; flex-shrink: 0; white-space: nowrap;
-             width: 88px; }
+/* Téléphone : largeur fixe, police monospace pour alignement */
+.pat-tel   { font-size: 10px; color: #666; flex-shrink: 0; white-space: nowrap;
+             font-family: monospace; width: 88px; }
 
 /* Nom : largeur fixe, overflow caché avec ellipse si trop long */
-.pat-nom   { font-size: 11px; font-weight: bold; color: #1a4a7a;
+.pat-nom   { font-size: 12px; font-weight: bold; color: #1a4a7a;
              width: 180px; max-width: 180px; flex-shrink: 0;
              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pat-nom.vu     { color: #aaa; }
@@ -336,38 +221,37 @@ body { font-family: var(--th-font-body); background: var(--th-bg-page); font-siz
 
 /* Acte : largeur FIXE — ne s'étire jamais selon le contenu */
 .pat-acte  { background: #e8f0fb; color: #2e6da4; padding: 1px 5px;
-             border-radius: 0; font-size: 11px; font-weight: bold; flex-shrink: 0;
+             border-radius: 6px; font-size: 9px; font-weight: bold; flex-shrink: 0;
              width: 90px; max-width: 90px;
              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Boutons compacts — largeur fixe (bouton Supprimer inchangé) */
+/* Boutons compacts — largeur fixe */
 .btn-p { border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer;
-         font-size: 11px; font-weight: bold; flex-shrink: 0; height: 22px;
+         font-size: 10px; font-weight: bold; flex-shrink: 0; height: 22px;
          display: inline-flex; align-items: center; justify-content: center; }
+.btn-vu     { background: #27ae60; color: white; width: 44px; }
+.btn-absent { background: #e74c3c; color: white; width: 44px; }
+.btn-dep    { background: #8e44ad; color: white; width: 26px; }
 .btn-sup    { background: #c0392b; color: white; width: 26px; }
-.btn-p:hover { opacity: 0.85; }
-
-/* Liste déroulante Statut (VU / Absent / Déplacer) — remplace les 3 anciens boutons */
-.statut-select { padding: 0 4px; border: 1px solid #ccc; border-radius: 0;
-                 font-size: 11px; color: #333; background: white; flex-shrink: 0;
-                 width: 78px; height: 22px; }
-.statut-select.is-vu     { background: #eafaf0; color: #1e8449; border-color: #27ae60; font-weight: bold; }
-.statut-select.is-absent { background: #fdeeee; color: #c0392b; border-color: #e74c3c; font-weight: bold; }
+.btn-dos    { background: #1a4a7a; color: white; text-decoration: none;
+              display: inline-flex; align-items: center; justify-content: center;
+              width: 26px; height: 22px; }
+.btn-p:hover, .btn-dos:hover { opacity: 0.85; }
 
 /* Créneau select — largeur fixe, hauteur alignée aux boutons */
-.creneau-select { padding: 0 3px; border: 1px solid #ddd; border-radius: 0;
-                  font-size: 11px; color: #555; flex-shrink: 0;
+.creneau-select { padding: 0 3px; border: 1px solid #ddd; border-radius: 4px;
+                  font-size: 10px; color: #555; flex-shrink: 0;
                   width: 62px; height: 22px; }
 
 /* Montant DH — largeur fixe */
-.montant-badge { font-size: 11px; font-weight: bold; flex-shrink: 0;
+.montant-badge { font-size: 10px; font-weight: bold; flex-shrink: 0;
                  white-space: nowrap; width: 54px; text-align: right; }
 .montant-badge.ok  { color: #27ae60; }
 .montant-badge.non { color: #bbb; }
 
 /* ── Observation : occupe tout l'espace restant, police bleue visible ── */
-.obs-input { flex: 1; min-width: 100px; padding: 2px 7px;
-             border: 1px solid #c5d8ee; border-radius: 0;
+.obs-input { flex: 1; min-width: 120px; padding: 2px 7px;
+             border: 1px solid #c5d8ee; border-radius: 4px;
              font-size: 11px; height: 22px;
              color: #1a4a7a; background: #f5f9ff; }
 .obs-input::placeholder { color: #aac0d8; font-style: italic; }
@@ -468,6 +352,8 @@ input[type=date].date-pick::-webkit-calendar-picker-indicator { filter: invert(1
     <a href="grille_semaine.php"        class="btn-h blue"  >📋 Grille</a>
     <button onclick="voirBiologie()" class="btn-h orange">🧪 Biologie</button>
     <a href="jours_feries.php"          class="btn-h purple">📅 Fériés</a>
+    <a href="site/index.php"            class="btn-h" style="background:#16a085;">🌐 Site</a>
+    <a href="demandes_rdv.php"          class="btn-h" style="background:#c0392b;">📥 Demandes RDV</a>
     <!-- DROITE : horloge puis déconnexion tout au bord -->
     <div style="background:rgba(255,255,255,0.12); border-radius:6px;
                 padding:3px 10px; text-align:center; min-width:130px; flex-shrink:0;">
@@ -581,17 +467,22 @@ function gdAller() {
 
     <!-- ── CRÉNEAUX ── -->
     <div class="col-creneaux">
+        <h4>Créneaux</h4>
         <?php foreach ($creneaux as $cr):
             $nb = $patParCreneau[$cr] ?? 0;
             $cl = $nb === 0 ? 'vert' : ($nb === 1 ? 'jaune' : 'rouge');
         ?>
         <div class="cr-item" onclick="scrollToCreneau('<?= $cr ?>')">
-            <span class="cr-badge <?= $cl ?>"><?= $cr ?></span>
+            <span class="cr-heure"><?= $cr ?></span>
+            <span class="cr-dot <?= $cl ?>"></span>
+            <?php if ($nb): ?><span class="cr-nb"><?= $nb ?></span><?php endif; ?>
         </div>
         <?php endforeach; ?>
         <?php if ($sansCreneau > 0): ?>
-        <div class="cr-item" style="border-top:1px dashed #c0a0d0;padding-top:4px;margin-top:4px;">
-            <span class="cr-badge rouge" style="font-size:9px;line-height:1.15;">Sans<br>heure</span>
+        <div class="cr-item" style="border-top:1px dashed #c0a0d0;margin-top:4px;">
+            <span class="cr-heure" style="font-size:9px;color:#8e44ad;">Sans<br>heure</span>
+            <span class="cr-dot rouge"></span>
+            <span class="cr-nb"><?= $sansCreneau ?></span>
         </div>
         <?php endif; ?>
     </div>
@@ -600,34 +491,130 @@ function gdAller() {
     <div class="col-patients">
     <?php if (empty($patients)): ?>
         <div class="empty">📭 Aucun rendez-vous ce jour</div>
-    <?php else:
-        // Répartition Matin (9h-12h30) / Après-midi (13h-16h) / Sans heure
-        $patMatin = []; $patAM = []; $patSansH = [];
-        foreach ($patients as $pat) {
-            $h = trim($pat['HeureRDV'] ?? '');
-            if (!preg_match('/^(\d{1,2}):(\d{2})/', $h)) { $patSansH[] = $pat; continue; }
-            if ($h < '13:00') $patMatin[] = $pat; else $patAM[] = $pat;
-        }
-    ?>
-        <?php if ($patSansH): ?>
-        <div class="grp-sansheure">
-            <h4 class="titre-demi">Sans heure attribuée — <?= count($patSansH) ?></h4>
-            <?php foreach ($patSansH as $pat) renderCartePatient($pat, $dateAff, $creneaux); ?>
-        </div>
-        <?php endif; ?>
+    <?php else: ?>
 
-        <div class="deux-colonnes">
-            <div class="col-demi">
-                <h4 class="titre-demi">Matinée (9h–12h30) — <?= count($patMatin) ?></h4>
-                <?php if ($patMatin): foreach ($patMatin as $pat) renderCartePatient($pat, $dateAff, $creneaux);
-                      else: ?><div class="empty-demi">Aucun RDV</div><?php endif; ?>
-            </div>
-            <div class="col-demi">
-                <h4 class="titre-demi">Après-midi (13h–16h) — <?= count($patAM) ?></h4>
-                <?php if ($patAM): foreach ($patAM as $pat) renderCartePatient($pat, $dateAff, $creneaux);
-                      else: ?><div class="empty-demi">Aucun RDV</div><?php endif; ?>
-            </div>
-        </div>
+    <?php foreach ($patients as $pat):
+        $estVu     = (bool)$pat['Vu'];
+        $estAbsent = (bool)$pat['SansReponse'];
+        $cardCl    = $estVu ? 'vu' : ($estAbsent ? 'absent' : '');
+        $nomCl     = $estVu ? 'vu' : ($estAbsent ? 'absent' : '');
+        $heure     = trim($pat['HeureRDV'] ?? '');
+        $heureAff  = $heure ?: '—';
+        $tel       = trim($pat['tel'] ?? '');
+        $telRaw    = preg_replace('/\D/', '', $tel);
+        $telWa     = $telRaw ? ('212' . ltrim($telRaw, '0')) : '';
+        $msgWa     = urlencode('Bonjour, rappel RDV le ' . strftime_fr($dateAff) . ' à ' . $heureAff . '. Cabinet Dr Hassan.');
+        $acte      = trim($pat['acte1'] ?? '');
+        $obs       = htmlspecialchars($pat['Observation'] ?? '');
+        $verse     = (float)$pat['montant_verse'];
+    ?>
+    <div class="pat-card <?= $cardCl ?>"
+         id="card-<?= $pat['n_ordon'] ?>"
+         data-nom="<?= strtolower(htmlspecialchars($pat['NOMPRENOM'] ?? '')) ?>"
+         data-id="<?= $pat['id'] ?>"
+         data-heure="<?= $heure ?>">
+
+        <div class="pat-line">
+
+            <!-- 1. Heure -->
+            <span class="pat-heure" id="heure-<?= $pat['n_ordon'] ?>"><?= htmlspecialchars($heureAff) ?></span>
+
+            <!-- 2. N° patient (sans préfixe N°, juste le numéro) -->
+            <span class="pat-num"><?= $pat['id'] ?></span>
+
+            <!-- 3. Téléphone : texte simple, sans emoji -->
+            <?php if ($tel): ?>
+            <span class="pat-tel"><?= htmlspecialchars($tel) ?></span>
+            <?php else: ?>
+            <span class="pat-tel" style="color:#ddd;">—</span>
+            <?php endif; ?>
+
+            <!-- 4. Nom -->
+            <span class="pat-nom <?= $nomCl ?>" id="nom-<?= $pat['n_ordon'] ?>">
+                <?= htmlspecialchars($pat['NOMPRENOM'] ?? '—') ?>
+            </span>
+
+            <!-- 5. Acte — toujours présent pour garder l'alignement -->
+            <span class="pat-acte"><?= $acte ? '🔬 '.htmlspecialchars($acte) : '' ?></span>
+
+            <!-- 6. Bouton Vu -->
+            <button class="btn-p btn-vu" id="btnVu-<?= $pat['n_ordon'] ?>"
+                    title="Marquer comme vu / annuler"
+                    onclick="toggleVu(<?= $pat['n_ordon'] ?>, <?= $estVu?1:0 ?>)">
+                <?= $estVu ? '✅ Vu' : '👁 Vu' ?>
+            </button>
+
+            <!-- 7. Bouton Absent -->
+            <button class="btn-p btn-absent" id="btnAbs-<?= $pat['n_ordon'] ?>"
+                    title="Marquer comme absent / annuler"
+                    onclick="toggleAbsent(<?= $pat['n_ordon'] ?>, <?= $estAbsent?1:0 ?>)">
+                <?= $estAbsent ? '🔴 Abs' : '❌ Abs' ?>
+            </button>
+
+            <!-- 8. Bouton Déplacer — losange SVG -->
+            <button class="btn-p btn-dep"
+                    title="Déplacer le RDV à une autre date"
+                    onclick="deplacerRdv(<?= $pat['n_ordon'] ?>, '<?= $dateAff ?>')">
+                <svg viewBox="0 0 22 16" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:13px;">
+                    <polygon points="11,1 21,8 11,15 1,8" fill="white" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>
+                    <line x1="11" y1="1" x2="11" y2="15" stroke="rgba(0,0,0,0.25)" stroke-width="1.2"/>
+                    <polygon points="11,1 21,8 11,15" fill="rgba(255,255,255,0.55)"/>
+                </svg>
+            </button>
+
+            <!-- 9. Dossier -->
+            <a href="dossier.php?id=<?= $pat['id'] ?>" class="btn-p btn-dos"
+               title="Ouvrir le dossier patient">📋</a>
+
+            <!-- 10. Supprimer -->
+            <button class="btn-p btn-sup"
+                    title="Supprimer ce RDV définitivement"
+                    onclick="supprimerRdv(<?= $pat['n_ordon'] ?>, '<?= htmlspecialchars($pat['NOMPRENOM'] ?? '') ?>')">🗑</button>
+
+            <!-- 11. Créneau horaire -->
+            <select class="creneau-select"
+                    title="Attribuer un créneau horaire"
+                    onchange="changerHeure(<?= $pat['n_ordon'] ?>, this.value)">
+                <option value="">—H—</option>
+                <?php foreach ($creneaux as $cr): ?>
+                <option value="<?= $cr ?>" <?= $heure === $cr ? 'selected' : '' ?>><?= $cr ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- 12. Montant DH -->
+            <span class="montant-badge <?= $verse > 0 ? 'ok' : 'non' ?>"
+                  title="Montant versé ce jour">
+                <?= $verse > 0 ? number_format($verse,0,',',' ').' DH' : '0 DH' ?>
+            </span>
+
+            <!-- 13. Observation -->
+            <input type="text" class="obs-input" placeholder="Observation..."
+                   title="Note libre — sauvegardée automatiquement à la sortie du champ"
+                   value="<?= $obs ?>"
+                   onblur="sauvegarderObs(<?= $pat['n_ordon'] ?>, this.value)">
+
+            <!-- 14. Bouton WhatsApp (tout à droite) — icône SVG officielle -->
+            <?php if ($telWa): ?>
+            <a href="https://wa.me/<?= $telWa ?>?text=<?= $msgWa ?>"
+               target="_blank"
+               class="btn-wa-end has-tel"
+               title="Envoyer WhatsApp à <?= htmlspecialchars($tel) ?>">
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
+                </svg>
+            </a>
+            <?php else: ?>
+            <span class="btn-wa-end no-tel"
+                  title="Pas de numéro disponible">
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2C8.28 2 2 8.28 2 16c0 2.44.65 4.73 1.78 6.72L2 30l7.48-1.96A13.94 13.94 0 0016 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.4a11.35 11.35 0 01-5.78-1.57l-.41-.25-4.44 1.16 1.18-4.32-.27-.44A11.36 11.36 0 014.6 16C4.6 9.7 9.7 4.6 16 4.6S27.4 9.7 27.4 16 22.3 27.4 16 27.4zm6.23-8.5c-.34-.17-2.01-.99-2.32-1.1-.31-.11-.54-.17-.77.17-.22.34-.87 1.1-1.07 1.33-.2.22-.39.25-.73.08-.34-.17-1.43-.53-2.73-1.68-1.01-.9-1.69-2.01-1.89-2.35-.2-.34-.02-.52.15-.69.15-.15.34-.39.51-.59.17-.2.22-.34.34-.57.11-.22.06-.42-.03-.59-.08-.17-.77-1.86-1.06-2.55-.28-.67-.56-.58-.77-.59h-.66c-.22 0-.57.08-.87.42-.31.34-1.17 1.14-1.17 2.78s1.2 3.23 1.36 3.45c.17.22 2.35 3.59 5.7 5.04.8.34 1.42.55 1.9.7.8.25 1.53.22 2.1.13.64-.1 1.97-.81 2.25-1.59.28-.78.28-1.46.2-1.59-.09-.14-.31-.22-.65-.39z"/>
+                </svg>
+            </span>
+            <?php endif; ?>
+
+        </div><!-- /.pat-line -->
+    </div><!-- /.pat-card -->
+    <?php endforeach; ?>
     <?php endif; ?>
     </div>
 </div>
@@ -837,50 +824,38 @@ async function ajax(action, data) {
     return r.json();
 }
 
-// ── Statut (liste déroulante VU / Absent / Déplacer) ───
-async function gererStatut(sel, n, dateRdv) {
-    const val = sel.value;
-
-    // "Déplacer" n'est pas un statut : on ouvre juste la fenêtre existante
-    // et on remet la liste sur le statut réel (vu / absent / vide)
-    if (val === 'deplacer') {
-        deplacerRdv(n, dateRdv);
-        sel.value = sel.dataset.vu === '1' ? 'vu' : (sel.dataset.absent === '1' ? 'absent' : '');
-        return;
-    }
-
+// ── Vu ────────────────────────────────────────────────
+async function toggleVu(n, estVu) {
+    const r = await ajax('toggle_vu', {n_ordon:n, vu: estVu?0:1});
+    if (!r.ok) return;
     const card = document.getElementById('card-'+n);
+    const btn  = document.getElementById('btnVu-'+n);
     const nom  = document.getElementById('nom-'+n);
-    const vouluVu     = val === 'vu';
-    const vouluAbsent = val === 'absent';
-    const etaitVu     = sel.dataset.vu === '1';
-    const etaitAbsent = sel.dataset.absent === '1';
-
-    if (vouluVu !== etaitVu) {
-        const r = await ajax('toggle_vu', {n_ordon:n, vu: vouluVu?1:0});
-        if (!r.ok) { toast('Erreur mise à jour', 'error'); return; }
+    if (!estVu) {
+        card.classList.add('vu'); card.classList.remove('absent');
+        nom.classList.add('vu');  btn.textContent = '✅ Vu';
+    } else {
+        card.classList.remove('vu'); nom.classList.remove('vu');
+        btn.textContent = '👁 Vu';
     }
-    if (vouluAbsent !== etaitAbsent) {
-        const r = await ajax('toggle_absent', {n_ordon:n, absent: vouluAbsent?1:0});
-        if (!r.ok) { toast('Erreur mise à jour', 'error'); return; }
-    }
-
-    sel.dataset.vu = vouluVu ? '1' : '0';
-    sel.dataset.absent = vouluAbsent ? '1' : '0';
-    sel.classList.toggle('is-vu', vouluVu);
-    sel.classList.toggle('is-absent', vouluAbsent);
-    card.classList.remove('vu','absent');
-    nom.classList.remove('vu','absent');
-    if (vouluVu)     { card.classList.add('vu');     nom.classList.add('vu'); }
-    if (vouluAbsent) { card.classList.add('absent'); nom.classList.add('absent'); }
-    toast(vouluVu ? 'Marqué Vu ✅' : vouluAbsent ? 'Marqué Absent 🔴' : 'Statut retiré');
+    toast(estVu ? 'Statut Vu retiré' : 'Marqué Vu ✅');
 }
 
-// ── Ouvrir le dossier par double-clic sur la ligne ─────
-// (ignore le double-clic s'il tombe sur un champ interactif : select, input, bouton, lien)
-function ouvrirDossierDbl(e, id) {
-    if (e.target.closest('select, input, button, a, svg, path, textarea')) return;
-    window.location.href = 'dossier.php?id=' + id;
+// ── Absent ────────────────────────────────────────────
+async function toggleAbsent(n, estAbs) {
+    const r = await ajax('toggle_absent', {n_ordon:n, absent: estAbs?0:1});
+    if (!r.ok) return;
+    const card = document.getElementById('card-'+n);
+    const btn  = document.getElementById('btnAbs-'+n);
+    const nom  = document.getElementById('nom-'+n);
+    if (!estAbs) {
+        card.classList.add('absent'); card.classList.remove('vu');
+        nom.classList.add('absent'); btn.textContent = '🔴 Abs';
+    } else {
+        card.classList.remove('absent'); nom.classList.remove('absent');
+        btn.textContent = '❌ Abs';
+    }
+    toast(estAbs ? 'Statut Absent retiré' : 'Marqué Absent 🔴');
 }
 
 // ── Mettre à jour les points colorés des créneaux ────
@@ -891,14 +866,28 @@ function majCreneaux() {
         const h = c.dataset.heure;
         if (h) comptage[h] = (comptage[h] || 0) + 1;
     });
-    // Mettre à jour chaque ligne créneau (badge unique)
+    // Mettre à jour chaque ligne créneau
     document.querySelectorAll('.cr-item').forEach(item => {
-        const badge = item.querySelector('.cr-badge');
-        if (!badge) return;
-        const heure = badge.textContent.trim();
-        if (!heure || heure.startsWith('Sans')) return; // ligne "Sans heure" non recalculée ici
-        const nb = comptage[heure] || 0;
-        badge.className = 'cr-badge ' + (nb === 0 ? 'vert' : nb === 1 ? 'jaune' : 'rouge');
+        const heure = item.querySelector('.cr-heure')?.textContent.trim();
+        if (!heure) return;
+        const nb  = comptage[heure] || 0;
+        const dot = item.querySelector('.cr-dot');
+        let nbEl  = item.querySelector('.cr-nb');
+        // Couleur du point
+        if (dot) {
+            dot.className = 'cr-dot ' + (nb === 0 ? 'vert' : nb === 1 ? 'jaune' : 'rouge');
+        }
+        // Chiffre à côté
+        if (nb > 0) {
+            if (!nbEl) {
+                nbEl = document.createElement('span');
+                nbEl.className = 'cr-nb';
+                item.appendChild(nbEl);
+            }
+            nbEl.textContent = nb;
+        } else {
+            if (nbEl) nbEl.remove();
+        }
     });
 }
 
@@ -1011,9 +1000,9 @@ function rechercherPatientAjout(v) {
         document.getElementById('addResults').innerHTML = r.patients.length
             ? r.patients.map(p =>
                 `<div onclick="ajouterPatient(${p.id},'${p.nom.replace(/'/g,"\\'")}','${dateAff}')"
-                      style="padding:6px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:11px;color:#222;"
+                      style="padding:6px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:11px;"
                       onmouseover="this.style.background='#f0f4f8'" onmouseout="this.style.background=''">
-                    <strong style="color:#1a4a7a;">${p.nom}</strong> <span style="color:#888;">N°${p.id}</span>
+                    <strong>${p.nom}</strong> <span style="color:#888;">N°${p.id}</span>
                  </div>`).join('')
             : '<div style="padding:10px;color:#aaa;font-size:11px;">Aucun résultat</div>';
     }, 300);
