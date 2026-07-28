@@ -8,12 +8,64 @@ $jourAujourdhui = $jours[$jourIndex];
 $horaireAujourdhui = horaireDuJour($cfg, $jourAujourdhui);
 ?>
 
-<section class="hero">
-    <h1>Bienvenue au <?= htmlspecialchars($nomCabinet) ?></h1>
-    <p><?= htmlspecialchars($cfg['Cabinet_Description'] ?? '') ?></p>
-    <div class="hero-boutons">
-        <a href="rendez-vous.php" class="btn btn-primaire">Prendre rendez-vous</a>
-        <a href="cabinet.php" class="btn btn-secondaire">Découvrir le cabinet</a>
+<style>
+.hero-nouveau { background:#1a1aE0; color:#fff; padding:14px 20px 18px; text-align:center; }
+.hero-nouveau .titre-top { font-weight:800; font-size:15px; line-height:1.5; letter-spacing:0.3px; }
+.hero-mid { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; max-width:1000px; margin:14px auto 0; text-align:left; }
+.hero-bio-fr, .hero-bio-ar { flex:1; font-size:12px; line-height:1.6; }
+.hero-bio-fr p, .hero-bio-ar p { margin:2px 0; font-weight:700; }
+.hero-bio-fr .nom { font-size:15px; }
+.hero-bio-fr .metier { color:#ff5555; }
+.hero-bio-ar { text-align:right; color:#ff8080; }
+.hero-bio-ar .nom { color:#fff; font-size:15px; }
+.hero-heart { flex:0 0 auto; font-size:70px; line-height:1; margin-top:4px; }
+.hero-boutons-nouveau { display:flex; justify-content:center; gap:0; margin-top:16px; flex-wrap:wrap; }
+.btn-hero { display:inline-block; padding:12px 26px; font-weight:800; font-size:14px; text-decoration:none; cursor:default; }
+.btn-hero.rouge  { background:#e02020; color:#fff; }
+.btn-hero.bleu   { background:#3aa0e0; color:#fff; }
+.btn-hero.jaune  { background:#ffe680; color:#333; }
+a.btn-hero:hover { filter:brightness(1.08); cursor:pointer; }
+@media (max-width:700px) {
+    .hero-mid { flex-direction:column; align-items:center; text-align:center; }
+    .hero-bio-ar { text-align:center; }
+}
+</style>
+
+<section class="hero-nouveau">
+    <div class="titre-top">
+        CABINET DE CARDIOLOGIE ET D'EXPLORATIONS CARDIO-VASCULAIRES :<br>
+        ECG, HOLTERS : TENSIONNEL ET RYTHMIQUE,<br>
+        ECHODOPLER CARDIAQUE ET VASCULAIRE, ADULTES ET ENFANTS
+    </div>
+
+    <div class="hero-mid">
+        <div class="hero-bio-fr">
+            <p class="nom">Dr Hassan Hlimi</p>
+            <p class="metier">Cardiologue</p>
+            <p>Lauréat de la faculté de médecine de Rabat</p>
+            <p>Diplômé de la faculté de médecine de Paris</p>
+            <p>Spécialiste des maladies du cœur et des vaisseaux</p>
+            <p>Diplômé de cardiologie pédiatrique</p>
+            <p>Ancien attaché des hôpitaux de Paris</p>
+        </div>
+
+        <div class="hero-heart">🫀</div>
+
+        <div class="hero-bio-ar" dir="rtl">
+            <p class="nom">الدكتور حليمي حسن</p>
+            <p>اختصاصي في أمراض القلب لدى الكبار والأطفال</p>
+            <p>خريج كلية الطب الرباط</p>
+            <p>حائز على دبلوم أمراض القلب والشرايين بباريس</p>
+            <p>أخصائي في الفحص بالصدى للقلب والشرايين بباريس</p>
+            <p>اختصاصي في أمراض القلب لدى الأطفال</p>
+            <p>اختصاصي سابقا بمستشفيات باريس</p>
+        </div>
+    </div>
+
+    <div class="hero-boutons-nouveau">
+        <a href="rendez-vous.php" class="btn-hero rouge">Prendre Rendez-vous</a>
+        <span class="btn-hero bleu">Bien venue</span>
+        <a href="cabinet.php" class="btn-hero jaune">Découvrir le cabinet</a>
     </div>
 </section>
 
