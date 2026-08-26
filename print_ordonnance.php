@@ -81,6 +81,12 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         color: #111;
         background: white;
         width: 147mm;
+    }
+
+    /* ══ BLOC PAGE : porte la hauteur/marges + sert d'ancrage au pied de page ══ */
+    .page {
+        position: relative;   /* ancrage pour .rdv-footer (position:absolute) */
+        width: 147mm;
         min-height: 212mm;
         padding-top:    5cm;    /* en-tête physique */
         padding-bottom: 2cm;    /* pied physique */
@@ -152,7 +158,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 
     /* ══ RDV BAS DE PAGE ══ */
     .rdv-footer {
-        position: fixed;
+        position: absolute;
         bottom: 2cm;
         left:  1cm;
         right: 1cm;
@@ -201,6 +207,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 </style>
 </head>
 <body>
+<div class="page">
 
 <!-- ══ EN-TÊTE DONNÉES ══ -->
 <div class="entete-donnees">
@@ -255,6 +262,8 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     </div>
 </div>
 <?php endif; ?>
+
+</div><!-- /.page -->
 
 <script>
     // Impression automatique à l'ouverture

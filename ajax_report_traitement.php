@@ -26,13 +26,26 @@ $db = getDB();
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 try {
-    // 1. Récupérer l'ordonnance courante (la plus récente)
-    $stmtOrd = $db->prepare("SELECT TOP 1 * FROM ORD WHERE id = ? ORDER BY n_ordon DESC");
+    // 1. Récupérer l'ordonnance courante = la dernière ordonnance du patient
+    // qui contient RÉELLEMENT des médicaments dans PROD.
+    // Correction 26/08/2026 (v2) : trier par date_ordon ne suffisait pas, car la table ORD
+    // contient aussi des lignes créées pour un simple RDV pris par téléphone/sur place
+    // (via Date_Rdv), sans aucun médicament. Si un tel RDV est plus récent que la dernière
+    // vraie prescription, il était choisi en premier et donnait une ordonnance vide.
+    // On filtre donc avec EXISTS (...) pour ignorer ces lignes "RDV seul" et ne retenir
+    // que les vraies ordonnances (celles qui ont au moins une ligne dans PROD).
+    $stmtOrd = $db->prepare("
+        SELECT TOP 1 *
+        FROM ORD o
+        WHERE o.id = ?
+          AND EXISTS (SELECT 1 FROM PROD p WHERE p.N_ord = o.n_ordon)
+        ORDER BY o.date_ordon DESC
+    ");
     $stmtOrd->execute([$id]);
     $ordCourante = $stmtOrd->fetch(PDO::FETCH_ASSOC);
 
     if (!$ordCourante) {
-        echo json_encode(['success' => false, 'error' => 'Aucune ordonnance trouvée']);
+        echo json_encode(['success' => false, 'error' => 'Aucune ordonnance avec médicaments trouvée pour ce patient']);
         exit;
     }
 
