@@ -490,10 +490,16 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
     <a href="logout.php" class="btn-h red" title="Déconnexion">⏻</a>
 </div>
 
+<!-- BANDE TITRE : NOM DU PATIENT -->
+<div style="background:var(--th-bg-card);padding:10px 16px;border-bottom:2px solid var(--th-color-primary);">
+    <div style="font-size:24px;font-weight:bold;color:var(--th-color-primary);letter-spacing:0.3px;">
+        <?= htmlspecialchars($patient['NOMPRENOM']) ?>
+    </div>
+</div>
+
 <!-- BANDEAU PATIENT -->
 <div class="patient-bar">
     <div class="info"><label>N°</label><span><?= $id ?></span></div>
-    <div class="info"><label>Nom</label><span><?= htmlspecialchars($patient['NOMPRENOM']) ?></span></div>
     <div class="info"><label>Âge</label><span><?= $age ?> ans</span></div>
     <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
@@ -741,6 +747,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 
         <!-- NAVIGATION ORDONNANCE (vue accueil) -->
         <div class="nav-ord-barre">
+            <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&ord='+this.value;"
+                    title="Aller directement à une date d'ordonnance"
+                    style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:170px;">
+                <option value="">— date (<?= count($ordonnances) ?>) —</option>
+                <?php foreach ($ordonnances as $i => $o):
+                    $tsOSel = strtotime($o['date_ordon'] ?? '');
+                    $dateAffOSel = ($tsOSel && $tsOSel > 86400) ? date('d/m/Y', $tsOSel) : '—';
+                    $numeroOSel = count($ordonnances) - $i;
+                ?>
+                <option value="<?= (int)$o['n_ordon'] ?>"<?= ((int)$o['n_ordon'] === $nOrd) ? ' selected' : '' ?>><?= $dateAffOSel ?> (<?= $numeroOSel ?>/<?= count($ordonnances) ?>)</option>
+                <?php endforeach; ?>
+            </select>
             <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>
@@ -1274,6 +1292,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
 
         <!-- NAVIGATION ORDONNANCE -->
         <div class="nav-ord-barre">
+            <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&ord='+this.value;"
+                    title="Aller directement à une date d'ordonnance"
+                    style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:170px;">
+                <option value="">— date (<?= count($ordonnances) ?>) —</option>
+                <?php foreach ($ordonnances as $i => $o):
+                    $tsOSel2 = strtotime($o['date_ordon'] ?? '');
+                    $dateAffOSel2 = ($tsOSel2 && $tsOSel2 > 86400) ? date('d/m/Y', $tsOSel2) : '—';
+                    $numeroOSel2 = count($ordonnances) - $i;
+                ?>
+                <option value="<?= (int)$o['n_ordon'] ?>"<?= ((int)$o['n_ordon'] === $nOrd) ? ' selected' : '' ?>><?= $dateAffOSel2 ?> (<?= $numeroOSel2 ?>/<?= count($ordonnances) ?>)</option>
+                <?php endforeach; ?>
+            </select>
             <a href="?id=<?= $id ?>&ord=<?= $ordPremiere ?>" class="nav-btn" title="Première ordonnance">|◀</a>
             <a href="?id=<?= $id ?>&ord=<?= $ordPrev ?>"     class="nav-btn" title="Précédente">◀</a>
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:3px 10px;white-space:nowrap;background:var(--th-bg-link-hover);border-radius:4px;border:1px solid var(--th-border-statsbar);"><?= (count($ordonnances) - $idxOrd) ?> / <?= count($ordonnances) ?></span>

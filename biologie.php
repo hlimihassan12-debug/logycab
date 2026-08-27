@@ -260,10 +260,16 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
     <a href="logout.php" class="btn-h red" title="Déconnexion">⏻</a>
 </div>
 
+<!-- BANDE TITRE : NOM DU PATIENT -->
+<div style="background:var(--th-bg-card);padding:10px 16px;border-bottom:2px solid var(--th-color-primary);">
+    <div style="font-size:24px;font-weight:bold;color:var(--th-color-primary);letter-spacing:0.3px;">
+        <?= htmlspecialchars($patient['NOMPRENOM']) ?>
+    </div>
+</div>
+
 <!-- BANDEAU PATIENT -->
 <div class="patient-bar">
     <span class="num">N° <?= $id ?></span>
-    <span class="nom"><?= htmlspecialchars($patient['NOMPRENOM']) ?></span>
     <span class="det"><?= $age ?> ans</span>
     <span class="det">DDN <?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span>
     <span class="det">CIN <?= htmlspecialchars($patient['CIN'] ?? '—') ?></span>

@@ -411,10 +411,16 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <a href="logout.php" class="btn-retour" style="background:#e74c3c;margin-left:0;" title="Déconnexion">⏻</a>
 </div>
 
+<!-- BANDE TITRE : NOM DU PATIENT -->
+<div style="background:var(--th-bg-card);padding:10px 16px;border-bottom:2px solid var(--th-color-primary);">
+    <div style="font-size:24px;font-weight:bold;color:var(--th-color-primary);letter-spacing:0.3px;">
+        <?= htmlspecialchars($nom) ?>
+    </div>
+</div>
+
 <!-- BANDEAU PATIENT + NAVIGATION GLOBALE + ACTIONS -->
 <div class="patient-bar">
     <div class="info"><label>N°</label><span><?= $id ?></span></div>
-    <div class="info"><label>Nom</label><span><?= htmlspecialchars($nom) ?></span></div>
     <div class="info"><label>Âge</label><span><?= $age ?> ans</span></div>
     <div class="info"><label>DDN</label><span><?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span></div>
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
