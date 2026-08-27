@@ -725,13 +725,13 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
-                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">↺ 6M</button>
+                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:15px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
             </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;">
-                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Médicament</span>
+                <span></span>
                 <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Posologie</span>
                 <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Durée</span>
             </div>
@@ -1110,9 +1110,9 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         <div class="champ" style="margin-top:4px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <label style="font-size:11px;font-weight:bold;color:var(--th-color-primary);margin:0;">💊 Médicaments (<?= count($medicaments) ?>)</label>
-                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 3M</button>
-                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;">↺ 6M</button>
-                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
+                <button type="button" onclick="reportTraitement(3,<?= $id ?>)" style="background:#e67e22;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">↺ 3M</button>
+                <button type="button" onclick="reportTraitement(6,<?= $id ?>)" style="background:#c0392b;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">↺ 6M</button>
+                <a href="print_ordonnance.php?id=<?= $id ?>&ord=<?= $nOrd ?>" target="_blank" style="background:#1a4a7a;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:15px;font-weight:bold;text-decoration:none;" title="Imprimer">🖨️</a>
                 <?php if ($ordCourante && !empty($ordCourante['date_ordon'])): ?>
                 <?php
                     $tsOrd2 = strtotime($ordCourante['date_ordon']);
@@ -1131,7 +1131,7 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
             </div>
             <?php if (!empty($medicaments)): ?>
             <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:4px;margin-bottom:4px;margin-top:4px;">
-                <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Médicament</span>
+                <span></span>
                 <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Posologie</span>
                 <span style="font-size:10px;color:var(--th-color-text-muted);text-transform:uppercase;">Durée</span>
             </div>
@@ -1403,7 +1403,18 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <p style="color:var(--th-color-text-muted);font-size:15px;">Aucun examen enregistré</p>
         <?php endif; ?>
         <!-- Navigation Examen en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
+        <div style="display:flex;justify-content:center;align-items:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;flex-wrap:wrap;">
+            <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&exam='+this.value;"
+                    title="Aller directement à une date d'examen"
+                    style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:150px;">
+                <option value="">— date (<?= count($examens) ?>) —</option>
+                <?php foreach ($examens as $i => $e):
+                    $tsExSel = strtotime($e['DateExam'] ?? '');
+                    $dateAffExSel = ($tsExSel && $tsExSel > 86400) ? date('d/m/Y', $tsExSel) : '—';
+                ?>
+                <option value="<?= (int)$e['N1'] ?>"<?= ((int)$e['N1'] === $nExam) ? ' selected' : '' ?>><?= $dateAffExSel ?> (<?= $i+1 ?>/<?= count($examens) ?>)</option>
+                <?php endforeach; ?>
+            </select>
             <a href="?id=<?= $id ?>&exam=<?= $examens ? $examens[0]['N1'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</a>
             <a href="?id=<?= $id ?>&exam=<?= $examens && $idxExam > 0 ? $examens[$idxExam-1]['N1'] : $nExam ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent (plus récent)">◀</a>
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($examens) ? ($idxExam+1).' / '.count($examens) : '0' ?></span>
@@ -1432,7 +1443,18 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <p style="color:var(--th-color-text-muted);font-size:14px;">Aucun ECG enregistré</p>
         <?php endif; ?>
         <!-- Navigation ECG en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
+        <div style="display:flex;justify-content:center;align-items:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;flex-wrap:wrap;">
+            <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&ecg='+this.value;"
+                    title="Aller directement à une date d'ECG"
+                    style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:150px;">
+                <option value="">— date (<?= count($ecgs) ?>) —</option>
+                <?php foreach ($ecgs as $i => $e):
+                    $tsEcgSel = strtotime($e['Date ECG'] ?? '');
+                    $dateAffEcgSel = ($tsEcgSel && $tsEcgSel > 86400) ? date('d/m/Y', $tsEcgSel) : '—';
+                ?>
+                <option value="<?= (int)$e['N°'] ?>"<?= ((int)$e['N°'] === $nECG) ? ' selected' : '' ?>><?= $dateAffEcgSel ?> (<?= $i+1 ?>/<?= count($ecgs) ?>)</option>
+                <?php endforeach; ?>
+            </select>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs ? $ecgs[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</a>
             <a href="?id=<?= $id ?>&ecg=<?= $ecgs && $idxECG > 0 ? $ecgs[$idxECG-1]['N°'] : $nECG ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent (plus récent)">◀</a>
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($ecgs) ? ($idxECG+1).' / '.count($ecgs) : '0' ?></span>
@@ -1462,7 +1484,18 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             <p style="color:var(--th-color-text-muted);font-size:14px;">Aucun Echo enregistré</p>
         <?php endif; ?>
         <!-- Navigation Echo en bas -->
-        <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;">
+        <div style="display:flex;justify-content:center;align-items:center;gap:2px;margin-top:4px;padding-top:4px;border-top:1px solid #eee;flex-wrap:wrap;">
+            <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&echo='+this.value;"
+                    title="Aller directement à une date d'Echo"
+                    style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:150px;">
+                <option value="">— date (<?= count($echos) ?>) —</option>
+                <?php foreach ($echos as $i => $e):
+                    $tsEchoSel = strtotime($e['DATEchog'] ?? '');
+                    $dateAffEchoSel = ($tsEchoSel && $tsEchoSel > 86400) ? date('d/m/Y', $tsEchoSel) : '—';
+                ?>
+                <option value="<?= (int)$e['N°'] ?>"<?= ((int)$e['N°'] === $nEcho) ? ' selected' : '' ?>><?= $dateAffEchoSel ?> (<?= $i+1 ?>/<?= count($echos) ?>)</option>
+                <?php endforeach; ?>
+            </select>
             <a href="?id=<?= $id ?>&echo=<?= $echos ? $echos[0]['N°'] : 0 ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</a>
             <a href="?id=<?= $id ?>&echo=<?= $echos && $idxEcho > 0 ? $echos[$idxEcho-1]['N°'] : $nEcho ?>" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent (plus récent)">◀</a>
             <span style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;"><?= count($echos) ? ($idxEcho+1).' / '.count($echos) : '0' ?></span>
@@ -1507,7 +1540,12 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
             </div>
  
             <!-- Navigation entre bilans -->
-            <div style="display:flex;justify-content:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;">
+            <div style="display:flex;justify-content:center;align-items:center;gap:2px;margin-top:5px;padding-top:4px;border-top:1px solid #eee;flex-wrap:wrap;">
+                <select id="bio-select-date" onchange="if(this.value!=='') bioAllerDirect(parseInt(this.value));"
+                        title="Aller directement à une date de bilan"
+                        style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:150px;">
+                    <option value="">— date (<?= count($bilansListe) ?>) —</option>
+                </select>
                 <button onclick="bioNav('first')" class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Plus récent">|◀</button>
                 <button onclick="bioNav('prev')"  class="nav-btn" style="padding:1px 4px;font-size:12px;" title="Précédent">◀</button>
                 <span id="bio-nav-pos" style="font-size:12px;color:var(--th-color-primary);font-weight:bold;padding:0 4px;white-space:nowrap;">
@@ -2502,7 +2540,27 @@ const bioBilans = <?= json_encode(array_map(fn($b) => [
     'nb_total'   => (int)$b['nb_total'],
 ], $bilansListe)) ?>;
 let bioIdx = 0; // 0 = bilan le plus récent
- 
+
+/* Remplir le menu déroulant de dates au chargement */
+document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.getElementById('bio-select-date');
+    if (sel && bioBilans.length) {
+        bioBilans.forEach(function(b, i) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = b.date_fr + ' (' + (i+1) + '/' + bioBilans.length + ')';
+            sel.appendChild(opt);
+        });
+    }
+});
+
+/* Aller directement à un bilan choisi dans le menu déroulant */
+function bioAllerDirect(idx) {
+    if (!bioBilans.length || idx < 0 || idx >= bioBilans.length) return;
+    bioIdx = idx;
+    bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
+}
+
 function bioNav(dir) {
     if (!bioBilans.length) return;
     if      (dir === 'first') bioIdx = 0;
@@ -2510,6 +2568,8 @@ function bioNav(dir) {
     else if (dir === 'prev')  bioIdx = Math.max(0, bioIdx - 1);
     else if (dir === 'next')  bioIdx = Math.min(bioBilans.length - 1, bioIdx + 1);
     bioCharger(bioBilans[bioIdx].n_bilan, bioIdx);
+    const sel = document.getElementById('bio-select-date');
+    if (sel) sel.value = bioIdx;
 }
  
 async function bioCharger(n_bilan, idx) {
