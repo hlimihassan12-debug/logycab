@@ -898,7 +898,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </tr>
                 </tfoot>
             </table>
-            <div style="display:flex;justify-content:center;gap:2px;margin-top:4px;">
+            <div style="display:flex;justify-content:center;align-items:center;gap:2px;margin-top:4px;flex-wrap:wrap;">
+                <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&fact='+this.value;"
+                        title="Aller directement à une date de facture"
+                        style="font-size:10px;padding:2px 3px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:130px;">
+                    <option value="">— date (<?= count($factures) ?>) —</option>
+                    <?php foreach ($factures as $iF => $fSel):
+                        $tsFSel = strtotime($fSel['date_facture'] ?? '');
+                        $dateAffFSel = ($tsFSel && $tsFSel > 86400) ? date('d/m/Y', $tsFSel) : '—';
+                    ?>
+                    <option value="<?= (int)$fSel['n_facture'] ?>"<?= ((int)$fSel['n_facture'] === $nFact) ? ' selected' : '' ?>><?= $dateAffFSel ?> (<?= $iF+1 ?>/<?= count($factures) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
                 <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
@@ -1204,7 +1215,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </tr>
                 </tfoot>
             </table>
-            <div style="display:flex;justify-content:center;gap:2px;margin-top:6px;">
+            <div style="display:flex;justify-content:center;align-items:center;gap:2px;margin-top:6px;flex-wrap:wrap;">
+                <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&fact='+this.value;"
+                        title="Aller directement à une date de facture"
+                        style="font-size:10px;padding:2px 3px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:130px;">
+                    <option value="">— date (<?= count($factures) ?>) —</option>
+                    <?php foreach ($factures as $iF2 => $fSel2):
+                        $tsFSel2 = strtotime($fSel2['date_facture'] ?? '');
+                        $dateAffFSel2 = ($tsFSel2 && $tsFSel2 > 86400) ? date('d/m/Y', $tsFSel2) : '—';
+                    ?>
+                    <option value="<?= (int)$fSel2['n_facture'] ?>"<?= ((int)$fSel2['n_facture'] === $nFact) ? ' selected' : '' ?>><?= $dateAffFSel2 ?> (<?= $iF2+1 ?>/<?= count($factures) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
                 <a href="?id=<?= $id ?>&fact=<?= $factPremiere ?>" class="nav-btn" style="padding:2px 5px;font-size:10px;">|◀</a>
                 <a href="?id=<?= $id ?>&fact=<?= $factPrev ?>"     class="nav-btn" style="padding:2px 5px;font-size:10px;">◀</a>
                 <span style="font-size:10px;color:var(--th-color-primary);font-weight:bold;padding:2px 5px;white-space:nowrap;"><?= ($idxFact+1) ?> / <?= count($factures) ?></span>
