@@ -80,10 +80,15 @@ $stmtLastECG->execute([$id]); $lastECG = $stmtLastECG->fetchColumn();
 if (!$lastECG || (new DateTime())->diff(new DateTime($lastECG))->days > 30) {
     $actesSuggeres[] = ['acte' => 'ECG', 'derniere' => $lastECG];
 }
-$stmtLastEDC = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%EDC%' ORDER BY date_ordon DESC");
+$stmtLastEDC = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%EDC%' AND acte1 NOT LIKE '%PED%' ORDER BY date_ordon DESC");
 $stmtLastEDC->execute([$id]); $lastEDC = $stmtLastEDC->fetchColumn();
 if (!$lastEDC || (new DateTime())->diff(new DateTime($lastEDC))->days > 335) {
     $actesSuggeres[] = ['acte' => 'EDC', 'derniere' => $lastEDC];
+}
+$stmtLastEDCPED = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%EDC%' AND acte1 LIKE '%PED%' ORDER BY date_ordon DESC");
+$stmtLastEDCPED->execute([$id]); $lastEDCPED = $stmtLastEDCPED->fetchColumn();
+if ($lastEDCPED && (new DateTime())->diff(new DateTime($lastEDCPED))->days > 335) {
+    $actesSuggeres[] = ['acte' => 'EDC PED', 'derniere' => $lastEDCPED];
 }
 $stmtLastDTSA = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%DTSA%' ORDER BY date_ordon DESC");
 $stmtLastDTSA->execute([$id]); $lastDTSA = $stmtLastDTSA->fetchColumn();
@@ -91,12 +96,13 @@ if (!$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335) {
     $actesSuggeres[] = ['acte' => 'DTSA', 'derniere' => $lastDTSA];
 }
 
-// ── HISTORIQUE ACTES ──
+// ── HISTORIQUE ACTES ── (n_acte exacts du catalogue t_acte_simplifiée, plus fiable qu'un LIKE sur le libellé)
+// 65=ECG, 66=ECHO-CŒUR (EDC adulte), 76=ECHO-CŒUR PEDIATRIQUE (EDC péd), 69=DOPPLER DES VAISSEAUX DU COU (DTSA)
 $stmtHistECG = $db->prepare("
     SELECT da.[date-H] AS dt FROM detail_acte da
     JOIN facture f ON da.N_fact = f.n_facture
     JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
-    WHERE f.id = ? AND a.ACTE LIKE '%ECG%' AND da.[date-H] IS NOT NULL
+    WHERE f.id = ? AND a.n_acte = 65 AND da.[date-H] IS NOT NULL
     ORDER BY da.[date-H] DESC");
 $stmtHistECG->execute([$id]); $histECG = $stmtHistECG->fetchAll();
 
@@ -104,15 +110,23 @@ $stmtHistEDC = $db->prepare("
     SELECT da.[date-H] AS dt FROM detail_acte da
     JOIN facture f ON da.N_fact = f.n_facture
     JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
-    WHERE f.id = ? AND a.ACTE LIKE '%EDC%' AND da.[date-H] IS NOT NULL
+    WHERE f.id = ? AND a.n_acte = 66 AND da.[date-H] IS NOT NULL
     ORDER BY da.[date-H] DESC");
 $stmtHistEDC->execute([$id]); $histEDC = $stmtHistEDC->fetchAll();
+
+$stmtHistEDCPED = $db->prepare("
+    SELECT da.[date-H] AS dt FROM detail_acte da
+    JOIN facture f ON da.N_fact = f.n_facture
+    JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
+    WHERE f.id = ? AND a.n_acte = 76 AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC");
+$stmtHistEDCPED->execute([$id]); $histEDCPED = $stmtHistEDCPED->fetchAll();
 
 $stmtHistDTSA = $db->prepare("
     SELECT da.[date-H] AS dt FROM detail_acte da
     JOIN facture f ON da.N_fact = f.n_facture
     JOIN t_acte_simplifiée a ON da.ACTE = a.n_acte
-    WHERE f.id = ? AND a.ACTE LIKE '%DTSA%' AND da.[date-H] IS NOT NULL
+    WHERE f.id = ? AND a.n_acte = 69 AND da.[date-H] IS NOT NULL
     ORDER BY da.[date-H] DESC");
 $stmtHistDTSA->execute([$id]); $histDTSA = $stmtHistDTSA->fetchAll();
 
@@ -280,12 +294,15 @@ if ($ordPrecedente) {
         $stmtDF->execute([$id, $dateOrdPrec, $dateOrdPrec]);
         $factPrec = $stmtDF->fetch();
         if ($factPrec) {
-            $stmtActesPrec = $db->prepare("SELECT a.ACTE FROM detail_acte d LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte WHERE d.N_fact = ?");
+            $stmtActesPrec = $db->prepare("SELECT a.n_acte, a.ACTE FROM detail_acte d LEFT JOIN t_acte_simplifiée a ON d.ACTE = a.n_acte WHERE d.N_fact = ?");
             $stmtActesPrec->execute([$factPrec['n_facture']]);
-            $dernActesFact = $stmtActesPrec->fetchAll(PDO::FETCH_COLUMN);
+            $dernActesRows = $stmtActesPrec->fetchAll();
+            $dernActesFact = array_column($dernActesRows, 'ACTE');   // libellés, gardés pour l'affichage texte existant
+            $dernActesNums = array_column($dernActesRows, 'n_acte'); // n_acte, pour les comparaisons fiables ECG/EDC/EDC PED/DTSA
         }
     }
 }
+$dernActesNums = $dernActesNums ?? [];
 
 $delaiVisite = null;
 $delaiCouleur = '#27ae60';
@@ -694,23 +711,27 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 $rdvp_delai = $m > 0 ? $m.'M'.($j>0?' '.$j.'j':'') : $j.'j';
             }
         }
-        // Actes Dernière visite
-        $dv_acte_ecg  = in_array('ECG',  $dernActesFact) ? 'ECG'  : '—';
-        $dv_acte_edc  = in_array('EDC',  $dernActesFact) ? 'EDC'  : '—';
-        $dv_acte_dtsa = in_array('DTSA', $dernActesFact) ? 'DTSA' : '—';
-        // Actes RDV prévu
+        // Actes Dernière visite (comparaison sur n_acte, fiable — 65=ECG, 66=EDC, 76=EDC PED, 69=DTSA)
+        $dv_acte_ecg     = in_array(65, $dernActesNums) ? 'ECG'     : '—';
+        $dv_acte_edc     = in_array(66, $dernActesNums) ? 'EDC'     : '—';
+        $dv_acte_edc_ped = in_array(76, $dernActesNums) ? 'EDC PÉD' : '—';
+        $dv_acte_dtsa    = in_array(69, $dernActesNums) ? 'DTSA'    : '—';
+        // Actes RDV prévu (texte libre acte1 — "PED" distingue EDC péd de EDC adulte)
         $rdvp_acte_str = $ordPrecedente['acte1'] ?? '';
-        $rdvp_ecg  = (strpos($rdvp_acte_str,'ECG')!==false)  ? 'ECG'  : '—';
-        $rdvp_edc  = (strpos($rdvp_acte_str,'EDC')!==false)  ? 'EDC'  : '—';
-        $rdvp_dtsa = (strpos($rdvp_acte_str,'DTSA')!==false) ? 'DTSA' : '—';
-        // Actes Actuel (suggérés)
-        $act_ecg  = in_array('ECG',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">ECG</span>'  : '<span style="color:var(--th-col-success);">✓</span>';
-        $act_edc  = in_array('EDC',  $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">EDC</span>'  : '<span style="color:var(--th-col-success);">✓</span>';
-        $act_dtsa = in_array('DTSA', $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">DTSA</span>' : '<span style="color:var(--th-col-success);">✓</span>';
+        $rdvp_ecg     = (strpos($rdvp_acte_str,'ECG')!==false)  ? 'ECG'  : '—';
+        $rdvp_edc     = (strpos($rdvp_acte_str,'EDC')!==false && strpos($rdvp_acte_str,'PED')===false) ? 'EDC' : '—';
+        $rdvp_edc_ped = (strpos($rdvp_acte_str,'EDC')!==false && strpos($rdvp_acte_str,'PED')!==false) ? 'EDC PÉD' : '—';
+        $rdvp_dtsa    = (strpos($rdvp_acte_str,'DTSA')!==false) ? 'DTSA' : '—';
+        // Actes Actuel (suggérés / rappels)
+        $act_ecg     = in_array('ECG',     $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">ECG</span>'     : '<span style="color:var(--th-col-success);">✓</span>';
+        $act_edc     = in_array('EDC',     $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">EDC</span>'     : '<span style="color:var(--th-col-success);">✓</span>';
+        $act_edc_ped = in_array('EDC PED', $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">EDC PÉD</span>' : '<span style="color:var(--th-col-success);">✓</span>';
+        $act_dtsa    = in_array('DTSA',    $acteSugActuel) ? '<span style="color:#e74c3c;font-weight:bold;">DTSA</span>'    : '<span style="color:var(--th-col-success);">✓</span>';
         // Totaux historique
-        $tot_ecg  = count($histECG);
-        $tot_edc  = count($histEDC);
-        $tot_dtsa = count($histDTSA);
+        $tot_ecg     = count($histECG);
+        $tot_edc     = count($histEDC);
+        $tot_edc_ped = count($histEDCPED);
+        $tot_dtsa    = count($histDTSA);
         // Date du jour avec jour de la semaine (colonne Actuel)
         $dateAujFr = dateAvecJour(time());
         // RDV prochain existant
@@ -839,6 +860,14 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edc"><span style="color:#ccc;">—</span></td>
+                </tr>
+                <!-- Ligne EDC PÉD -->
+                <tr>
+                    <td>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc_ped!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc_ped ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc_ped!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc_ped ?></span></td>
+                    <td class="col-visite"><?= $act_edc_ped ?></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edcped"><span style="color:#ccc;">—</span></td>
                 </tr>
                 <!-- Ligne DTSA -->
                 <tr>
@@ -1104,6 +1133,14 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
+                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                </tr>
+                <!-- Ligne EDC PÉD -->
+                <tr>
+                    <td>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc_ped!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc_ped ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc_ped!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc_ped ?></span></td>
+                    <td class="col-visite"><?= $act_edc_ped ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
                 <!-- Ligne DTSA -->
@@ -1649,7 +1686,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
                        style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                    <?php foreach (['ECG','EDC','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
+                    <?php foreach (['ECG','EDC','EDC PED','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
                     <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
@@ -2726,7 +2763,7 @@ function calcNbrJAcc() {
                        placeholder="Acte…"
                        style="width:100%;padding:4px 8px;border:1px solid var(--th-col-rdvn);border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                    <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
+                    <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','EDC PED','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
                     <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
                         style="background:var(--th-col-rdvn);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
