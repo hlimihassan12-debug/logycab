@@ -130,6 +130,28 @@ $stmtHistDTSA = $db->prepare("
     ORDER BY da.[date-H] DESC");
 $stmtHistDTSA->execute([$id]); $histDTSA = $stmtHistDTSA->fetchAll();
 
+// ── AUTRES ACTES SUIVIS (sans règle de relance — affichés seulement s'ils ont déjà été réalisés) ──
+// 68=DVMI, 67=DAMI, 75=MAPA, 74=DAR, 43=CM, 77=IV, 44=C2
+$autresActes = [
+    68 => ['label' => 'DVMI', 'emoji' => '🦵'],
+    67 => ['label' => 'DAMI', 'emoji' => '🦶'],
+    75 => ['label' => 'MAPA', 'emoji' => '📈'],
+    74 => ['label' => 'DAR',  'emoji' => '🩸'],
+    43 => ['label' => 'CM',   'emoji' => '📄'],
+    77 => ['label' => 'IV',   'emoji' => '💉'],
+    44 => ['label' => 'C2',  'emoji' => '🗣️'],
+];
+$stmtHistAutre = $db->prepare("
+    SELECT da.[date-H] AS dt FROM detail_acte da
+    JOIN facture f ON da.N_fact = f.n_facture
+    WHERE f.id = ? AND da.ACTE = ? AND da.[date-H] IS NOT NULL
+    ORDER BY da.[date-H] DESC");
+$histAutres = [];
+foreach ($autresActes as $numActe => $def) {
+    $stmtHistAutre->execute([$id, $numActe]);
+    $histAutres[$numActe] = $stmtHistAutre->fetchAll();
+}
+
 function dateActe($row) {
     $d = $row['dt'] ?? null;
     if (!$d) return '—';
@@ -732,6 +754,14 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         $tot_edc     = count($histEDC);
         $tot_edc_ped = count($histEDCPED);
         $tot_dtsa    = count($histDTSA);
+        // Autres actes (DVMI/DAMI/MAPA/DAR/CM/IV/C2) — dernière visite / RDV prévu / actuel / total
+        $dv_autres = []; $rdvp_autres = []; $act_autres = []; $tot_autres = [];
+        foreach ($autresActes as $numActe => $def) {
+            $dv_autres[$numActe]   = in_array($numActe, $dernActesNums) ? $def['label'] : '—';
+            $rdvp_autres[$numActe] = preg_match('/\b' . preg_quote($def['label'], '/') . '\b/i', $rdvp_acte_str) ? $def['label'] : '—';
+            $act_autres[$numActe]  = '<span style="color:var(--th-col-success);">✓</span>'; // jamais de relance
+            $tot_autres[$numActe]  = count($histAutres[$numActe]);
+        }
         // Date du jour avec jour de la semaine (colonne Actuel)
         $dateAujFr = dateAvecJour(time());
         // RDV prochain existant
@@ -877,6 +907,16 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     <td class="col-visite"><?= $act_dtsa ?></td>
                     <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-dtsa"><span style="color:#ccc;">—</span></td>
                 </tr>
+                <!-- Lignes autres actes (affichées seulement si déjà réalisés) -->
+                <?php foreach ($autresActes as $numActe => $def): if ($tot_autres[$numActe] > 0): ?>
+                <tr>
+                    <td><?= $def['emoji'] ?> <?= $def['label'] ?> (<?= $tot_autres[$numActe] ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_autres[$numActe]!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_autres[$numActe] ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_autres[$numActe]!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_autres[$numActe] ?></span></td>
+                    <td class="col-visite"><?= $act_autres[$numActe] ?></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()"><span style="color:#ccc;">—</span></td>
+                </tr>
+                <?php endif; endforeach; ?>
             </tbody>
         </table>
 
@@ -1151,6 +1191,16 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     <td class="col-visite"><?= $act_dtsa ?></td>
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
+                <!-- Lignes autres actes (affichées seulement si déjà réalisés) -->
+                <?php foreach ($autresActes as $numActe => $def): if ($tot_autres[$numActe] > 0): ?>
+                <tr>
+                    <td><?= $def['emoji'] ?> <?= $def['label'] ?> (<?= $tot_autres[$numActe] ?>)</td>
+                    <td class="col-rdv-fixe"><span style="color:<?= $dv_autres[$numActe]!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_autres[$numActe] ?></span></td>
+                    <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_autres[$numActe]!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_autres[$numActe] ?></span></td>
+                    <td class="col-visite"><?= $act_autres[$numActe] ?></td>
+                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                </tr>
+                <?php endif; endforeach; ?>
             </tbody>
         </table>
 
@@ -1686,7 +1736,7 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
                 <input type="text" id="no_acte" placeholder="ECG, EDC..." oninput="syncActe(this.value,'no')"
                        style="width:100%;border:1px solid #cdd5de;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                    <?php foreach (['ECG','EDC','EDC PED','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN'] as $ba): ?>
+                    <?php foreach (['ECG','EDC','EDC PED','ECG+EDC','DTSA','ECG+DTSA','CONTROL','DVMI','BILAN','DAMI','MAPA','DAR','CM','IV','C2'] as $ba): ?>
                     <button type="button" onclick="setActeRdv('<?= $ba ?>','no');" style="background:#8e44ad;color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
                 </div>
@@ -2763,7 +2813,7 @@ function calcNbrJAcc() {
                        placeholder="Acte…"
                        style="width:100%;padding:4px 8px;border:1px solid var(--th-col-rdvn);border-radius:4px;font-size:12px;text-align:center;margin-bottom:6px;">
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                    <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','EDC PED','DVMI','BILAN','CONTROL','DAMI'] as $ba): ?>
+                    <?php foreach (['ECG','ECG+EDC','ECG+EDC+DTSA','DTSA','EDC','EDC PED','DVMI','BILAN','CONTROL','DAMI','MAPA','DAR','CM','IV','C2'] as $ba): ?>
                     <button type="button" onclick="setActeRdv('<?= $ba ?>','rdv');"
                         style="background:var(--th-col-rdvn);color:white;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:11px;"><?= $ba ?></button>
                     <?php endforeach; ?>
