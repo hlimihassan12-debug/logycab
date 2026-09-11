@@ -768,6 +768,12 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
         $rdvf_date  = $rdvFuturVal ? dateAvecJour(strtotime($rdvFuturVal)) : '';
         $rdvf_heure = !empty($ordCourante['HeureRDV']) ? htmlspecialchars($ordCourante['HeureRDV']) : '';
         $rdvf_acte  = htmlspecialchars($ordCourante['acte1'] ?? '');
+        // Actes prévus au RDV prochain (colonne "RDV prochain" des lignes ECG/EDC/EDC PÉD/DTSA)
+        $rdvf_acte_str = $ordCourante['acte1'] ?? '';
+        $rdvf_ecg     = (strpos($rdvf_acte_str,'ECG')!==false) ? 'ECG' : '—';
+        $rdvf_edc     = (strpos($rdvf_acte_str,'EDC')!==false && strpos($rdvf_acte_str,'PED')===false) ? 'EDC' : '—';
+        $rdvf_edc_ped = (strpos($rdvf_acte_str,'EDC')!==false && strpos($rdvf_acte_str,'PED')!==false) ? 'EDC PÉD' : '—';
+        $rdvf_dtsa    = (strpos($rdvf_acte_str,'DTSA')!==false) ? 'DTSA' : '—';
         // Heure visite enregistrée
         $heureVisite = htmlspecialchars($ordCourante['HeureRDV'] ?? '');
         ?>
@@ -876,37 +882,45 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     </td>
                 </tr>
                 <!-- Ligne ECG -->
+                <?php if ($tot_ecg > 0): ?>
                 <tr>
                     <td>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
-                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-ecg"><span style="color:#ccc;">—</span></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-ecg"><span style="color:<?= $rdvf_ecg!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_ecg ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Ligne EDC -->
+                <?php if ($tot_edc > 0): ?>
                 <tr>
                     <td>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
-                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edc"><span style="color:#ccc;">—</span></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edc"><span style="color:<?= $rdvf_edc!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_edc ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Ligne EDC PÉD -->
+                <?php if ($tot_edc_ped > 0): ?>
                 <tr>
                     <td>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc_ped!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc_ped ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc_ped!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc_ped ?></span></td>
                     <td class="col-visite"><?= $act_edc_ped ?></td>
-                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edcped"><span style="color:#ccc;">—</span></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-edcped"><span style="color:<?= $rdvf_edc_ped!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_edc_ped ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Ligne DTSA -->
+                <?php if ($tot_dtsa > 0): ?>
                 <tr>
                     <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
-                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-dtsa"><span style="color:#ccc;">—</span></td>
+                    <td class="cell-rdv-prochain" onclick="ouvrirPopupRdv()" id="acc-rdvp-dtsa"><span style="color:<?= $rdvf_dtsa!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_dtsa ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Lignes autres actes (affichées seulement si déjà réalisés) -->
                 <?php foreach ($autresActes as $numActe => $def): if ($tot_autres[$numActe] > 0): ?>
                 <tr>
@@ -1160,37 +1174,45 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     <td class="col-rdv-futur" style="padding:4px;"></td>
                 </tr>
                 <!-- Ligne ECG -->
+                <?php if ($tot_ecg > 0): ?>
                 <tr>
                     <td>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
-                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                    <td class="col-rdv-futur" style="padding:4px;"><span style="color:<?= $rdvf_ecg!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_ecg ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Ligne EDC -->
+                <?php if ($tot_edc > 0): ?>
                 <tr>
                     <td>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
-                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                    <td class="col-rdv-futur" style="padding:4px;"><span style="color:<?= $rdvf_edc!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_edc ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Ligne EDC PÉD -->
+                <?php if ($tot_edc_ped > 0): ?>
                 <tr>
                     <td>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc_ped!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc_ped ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc_ped!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc_ped ?></span></td>
                     <td class="col-visite"><?= $act_edc_ped ?></td>
-                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                    <td class="col-rdv-futur" style="padding:4px;"><span style="color:<?= $rdvf_edc_ped!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_edc_ped ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Ligne DTSA -->
+                <?php if ($tot_dtsa > 0): ?>
                 <tr>
                     <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
-                    <td class="col-rdv-futur" style="padding:4px;"></td>
+                    <td class="col-rdv-futur" style="padding:4px;"><span style="color:<?= $rdvf_dtsa!=='—'?'var(--th-col-rdvn)':'#ccc' ?>;font-weight:bold;"><?= $rdvf_dtsa ?></span></td>
                 </tr>
+                <?php endif; ?>
                 <!-- Lignes autres actes (affichées seulement si déjà réalisés) -->
                 <?php foreach ($autresActes as $numActe => $def): if ($tot_autres[$numActe] > 0): ?>
                 <tr>

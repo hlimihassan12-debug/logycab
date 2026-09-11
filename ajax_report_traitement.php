@@ -61,8 +61,32 @@ try {
     $jourRdv = (int)$dtRdv->format('d');
     $moisRdv = (int)$dtRdv->format('m');
 
-    // Nettoyer acte1 et HeureRDV
-    $acte1    = trim($ordCourante['acte1'] ?? '');
+    // ── Détection des actes en retard (mêmes règles que dossier.php) ──
+    // ECG : proposé si > 30 jours depuis la dernière ECG (ou jamais fait)
+    // EDC / DTSA : proposés si > 335 jours (~11 mois) depuis la dernière fois (ou jamais fait)
+    $stmtLastECG = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%ECG%' ORDER BY date_ordon DESC");
+    $stmtLastECG->execute([$id]);
+    $lastECG = $stmtLastECG->fetchColumn();
+    $ecgDue = !$lastECG || (new DateTime())->diff(new DateTime($lastECG))->days > 30;
+
+    $stmtLastEDC = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%EDC%' AND acte1 NOT LIKE '%PED%' ORDER BY date_ordon DESC");
+    $stmtLastEDC->execute([$id]);
+    $lastEDC = $stmtLastEDC->fetchColumn();
+    $edcDue = !$lastEDC || (new DateTime())->diff(new DateTime($lastEDC))->days > 335;
+
+    $stmtLastDTSA = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%DTSA%' ORDER BY date_ordon DESC");
+    $stmtLastDTSA->execute([$id]);
+    $lastDTSA = $stmtLastDTSA->fetchColumn();
+    $dtsaDue = !$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335;
+
+    $actesDus = [];
+    if ($ecgDue)  $actesDus[] = 'ECG';
+    if ($edcDue)  $actesDus[] = 'EDC';
+    if ($dtsaDue) $actesDus[] = 'DTSA';
+
+    // Nettoyer acte1 : si des actes sont en retard, on les propose pour le nouveau RDV ;
+    // sinon on garde l'acte de l'ordonnance actuelle (comportement d'avant)
+    $acte1 = !empty($actesDus) ? implode('+', $actesDus) : trim($ordCourante['acte1'] ?? '');
     // Chercher le premier créneau libre à la date du nouveau RDV
 $heureRDV = null;
 $stmtOccup = $db->prepare("
