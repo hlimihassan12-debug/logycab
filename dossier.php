@@ -74,24 +74,29 @@ if ($ordPrecedente) {
     $acteNouveauRDV = $ordPrecedente['acte1'] ?? '';
 }
 
+// Source fiable : dernière date de chaque acte via detail_acte + code n_acte
+// (le texte libre acte1 de l'ordonnance n'est pas assez fiable pour cette règle,
+// cf. la même remarque plus bas pour l'historique des actes).
+// 65=ECG, 66=EDC (adulte), 76=EDC PED, 69=DTSA
 $actesSuggeres = [];
-$stmtLastECG = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%ECG%' ORDER BY date_ordon DESC");
-$stmtLastECG->execute([$id]); $lastECG = $stmtLastECG->fetchColumn();
+$stmtLastActe = $db->prepare("
+    SELECT MAX(da.[date-H]) FROM detail_acte da
+    JOIN facture f ON da.N_fact = f.n_facture
+    WHERE f.id = ? AND da.ACTE = ?");
+
+$stmtLastActe->execute([$id, 65]); $lastECG = $stmtLastActe->fetchColumn();
 if (!$lastECG || (new DateTime())->diff(new DateTime($lastECG))->days > 30) {
     $actesSuggeres[] = ['acte' => 'ECG', 'derniere' => $lastECG];
 }
-$stmtLastEDC = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%EDC%' AND acte1 NOT LIKE '%PED%' ORDER BY date_ordon DESC");
-$stmtLastEDC->execute([$id]); $lastEDC = $stmtLastEDC->fetchColumn();
+$stmtLastActe->execute([$id, 66]); $lastEDC = $stmtLastActe->fetchColumn();
 if (!$lastEDC || (new DateTime())->diff(new DateTime($lastEDC))->days > 335) {
     $actesSuggeres[] = ['acte' => 'EDC', 'derniere' => $lastEDC];
 }
-$stmtLastEDCPED = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%EDC%' AND acte1 LIKE '%PED%' ORDER BY date_ordon DESC");
-$stmtLastEDCPED->execute([$id]); $lastEDCPED = $stmtLastEDCPED->fetchColumn();
+$stmtLastActe->execute([$id, 76]); $lastEDCPED = $stmtLastActe->fetchColumn();
 if ($lastEDCPED && (new DateTime())->diff(new DateTime($lastEDCPED))->days > 335) {
     $actesSuggeres[] = ['acte' => 'EDC PED', 'derniere' => $lastEDCPED];
 }
-$stmtLastDTSA = $db->prepare("SELECT TOP 1 date_ordon FROM ORD WHERE id=? AND acte1 LIKE '%DTSA%' ORDER BY date_ordon DESC");
-$stmtLastDTSA->execute([$id]); $lastDTSA = $stmtLastDTSA->fetchColumn();
+$stmtLastActe->execute([$id, 69]); $lastDTSA = $stmtLastActe->fetchColumn();
 if (!$lastDTSA || (new DateTime())->diff(new DateTime($lastDTSA))->days > 335) {
     $actesSuggeres[] = ['acte' => 'DTSA', 'derniere' => $lastDTSA];
 }
@@ -667,6 +672,18 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                     <?= $dateOrdAff ?>
                 </span>
                 <?php endif; ?>
+                <select onchange="if(this.value) window.location.href='?id=<?= $id ?>&ord='+this.value;"
+                        title="Aller directement à une date d'ordonnance"
+                        style="font-size:11px;padding:2px 4px;border:1px solid #ccc;border-radius:3px;color:#1a4a7a;background:white;max-width:150px;margin-left:8px;">
+                    <option value="">— autre date —</option>
+                    <?php foreach ($ordonnances as $i => $o):
+                        $tsOSelTop = strtotime($o['date_ordon'] ?? '');
+                        $dateAffOSelTop = ($tsOSelTop && $tsOSelTop > 86400) ? date('d/m/Y', $tsOSelTop) : '—';
+                        $numeroOSelTop = count($ordonnances) - $i;
+                    ?>
+                    <option value="<?= (int)$o['n_ordon'] ?>"<?= ((int)$o['n_ordon'] === $nOrd) ? ' selected' : '' ?>><?= $dateAffOSelTop ?> (<?= $numeroOSelTop ?>/<?= count($ordonnances) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
             </span>
         </div>
 
@@ -884,7 +901,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne ECG -->
                 <?php if ($tot_ecg > 0): ?>
                 <tr>
-                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("ECG", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histECG)) ?>)'>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
@@ -894,7 +912,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne EDC -->
                 <?php if ($tot_edc > 0): ?>
                 <tr>
-                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("EDC", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histEDC)) ?>)'>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
@@ -904,7 +923,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne EDC PÉD -->
                 <?php if ($tot_edc_ped > 0): ?>
                 <tr>
-                    <td>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("EDC PÉD", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histEDCPED)) ?>)'>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc_ped!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc_ped ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc_ped!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc_ped ?></span></td>
                     <td class="col-visite"><?= $act_edc_ped ?></td>
@@ -914,7 +934,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne DTSA -->
                 <?php if ($tot_dtsa > 0): ?>
                 <tr>
-                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("DTSA", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histDTSA)) ?>)'>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
@@ -924,7 +945,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Lignes autres actes (affichées seulement si déjà réalisés) -->
                 <?php foreach ($autresActes as $numActe => $def): if ($tot_autres[$numActe] > 0): ?>
                 <tr>
-                    <td><?= $def['emoji'] ?> <?= $def['label'] ?> (<?= $tot_autres[$numActe] ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("<?= $def['label'] ?>", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histAutres[$numActe])) ?>)'><?= $def['emoji'] ?> <?= $def['label'] ?> (<?= $tot_autres[$numActe] ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_autres[$numActe]!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_autres[$numActe] ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_autres[$numActe]!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_autres[$numActe] ?></span></td>
                     <td class="col-visite"><?= $act_autres[$numActe] ?></td>
@@ -1176,7 +1198,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne ECG -->
                 <?php if ($tot_ecg > 0): ?>
                 <tr>
-                    <td>⚡ ECG (<?= $tot_ecg ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("ECG", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histECG)) ?>)'>⚡ ECG (<?= $tot_ecg ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_ecg!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_ecg ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_ecg!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_ecg ?></span></td>
                     <td class="col-visite"><?= $act_ecg ?></td>
@@ -1186,7 +1209,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne EDC -->
                 <?php if ($tot_edc > 0): ?>
                 <tr>
-                    <td>🫀 EDC (<?= $tot_edc ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("EDC", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histEDC)) ?>)'>🫀 EDC (<?= $tot_edc ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc ?></span></td>
                     <td class="col-visite"><?= $act_edc ?></td>
@@ -1196,7 +1220,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne EDC PÉD -->
                 <?php if ($tot_edc_ped > 0): ?>
                 <tr>
-                    <td>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("EDC PÉD", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histEDCPED)) ?>)'>🧒 EDC PÉD (<?= $tot_edc_ped ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_edc_ped!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_edc_ped ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_edc_ped!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_edc_ped ?></span></td>
                     <td class="col-visite"><?= $act_edc_ped ?></td>
@@ -1206,7 +1231,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Ligne DTSA -->
                 <?php if ($tot_dtsa > 0): ?>
                 <tr>
-                    <td>🔬 DTSA (<?= $tot_dtsa ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("DTSA", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histDTSA)) ?>)'>🔬 DTSA (<?= $tot_dtsa ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_acte_dtsa!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_acte_dtsa ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_dtsa!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_dtsa ?></span></td>
                     <td class="col-visite"><?= $act_dtsa ?></td>
@@ -1216,7 +1242,8 @@ body.vue-accueil .main { grid-template-columns: 400px 1fr 400px; }
                 <!-- Lignes autres actes (affichées seulement si déjà réalisés) -->
                 <?php foreach ($autresActes as $numActe => $def): if ($tot_autres[$numActe] > 0): ?>
                 <tr>
-                    <td><?= $def['emoji'] ?> <?= $def['label'] ?> (<?= $tot_autres[$numActe] ?>)</td>
+                    <td style="cursor:pointer;text-decoration:underline dotted;"
+                        onclick='afficherHistoriqueActe("<?= $def['label'] ?>", <?= json_encode(array_map(fn($r) => date("d/m/Y", strtotime($r["dt"])), $histAutres[$numActe])) ?>)'><?= $def['emoji'] ?> <?= $def['label'] ?> (<?= $tot_autres[$numActe] ?>)</td>
                     <td class="col-rdv-fixe"><span style="color:<?= $dv_autres[$numActe]!=='—'?'var(--th-col-visite)':'#ccc' ?>;font-weight:bold;"><?= $dv_autres[$numActe] ?></span></td>
                     <td style="background:var(--th-col-rdvp-bg);"><span style="color:<?= $rdvp_autres[$numActe]!=='—'?'var(--th-col-rdvp)':'#ccc' ?>;font-weight:bold;"><?= $rdvp_autres[$numActe] ?></span></td>
                     <td class="col-visite"><?= $act_autres[$numActe] ?></td>
@@ -1693,6 +1720,9 @@ $posExam  = count($examens) ? ($idxExam+1).'/'.count($examens) : '—';
 </div>
 
 </div><!-- FIN .main -->
+
+<!-- ══ ZONE HISTORIQUE ACTES (fenêtres non-bloquantes, côte à côte) ══ -->
+<div id="zone-historique-actes" style="position:fixed;top:90px;right:10px;z-index:9999;display:flex;flex-direction:row-reverse;flex-wrap:wrap-reverse;gap:10px;pointer-events:none;max-width:96vw;"></div>
 
 <!-- ══ POPUP NOUVELLE ORDONNANCE ══ -->
 <div id="modal-nouvelle-ordonnance" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
@@ -2265,6 +2295,45 @@ function rdvSetDelai(mois, jours, prefixe) {
         loading.style.display = 'none'; loading.textContent = '⏳ Chargement…';
         appliquerDateRdv(dateFin, prefixe);
     });
+}
+
+function afficherHistoriqueActe(nom, dates) {
+    const conteneur = document.getElementById('zone-historique-actes');
+    const idPanneau = 'hist-panneau-' + nom.replace(/[^a-zA-Z0-9]/g, '');
+
+    // Si une fenêtre pour cet acte est déjà ouverte, on la retire avant
+    // d'en recréer une (évite les doublons si on reclique sur le même acte).
+    const existant = document.getElementById(idPanneau);
+    if (existant) existant.remove();
+
+    const panneau = document.createElement('div');
+    panneau.id = idPanneau;
+    panneau.style.cssText = 'pointer-events:auto;background:var(--th-bg-card);border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);width:170px;max-height:320px;display:flex;flex-direction:column;';
+
+    const entete = document.createElement('div');
+    entete.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid #ddd;';
+
+    const titre = document.createElement('strong');
+    titre.textContent = nom + ' (' + dates.length + ')';
+    titre.style.cssText = 'color:var(--th-color-primary);font-size:13px;';
+
+    const boutonFermer = document.createElement('button');
+    boutonFermer.type = 'button';
+    boutonFermer.textContent = '✕';
+    boutonFermer.title = 'Fermer';
+    boutonFermer.style.cssText = 'background:#e74c3c;color:white;border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:12px;';
+    boutonFermer.onclick = () => panneau.remove();
+
+    entete.appendChild(titre);
+    entete.appendChild(boutonFermer);
+
+    const liste = document.createElement('ul');
+    liste.style.cssText = 'margin:0;padding:6px 8px 6px 22px;font-size:12px;overflow-y:auto;';
+    dates.forEach(d => { const li = document.createElement('li'); li.textContent = d; liste.appendChild(li); });
+
+    panneau.appendChild(entete);
+    panneau.appendChild(liste);
+    conteneur.appendChild(panneau);
 }
 
 function afficherNouvelleOrdonnance() {
