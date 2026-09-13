@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
+require_once __DIR__ . '/backend/stats_fidelite.php';
 $db = getDB();
 
 // ── Date affichée ──────────────────────────────────────────────
@@ -48,6 +49,32 @@ $stmtPat->execute([$dateAff, $dateAff, $dateAff]);
 $patients   = $stmtPat->fetchAll(PDO::FETCH_ASSOC);
 $nbPatients = count($patients);
 $totalVerse = array_sum(array_column($patients, 'montant_verse'));
+
+// ── Notes fidélité (coefficient étoiles) des patients du jour ──────
+// Une seule requête groupée pour tous les patients affichés, utile pour
+// juger les priorités (un patient 5* passe avant un "touriste", sauf urgence).
+$notesFidelite = [];
+$idsJour = array_unique(array_filter(array_column($patients, 'id')));
+if ($idsJour) {
+    $placeholdersJour = implode(',', array_fill(0, count($idsJour), '?'));
+    $stmtFidJour = $db->prepare("
+        SELECT id, CONVERT(varchar(10), date_ordon, 23) AS date_ordon,
+               CONVERT(varchar(10), [DATE REDEZ VOUS], 23) AS rdv_fixe,
+               CONVERT(varchar(10), Date_Rdv, 23) AS rdv_tel
+        FROM ORD
+        WHERE date_ordon IS NOT NULL AND id IN ($placeholdersJour)
+        ORDER BY id, date_ordon
+    ");
+    $stmtFidJour->execute(array_values($idsJour));
+    $visitesParPatientJour = [];
+    foreach ($stmtFidJour->fetchAll() as $o) {
+        $rdvPropose = $o['rdv_fixe'] ?: ($o['rdv_tel'] ?: null);
+        $visitesParPatientJour[$o['id']][] = ['date_ordon' => $o['date_ordon'], 'rdv_propose' => $rdvPropose];
+    }
+    foreach ($visitesParPatientJour as $idPat => $visites) {
+        $notesFidelite[$idPat] = calculerNoteFidelite(calculerFidelitePatient($visites));
+    }
+}
 
 // ── Total versé global ─────────────────────────────────────────
 $stmtGlobal = $db->prepare("
@@ -530,6 +557,8 @@ function gdAller() {
             <?php endif; ?>
 
             <!-- 4. Nom -->
+            <?php $noteFidJour = $notesFidelite[$pat['id']] ?? null; ?>
+            <span style="display:inline-block;background:<?= couleurNoteFidelite($noteFidJour) ?>;color:white;font-size:10px;font-weight:bold;padding:1px 5px;border-radius:3px;margin-right:4px;" title="Coefficient fidélité"><?= formaterNoteFidelite($noteFidJour) ?></span>
             <span class="pat-nom <?= $nomCl ?>" id="nom-<?= $pat['n_ordon'] ?>">
                 <?= htmlspecialchars($pat['NOMPRENOM'] ?? '—') ?>
             </span>

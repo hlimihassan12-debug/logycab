@@ -2,6 +2,7 @@
 ob_start();
 require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
+require_once __DIR__ . '/backend/stats_fidelite.php';
 $db = getDB();
 
 // Compteur RDV du jour / NbrMax (pour le bloc logo)
@@ -37,6 +38,20 @@ if (!empty($patient['DateRecrt'])) {
 }
 $tsPV = $datePremVisite ? strtotime($datePremVisite) : false;
 $datePVAff = ($tsPV && $tsPV > 86400) ? date('d/m/Y', $tsPV) : '—';
+
+// ── Fidélité & ponctualité du patient (affiché dans la bande patient) ──
+$stmtOrdFid = $db->prepare("SELECT date_ordon, [DATE REDEZ VOUS] AS rdv_fixe, Date_Rdv AS rdv_tel FROM ORD WHERE id = ? ORDER BY date_ordon ASC");
+$stmtOrdFid->execute([$id]);
+$visitesPatient = [];
+foreach ($stmtOrdFid->fetchAll() as $o) {
+    if (empty($o['date_ordon'])) continue; // ligne sans consultation réelle (RDV encore en attente)
+    $rdvPropose = $o['rdv_fixe'] ?: ($o['rdv_tel'] ?: null);
+    $visitesPatient[] = [
+        'date_ordon'  => $o['date_ordon'],
+        'rdv_propose' => $rdvPropose,
+    ];
+}
+$statsFidelite = calculerFidelitePatient($visitesPatient);
 
 // ── NAVIGATION ENTRE PATIENTS ──
 $first_id = $db->query("SELECT TOP 1 [N°PAT] FROM ID WHERE [N°PAT] IN (SELECT DISTINCT id FROM ORD) ORDER BY [N°PAT] ASC")->fetchColumn();
@@ -414,6 +429,8 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
 <!-- BANDE TITRE : NOM DU PATIENT -->
 <div style="background:var(--th-bg-card);padding:10px 16px;border-bottom:2px solid var(--th-color-primary);">
     <div style="font-size:24px;font-weight:bold;color:var(--th-color-primary);letter-spacing:0.3px;">
+        <?php $noteFid = calculerNoteFidelite($statsFidelite); ?>
+        <span style="display:inline-block;background:<?= couleurNoteFidelite($noteFid) ?>;color:white;font-size:14px;font-weight:bold;padding:2px 8px;border-radius:4px;margin-right:8px;vertical-align:middle;" title="Coefficient fidélité (ancienneté + régularité + ponctualité)"><?= formaterNoteFidelite($noteFid) ?></span>
         <?= htmlspecialchars($nom) ?>
     </div>
 </div>
@@ -426,6 +443,22 @@ body { font-family: var(--th-font-body); font-size: 12px; background: var(--th-b
     <div class="info"><label>CIN</label><span><?= htmlspecialchars($patient['CIN'] ?? '—') ?></span></div>
     <div class="info"><label>Mutuelle</label><span><?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span></div>
     <div class="info"><label>🏥 Recrutement</label><span><?= $datePVAff ?></span></div>
+    <?php if ($statsFidelite): ?>
+    <div class="info" title="<?= htmlspecialchars(
+        $statsFidelite['nb'] . ' consultation' . ($statsFidelite['nb'] > 1 ? 's' : '') .
+        ' depuis le ' . date('d/m/Y', strtotime($statsFidelite['premiere'])) .
+        ($statsFidelite['ecart_moyen'] !== null ? ' — tous les ~' . round($statsFidelite['ecart_moyen']) . ' jours en moyenne' : '')
+    ) ?>">
+        <label>🔄 Fidélité</label>
+        <span><?= $statsFidelite['nb'] ?> cons. · <?= htmlspecialchars($statsFidelite['classification_label']) ?></span>
+    </div>
+    <?php if ($statsFidelite['ponctualite_moyenne'] !== null): $pm = $statsFidelite['ponctualite_moyenne']; ?>
+    <div class="info" title="Vient en moyenne <?= round(abs($pm)) ?> jours <?= $pm >= 0 ? 'après' : 'avant' ?> le RDV proposé.">
+        <label>📍 Ponctualité</label>
+        <span><?= $pm >= 0 ? '+' : '-' ?><?= round(abs($pm)) ?> j</span>
+    </div>
+    <?php endif; ?>
+    <?php endif; ?>
     <!-- Navigation entre patients -->
     <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;">
         <a href="nouveau_bilan_clinique.php?id=<?= $first_id ?>" title="Premier" style="color:var(--th-col-header-accent);text-decoration:none;font-size:15px;padding:0 3px;">⏮</a>

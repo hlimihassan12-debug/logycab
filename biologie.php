@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/backend/auth.php';
 require_once __DIR__ . '/backend/db.php';
+require_once __DIR__ . '/backend/stats_fidelite.php';
 $db = getDB();
 
 // Compteur RDV du jour / NbrMax (pour le bloc logo)
@@ -26,6 +27,20 @@ if (!empty($patient['DDN'])) {
     $naissance = new DateTime($patient['DDN']);
     $age = $naissance->diff(new DateTime())->y;
 }
+
+// ── Fidélité & ponctualité du patient (affiché dans la bande patient) ──
+$stmtOrdFid = $db->prepare("SELECT date_ordon, [DATE REDEZ VOUS] AS rdv_fixe, Date_Rdv AS rdv_tel FROM ORD WHERE id = ? ORDER BY date_ordon ASC");
+$stmtOrdFid->execute([$id]);
+$visitesPatient = [];
+foreach ($stmtOrdFid->fetchAll() as $o) {
+    if (empty($o['date_ordon'])) continue; // ligne sans consultation réelle (RDV encore en attente)
+    $rdvPropose = $o['rdv_fixe'] ?: ($o['rdv_tel'] ?: null);
+    $visitesPatient[] = [
+        'date_ordon'  => $o['date_ordon'],
+        'rdv_propose' => $rdvPropose,
+    ];
+}
+$statsFidelite = calculerFidelitePatient($visitesPatient);
 
 setcookie('dernier_patient', $id, time() + 86400*30, '/');
 
@@ -263,6 +278,8 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
 <!-- BANDE TITRE : NOM DU PATIENT -->
 <div style="background:var(--th-bg-card);padding:10px 16px;border-bottom:2px solid var(--th-color-primary);">
     <div style="font-size:24px;font-weight:bold;color:var(--th-color-primary);letter-spacing:0.3px;">
+        <?php $noteFid = calculerNoteFidelite($statsFidelite); ?>
+        <span style="display:inline-block;background:<?= couleurNoteFidelite($noteFid) ?>;color:white;font-size:14px;font-weight:bold;padding:2px 8px;border-radius:4px;margin-right:8px;vertical-align:middle;" title="Coefficient fidélité (ancienneté + régularité + ponctualité)"><?= formaterNoteFidelite($noteFid) ?></span>
         <?= htmlspecialchars($patient['NOMPRENOM']) ?>
     </div>
 </div>
@@ -274,6 +291,16 @@ table.bio tbody td { padding: 2px 8px; vertical-align: middle; }
     <span class="det">DDN <?= $patient['DDN'] ? date('d/m/Y', strtotime($patient['DDN'])) : '—' ?></span>
     <span class="det">CIN <?= htmlspecialchars($patient['CIN'] ?? '—') ?></span>
     <span class="det">Mutuelle <?= htmlspecialchars($patient['MUTUELLE'] ?? '—') ?></span>
+    <?php if ($statsFidelite): ?>
+    <span class="det" title="<?= htmlspecialchars(
+        $statsFidelite['nb'] . ' consultation' . ($statsFidelite['nb'] > 1 ? 's' : '') .
+        ' depuis le ' . date('d/m/Y', strtotime($statsFidelite['premiere'])) .
+        ($statsFidelite['ecart_moyen'] !== null ? ' — tous les ~' . round($statsFidelite['ecart_moyen']) . ' jours en moyenne' : '')
+    ) ?>">🔄 <?= $statsFidelite['nb'] ?> cons. · <?= htmlspecialchars($statsFidelite['classification_label']) ?></span>
+    <?php if ($statsFidelite['ponctualite_moyenne'] !== null): $pm = $statsFidelite['ponctualite_moyenne']; ?>
+    <span class="det" title="Vient en moyenne <?= round(abs($pm)) ?> jours <?= $pm >= 0 ? 'après' : 'avant' ?> le RDV proposé.">📍 <?= $pm >= 0 ? '+' : '-' ?><?= round(abs($pm)) ?> j</span>
+    <?php endif; ?>
+    <?php endif; ?>
 </div>
 
 <!-- BARRE BILANS -->

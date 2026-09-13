@@ -1,5 +1,6 @@
 <?php
 require_once 'backend/db.php';
+require_once 'backend/stats_fidelite.php';
 $db = getDB();
 
 // Thème
@@ -43,6 +44,11 @@ $g4_val = trim($_GET['g4_val'] ?? '');
 
 $g5_mod = trim($_GET['g5_mod'] ?? 'egal');
 $g5_val = trim($_GET['g5_val'] ?? '');
+
+// Groupe 6 — Note fidélité (1 à 5, ou "N" pour nouveau patient) : pas une
+// colonne en base, filtre appliqué après coup une fois les notes calculées.
+$g6_val = trim($_GET['g6_val'] ?? '');
+$filtreNote = in_array($g6_val, ['1','2','3','4','5','N'], true) ? $g6_val : null;
 
 $conn2 = ($_GET['conn2'] ?? 'et') === 'ou' ? 'OU' : 'ET';
 $conn3 = ($_GET['conn3'] ?? 'et') === 'ou' ? 'OU' : 'ET';
@@ -149,12 +155,12 @@ if (strlen($g5_val) >= 1) {
 // ── Assemblage gauche à droite ───────────────────────────────────
 $toutAfficher = ($_GET['tout'] ?? '') === '1';
 $patients = [];
-$rechercheLancee = $toutAfficher || !empty($groupes);
+$rechercheLancee = $toutAfficher || !empty($groupes) || $filtreNote !== null;
 $libelleRecherche = '';
 if ($toutAfficher) {
     $libelleRecherche = 'tous les patients';
     $patients = $db->query("SELECT [N°PAT], NOMPRENOM, [TEL D], MUTUELLE, DDN, CIN, DateRecrt FROM ID ORDER BY NOMPRENOM")->fetchAll();
-} elseif ($rechercheLancee) {
+} elseif (!empty($groupes)) {
     $whereSql = '';
     $whereParams = [];
     $libelles = [];
@@ -173,14 +179,64 @@ if ($toutAfficher) {
     $sqlFrom = $needsOrd
         ? "FROM ID i INNER JOIN ORD o ON o.id = i.[N°PAT]"
         : "FROM ID i";
-    $sql = "SELECT DISTINCT TOP 50 i.[N°PAT], i.NOMPRENOM, i.[TEL D], i.MUTUELLE, i.DDN, i.CIN, i.DateRecrt $sqlFrom WHERE $whereSql ORDER BY i.NOMPRENOM";
+    // Pas de TOP 50 si un filtre "note" doit encore réduire la liste ensuite,
+    // sinon on risquerait d'exclure de bons résultats avant même de les avoir vus.
+    $topClause = $filtreNote !== null ? '' : 'TOP 50 ';
+    $sql = "SELECT DISTINCT {$topClause}i.[N°PAT], i.NOMPRENOM, i.[TEL D], i.MUTUELLE, i.DDN, i.CIN, i.DateRecrt $sqlFrom WHERE $whereSql ORDER BY i.NOMPRENOM";
     $stmt = $db->prepare($sql);
     $stmt->execute($whereParams);
     $patients = $stmt->fetchAll();
+} elseif ($filtreNote !== null) {
+    // Aucun autre critère : seul le filtre "note" est actif -> on part de
+    // tous les patients (comme "Tout afficher"), puis on filtre par note plus bas.
+    $patients = $db->query("SELECT [N°PAT], NOMPRENOM, [TEL D], MUTUELLE, DDN, CIN, DateRecrt FROM ID ORDER BY NOMPRENOM")->fetchAll();
 }
 
 // Nombre total de patients (calculé, plus jamais codé en dur)
 $nbPatients = (int)$db->query("SELECT COUNT(*) FROM ID")->fetchColumn();
+
+// ── Notes fidélité (coefficient étoiles) des patients affichés ─────
+// Une seule requête groupée pour tous les patients de la liste, plutôt
+// qu'une requête par ligne (important quand "tout=1" affiche des milliers
+// de patients d'un coup).
+$notesFidelite = [];
+if (!empty($patients)) {
+    $idsAff = array_values(array_unique(array_column($patients, 'N°PAT')));
+    $visitesParPatientRech = [];
+    // SQL Server limite une requête à 2100 paramètres : au-delà (ex. "tout
+    // afficher" sur 8000+ patients), on découpe l'IN(...) en lots et on
+    // fusionne les résultats — même calcul, juste en plusieurs requêtes.
+    foreach (array_chunk($idsAff, 2000) as $lot) {
+        $placeholders = implode(',', array_fill(0, count($lot), '?'));
+        $stmtFidRech = $db->prepare("
+            SELECT id, CONVERT(varchar(10), date_ordon, 23) AS date_ordon,
+                   CONVERT(varchar(10), [DATE REDEZ VOUS], 23) AS rdv_fixe,
+                   CONVERT(varchar(10), Date_Rdv, 23) AS rdv_tel
+            FROM ORD
+            WHERE date_ordon IS NOT NULL AND id IN ($placeholders)
+            ORDER BY id, date_ordon
+        ");
+        $stmtFidRech->execute($lot);
+        foreach ($stmtFidRech->fetchAll() as $o) {
+            $rdvPropose = $o['rdv_fixe'] ?: ($o['rdv_tel'] ?: null);
+            $visitesParPatientRech[$o['id']][] = ['date_ordon' => $o['date_ordon'], 'rdv_propose' => $rdvPropose];
+        }
+    }
+    foreach ($visitesParPatientRech as $idPat => $visites) {
+        $notesFidelite[$idPat] = calculerNoteFidelite(calculerFidelitePatient($visites));
+    }
+}
+
+// ── Filtre par note fidélité, appliqué après coup (la note n'existe
+// qu'en mémoire, calculée ci-dessus — pas de colonne en base à filtrer) ──
+if ($filtreNote !== null && !empty($patients)) {
+    $patients = array_values(array_filter($patients, function($p) use ($notesFidelite, $filtreNote) {
+        $n = $notesFidelite[$p['N°PAT']] ?? null;
+        return ($n === null ? 'N' : (string)$n) === $filtreNote;
+    }));
+    $libelleNote = 'note ' . ($filtreNote === 'N' ? 'N*' : $filtreNote . '*');
+    $libelleRecherche = $libelleRecherche !== '' ? $libelleRecherche . ' et ' . $libelleNote : $libelleNote;
+}
 
 // Où envoyer une fois le patient choisi, selon le bouton cliqué depuis l'accueil.
 // "comptabilite" n'a pas encore de page dédiée -> on retombe sur le dossier en attendant.
@@ -390,6 +446,19 @@ a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-wei
                            value="<?= htmlspecialchars($g5_val) ?>" placeholder="AB123456">
                 </div>
 
+                <div class="adv-grp">
+                    <label class="adv-label">Note fidélité</label>
+                    <select name="g6_val" class="adv-mod">
+                        <option value=""  <?= $filtreNote===null?'selected':'' ?>>Toutes</option>
+                        <option value="5" <?= $filtreNote==='5'?'selected':'' ?>>5*</option>
+                        <option value="4" <?= $filtreNote==='4'?'selected':'' ?>>4*</option>
+                        <option value="3" <?= $filtreNote==='3'?'selected':'' ?>>3*</option>
+                        <option value="2" <?= $filtreNote==='2'?'selected':'' ?>>2*</option>
+                        <option value="1" <?= $filtreNote==='1'?'selected':'' ?>>1*</option>
+                        <option value="N" <?= $filtreNote==='N'?'selected':'' ?>>N* (nouveau)</option>
+                    </select>
+                </div>
+
                 <div class="adv-grp" style="justify-content:flex-end;">
                     <a href="recherche.php?tout=1" class="adv-mod" style="display:block;text-align:center;text-decoration:none;font-weight:bold;">📋 Tout afficher</a>
                     <button type="submit" class="adv-mod" style="font-weight:bold;">🔍 Rechercher</button>
@@ -416,7 +485,9 @@ a.lien-patient { color: var(--th-color-primary); text-decoration: none; font-wei
                     if ($tsRec && $tsRec > 86400) $recrtAff = date('d/m/Y', $tsRec);
                 }
             ?>
+                <?php $noteFidRech = $notesFidelite[$p['N°PAT']] ?? null; ?>
                 <div class="patient-card" onclick="window.location='<?= $destination ?><?= $p['N°PAT'] ?>'">
+                    <span style="display:inline-block;background:<?= couleurNoteFidelite($noteFidRech) ?>;color:white;font-size:11px;font-weight:bold;padding:1px 6px;border-radius:3px;margin-right:6px;" title="Coefficient fidélité"><?= formaterNoteFidelite($noteFidRech) ?></span>
                     <a class="pc-nom" href="<?= $destination ?><?= $p['N°PAT'] ?>">N°<?= $p['N°PAT'] ?> — <?= htmlspecialchars($p['NOMPRENOM']) ?></a>
                     <span class="pc-champ pc-recrt"><?= $recrtAff ?></span>
                     <span class="pc-champ pc-age"><?= $ageAff ?></span>
