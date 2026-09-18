@@ -71,7 +71,7 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     * { margin:0; padding:0; box-sizing:border-box; }
 
     @page {
-        size: 147mm 212mm;
+        size: 148mm 210mm;
         margin: 0;
     }
 
@@ -80,70 +80,61 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
         font-size: 13px;
         color: #111;
         background: white;
-        width: 147mm;
+        width: 148mm;
+        min-height: 210mm;
+        padding-top:    5.3cm;    /* en-tête physique (mesuré : texte descend à ~5.1-5.2cm) */
+        padding-bottom: 1.7cm;    /* pied physique */
+        padding-left:   1cm;      /* marge gauche */
+        padding-right:  1cm;      /* marge droite */
     }
 
-    /* ══ BLOC PAGE : porte la hauteur/marges + sert d'ancrage au pied de page ══ */
-    .page {
-        position: relative;   /* ancrage pour .rdv-footer (position:absolute) */
-        width: 147mm;
-        min-height: 212mm;
-        padding-top:    5cm;    /* en-tête physique */
-        padding-bottom: 2cm;    /* pied physique */
-        padding-left:   1cm;    /* marge gauche */
-        padding-right:  1cm;    /* marge droite */
-    }
-
-    /* ══ EN-TÊTE : NOM à gauche, DATE+N° à droite ══ */
+    /* ══ EN-TÊTE : NOM | DATE | N°PAT/N°ORD — tout sur une seule ligne ══ */
     .entete-donnees {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 1cm;        /* descend le bloc nom→médicaments (ajusté de 2.5cm à 1cm) */
         margin-bottom: 0;
         border-bottom: 1px solid #ccc;
-        padding-bottom: 4px;
-    }
-    .nom-patient {
-        font-size: 14px;
-        font-weight: bold;
-        flex: 1;
-        padding-right: 5cm;     /* NOM↔DATE = 5cm */
-        word-break: break-word;
-    }
-    .infos-droite {
-        text-align: right;
-        flex-shrink: 0;
+        padding-bottom: 3px;
         white-space: nowrap;
     }
-    .infos-droite .date-ord {
+    .nom-patient {
         font-size: 13px;
         font-weight: bold;
-        margin-bottom: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .infos-droite .n-pat {
-        font-size: 15px;
-        font-weight: bold;
-        color: #111;
-    }
-    .infos-droite .n-ord {
+    .entete-date {
         font-size: 11px;
-        color: #aaa;
-        margin-top: 2px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .entete-numeros {
+        font-size: 11px;
+        font-weight: bold;
+        color: #333;
+        flex-shrink: 0;
+    }
+    .entete-numeros .n-ord {
+        font-weight: normal;
+        color: #999;
     }
 
     /* ══ MÉDICAMENTS ══ */
     .liste-meds {
-        margin-top: 3mm;        /* espace nom patient → 1er médicament */
+        margin-top: 6mm;        /* espace nom patient → 1er médicament (3mm + 3mm ajoutés) */
         padding-left: 7mm;      /* décalage niveau 1 : nom médicament */
     }
     .med-item {
-        margin-bottom: 4mm;     /* entre médicaments = 4mm */
+        margin-bottom: 4mm;     /* entre médicaments (2mm + 2mm ajoutés) */
     }
     .med-nom {
         font-size: 13px;
         font-weight: bold;
         text-transform: uppercase;
-        margin-bottom: 2mm;     /* espace nom médicament → posologie */
+        margin-bottom: 1mm;     /* espace nom médicament → posologie (était 2mm) */
         white-space: nowrap;
     }
     .med-detail {
@@ -158,14 +149,19 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 
     /* ══ RDV BAS DE PAGE ══ */
     .rdv-footer {
-        position: absolute;
-        bottom: 2cm;
+        position: fixed;
+        bottom: 1.7cm;
         left:  1cm;
         right: 1cm;
         border-top: 1px solid #ccc;
         padding-top: 6px;
         font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 10px;
     }
+    .rdv-footer-texte { flex: 1; min-width: 0; }
     .rdv-ligne {
         display: flex;
         align-items: baseline;
@@ -175,27 +171,26 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
     .rdv-label  { color: #555; white-space: nowrap; }
     .rdv-val    { font-weight: bold; }
     .rdv-heure  { font-weight: bold; margin-left: 4px; }
-    .ar-label   { direction: rtl; unicode-bidi: isolate; font-family: Tahoma, Arial, sans-serif; color: #555; }
+    .rdv-acte-ligne { margin-top: 4px; }
 
-    /* ══ INFO PATIENT BILINGUE — une seule ligne compacte ══ */
-    .info-patient {
-        margin-top: 4px;
-        padding-top: 3px;
-        border-top: 1px dashed #ccc;
-        font-size: 8px;
-        color: #555;
+    /* ══ QR CODE — prise de RDV en ligne (côte à côte, collé à la bande bleue) ══ */
+    .rdv-qr {
+        flex-shrink: 0;
         display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 5px;
+        align-items: center;
+        gap: 2mm;
     }
-    .info-patient .ar {
-        direction: rtl;
-        unicode-bidi: isolate;
-        font-family: Tahoma, Arial, sans-serif;
+    .rdv-qr img {
+        width: 1.6cm;
+        height: 1.6cm;
+        display: block;
     }
-    .info-patient .sep { color: #bbb; }
-    .info-patient .site { direction: ltr; unicode-bidi: isolate; }
+    .rdv-qr .rdv-qr-legende {
+        font-size: 8px;
+        color: #777;
+        text-align: left;
+        line-height: 1.3;
+    }
 
     @media screen {
         body {
@@ -207,16 +202,12 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 </style>
 </head>
 <body>
-<div class="page">
 
 <!-- ══ EN-TÊTE DONNÉES ══ -->
 <div class="entete-donnees">
     <div class="nom-patient"><?= $nomPatient ?></div>
-    <div class="infos-droite">
-        <div class="date-ord"><?= $dateOrd ?></div>
-        <div class="n-pat"><?= $nPat ?></div>
-        <div class="n-ord"><?= $nOrd ?></div>
-    </div>
+    <div class="entete-date"><?= $dateOrd ?></div>
+    <div class="entete-numeros"><?= $nPat ?> <span class="n-ord">/ <?= $nOrd ?></span></div>
 </div>
 
 <!-- ══ LISTE MÉDICAMENTS ══ -->
@@ -239,31 +230,30 @@ $nPat       = htmlspecialchars($patient['N°PAT'] ?? '');
 </div>
 
 <!-- ══ RDV BAS DE PAGE ══ -->
-<?php if ($dateRDV): ?>
 <div class="rdv-footer">
-    <div class="rdv-ligne">
-        <span class="rdv-label">RDV :</span>
-        <span class="rdv-val"><?= $dateRDV ?></span>
-        <?php if ($heureRDV): ?>
-        <span class="rdv-label">A :</span>
-        <span class="rdv-heure"><?= $heureRDV ?></span>
-        <?php endif; ?>
-        <span class="ar-label" dir="rtl">: الموعد</span>
+    <div class="rdv-footer-texte">
+        <?php if ($dateRDV): ?>
+        <div class="rdv-ligne">
+            <span class="rdv-label">date rendez-vous</span>
+            <span class="rdv-val"><?= $dateRDV ?></span>
+            <?php if ($heureRDV): ?>
+            <span class="rdv-label">A :</span>
+            <span class="rdv-heure"><?= $heureRDV ?></span>
+            <?php endif; ?>
+        </div>
         <?php if ($acteRDV): ?>
-        <span class="rdv-label">Acte :</span>
-        <span class="rdv-val"><?= $acteRDV ?></span>
+        <div class="rdv-acte-ligne">
+            <span class="rdv-label">pour</span>
+            <span style="font-weight:bold;margin-left:6px;"><?= $acteRDV ?></span>
+        </div>
+        <?php endif; ?>
         <?php endif; ?>
     </div>
-
-    <div class="info-patient">
-        <span class="fr">RDV en ligne possible</span>
-        <span class="site">« drhlimihassan.com »</span>
-        <span class="ar" dir="rtl">يمكن حجز الموعد عبر</span>
+    <div class="rdv-qr">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXIAAAFyAQAAAADAX2ykAAAC5ElEQVR4nO2bS4rkMAyGP40Ds3SgD1BHSW7WzM0qR6kbOMsCh38Wdh4FPd00pGvKIC1CpfItBEKS9bCJ78j061s4OO+88z/Kz1ZlnM1sZDGzvn4262H93j1HH+dP5oMkSRAlXecOhltXTCvdOhgkSelZ+jh/Nl+dE7CRIKbL3RjS5snFsZ+nj/Nn8d3xZe5humTE3PHxwevV9Hf+e3wJyBDE1AfpGvN/1cf5M3hJ1Yw2AkyXu9n7zYzh1lET8xP1cf5MfinHYyCUoGzvt98CgmwEmMzWTPyK+jv/ieggqb4yaIvK8Qjo+mr6O/+FSClIStV1qxljphZEj5zbtz0+3g0AXQmqldLcATFTLa2M2SU/Rx/nT+fN+sXsXRkG3c3GKNm4peMR8PNVkzw166YgXaNUvHYThsTWv/L43B6/mpaw2TKXSF17lusHP181yVf/vZZcu5a5QzEt638xVyd2+zbGl/6kDQkZGIKQbeoTYu4x4tJBBE19eoI+zp/Lb62roPKruClQi+CYYUjB6982+UPBSzFyqpauRk5Bxb4lUr+a/s5/IbWNsZa5a+sqaPXk1bFx+7bJrxMisz4I5g5d4910Xdc5mHqvf9vmSwQG9OeS6/7GeGhSBj3yP62P8yfxa30EQFyXdGprYy+Cvf/cKL/NF3iof9M22t/qX8+/LfIc2lRbGH7oeeRD99Lt2xq/9ZrzoRN9mP/u/We3b4v88QQ1pDok/Hj+6/2NBvnH/Y0tE8PDpCEFef5tld/vL5SrC1smnn8Xn7aRxbz+bZJfz8/at67CwZ1rkbQ93H+b5A9bOUNajMnqfg5lu7KvTaxX1d/5f8nD/YUobLoIBi11J2u6CIOQIaYn6OP8uTzr6mQdKOy10L7OUcTn+y3yxX/3u0aaDMRsCHKnyYKApdNz9HH+XL4DaiyG+S3bkN6yDVo6A7AhvUE9Tr/l19Pf+c+lg7h7b0b1sQ2M2G8y+P6z886/Fv8XFnFyqcyuptgAAAAASUVORK5CYII=" alt="QR — Prendre RDV en ligne">
+        <div class="rdv-qr-legende">Prendre RDV<br>en ligne</div>
     </div>
 </div>
-<?php endif; ?>
-
-</div><!-- /.page -->
 
 <script>
     // Impression automatique à l'ouverture
