@@ -49,7 +49,6 @@ $stmtPat->execute([$dateAff, $dateAff, $dateAff]);
 $patients   = $stmtPat->fetchAll(PDO::FETCH_ASSOC);
 $nbPatients = count($patients);
 $totalVerse = array_sum(array_column($patients, 'montant_verse'));
-
 // ── Notes fidélité (coefficient étoiles) des patients du jour ──────
 // Une seule requête groupée pour tous les patients affichés, utile pour
 // juger les priorités (un patient 5* passe avant un "touriste", sauf urgence).

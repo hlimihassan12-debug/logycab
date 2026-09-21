@@ -80,10 +80,10 @@ try {
 
 // ── RDV par jour ──────────────────────────────────────────────
 $stmtRdv = $db->prepare("
-    SELECT CONVERT(date, [DATE REDEZ VOUS]) AS jour, COUNT(*) AS nb
+    SELECT CONVERT(date, COALESCE([DATE REDEZ VOUS], Date_Rdv)) AS jour, COUNT(*) AS nb
     FROM ORD
-    WHERE CONVERT(date, [DATE REDEZ VOUS]) BETWEEN ? AND ?
-    GROUP BY CONVERT(date, [DATE REDEZ VOUS])
+    WHERE CONVERT(date, COALESCE([DATE REDEZ VOUS], Date_Rdv)) BETWEEN ? AND ?
+    GROUP BY CONVERT(date, COALESCE([DATE REDEZ VOUS], Date_Rdv))
 ");
 $stmtRdv->execute([$debutS, $finS]);
 $rdvParJour = [];
