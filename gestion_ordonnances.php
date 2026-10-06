@@ -661,6 +661,11 @@ function p1Filtrer() {
 }
 
 function p1Supprimer(id, nom) {
+    // Produit deja utilise dans des ordonnances -> suppression forcee (avec double confirmation)
+    var prod = p1Liste.find(function(x){ return String(x.id) === String(id); });
+    var nbUtil = prod ? prod.nb : 0;
+    if (nbUtil > 0) { p1ForcerSuppression(id, nom, nbUtil); return; }
+
     if (!confirm(`Supprimer "${nom}" du catalogue ?`)) return;
     fetch('ajax_gestion_ord.php', { method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -672,6 +677,36 @@ function p1Supprimer(id, nom) {
                 document.getElementById('p1_ord_modal').style.display = 'none';
             } else {
                 alert('❌ ' + data.error);
+            }
+        });
+}
+
+// Suppression forcee : efface le produit ET ses lignes dans les ordonnances (table PROD)
+function p1ForcerSuppression(id, nom, nb) {
+    var msg = 'ATTENTION : "' + nom + '" est utilisé dans ' + nb + ' ordonnance(s).\n\n'
+            + 'La suppression forcée va AUSSI effacer ces lignes dans les anciennes ordonnances.\n'
+            + 'Opération IRRÉVERSIBLE.\n\n'
+            + 'Pour confirmer, tapez : SUPPRIMER';
+    var rep = prompt(msg);
+    if (rep === null) return;
+    if (rep.trim().toUpperCase() !== 'SUPPRIMER') { alert('Suppression annulée.'); return; }
+
+    fetch('ajax_forcer_suppression_produit.php', { method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id: id}) })
+        .then(function(r){ return r.text(); })
+        .then(function(txt){
+            var data;
+            try { data = JSON.parse(txt); }
+            catch(e) { alert('Erreur serveur :\n' + txt.substring(0, 400)); return; }
+            if (data.success) {
+                p1Liste = p1Liste.filter(function(m){ return String(m.id) !== String(id); });
+                p1Filtrer();
+                document.getElementById('p1_ord_modal').style.display = 'none';
+                document.getElementById('p1_msg').innerHTML =
+                    '<span class="msg-ok">"' + nom + '" supprimé (' + data.nb_lignes + ' ligne(s) d\'ordonnance effacée(s)).</span>';
+            } else {
+                alert('Erreur : ' + data.error);
             }
         });
 }
