@@ -193,7 +193,8 @@ body { font-family:var(--th-font-body); font-size:13px; background:var(--th-bg-p
     cursor:pointer; transition:background 0.1s; width:100%; min-height:18px;
 }
 .carte-med:hover { background:var(--th-bg-link-hover); }
-.carte-med.orphelin { background:#fff8f0; border-color:#f39c12; }
+.carte-med.orphelin { background:rgba(243,156,18,0.10); border-color:#f39c12; }
+.carte-med.orphelin .nom-med { font-style:italic; }
 .carte-med .nom-med { color:var(--th-color-text); font-weight:600; line-height:1.25;
                        min-width:0; flex-shrink:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .carte-med .nb-util { font-size:10px; font-weight:bold; flex-shrink:0; white-space:nowrap; margin-left:auto; padding-left:6px; }
