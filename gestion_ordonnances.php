@@ -687,10 +687,8 @@ function p1ForcerSuppression(id, nom, nb) {
     var msg = 'ATTENTION : "' + nom + '" est utilisé dans ' + nb + ' ordonnance(s).\n\n'
             + 'La suppression forcée va AUSSI effacer ces lignes dans les anciennes ordonnances.\n'
             + 'Opération IRRÉVERSIBLE.\n\n'
-            + 'Pour confirmer, tapez : SUPPRIMER';
-    var rep = prompt(msg);
-    if (rep === null) return;
-    if (rep.trim().toUpperCase() !== 'SUPPRIMER') { alert('Suppression annulée.'); return; }
+            + 'Cliquez OK pour supprimer, Annuler pour abandonner.';
+    if (!confirm(msg)) return;
 
     fetch('ajax_forcer_suppression_produit.php', { method:'POST',
         headers:{'Content-Type':'application/json'},
